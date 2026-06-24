@@ -28,45 +28,66 @@
 /* 循迹状态机更新周期(ms) */
 #define TRACK_UPDATE_PERIOD_MS    5
 
-/* 直角弯道检测阈值：外侧传感器偏差超过此值触发 */
-#define TRACK_RIGHT_ANGLE_THRESHOLD   2.5f
-
-/* 起点线检测：黑色通道数 ≥ 此值视为起点线 */
-#define TRACK_START_LINE_MIN_BLACK    6
-
-/* 丢线检测：黑色通道数 < 此值视为丢线 */
-#define TRACK_LINE_LOST_MAX_BLACK     1
-
-/* 起点线持续计数阈值（超过此值视为有效过线） */
-#define TRACK_START_LINE_COUNT        100
-
-/* 丢线超时计数阈值（超过此值停车） */
-#define TRACK_LINE_LOST_TIMEOUT       500
-
+/* --- 直角弯道检测 --- */
+/* 外侧传感器偏差超过此值触发候选 */
+#define TRACK_RIGHT_ANGLE_THRESHOLD       2.5f
+/* 连续检测帧数：必须连续 N 次5ms满足条件才确认直角弯 */
+#define TRACK_RIGHT_ANGLE_CONFIRM_FRAMES  3
 /* 直角弯道超时计数阈值 */
-#define TRACK_RIGHT_ANGLE_TIMEOUT     1000
-
+#define TRACK_RIGHT_ANGLE_TIMEOUT         1000
 /* 直角弯道完成角度误差阈值(deg) */
-#define TRACK_RIGHT_ANGLE_DONE_ERR    5.0f
+#define TRACK_RIGHT_ANGLE_DONE_ERR        5.0f
 
+/* --- 十字路口检测 --- */
+/* 中间4路(S2~S5)全黑 + 外侧至少1路白 → 十字路口 */
+#define TRACK_CROSS_MIN_BLACK             4
+/* 十字路口通过计数阈值（超过此值视为已通过） */
+#define TRACK_CROSS_PASS_COUNT            60
+
+/* --- 起点线检测 --- */
+/* 黑色通道数 ≥ 此值视为起点线 */
+#define TRACK_START_LINE_MIN_BLACK        6
+/* 起点线持续计数阈值 */
+#define TRACK_START_LINE_COUNT            100
+
+/* --- 丢线检测 --- */
+/* 黑色通道数 < 此值视为丢线 */
+#define TRACK_LINE_LOST_MAX_BLACK         1
+/* 丢线超时计数阈值 */
+#define TRACK_LINE_LOST_TIMEOUT           500
 /* 丢线时无陀螺仪的转向增益 */
-#define TRACK_LINE_LOST_GAIN          2.0f
+#define TRACK_LINE_LOST_GAIN              2.0f
 
-/* 默认基础速度 */
-#define TRACK_DEFAULT_BASE_SPEED      40
+/* --- 变速策略 --- */
+/* 直道速度（偏差 < 阈值时） */
+#define TRACK_SPEED_STRAIGHT              60
+/* 弯道速度（偏差 ≥ 阈值时） */
+#define TRACK_SPEED_CURVE                 35
+/* 直道/弯道切换偏差阈值 */
+#define TRACK_SPEED_SWITCH_ERR            1.0f
+/* 速度渐变步进（每次5ms变化量） */
+#define TRACK_SPEED_RAMP_STEP             2
 
-/* 默认目标圈数 */
-#define TRACK_DEFAULT_CIRCLES         1
+/* --- 电机差速 --- */
+/* 内侧电机最低速度（不允许反转，避免急转抖动） */
+#define TRACK_MOTOR_INNER_MIN             0
 
-/* ============================================================
- * 循迹PID默认参数（需实测调优）
- * ============================================================ */
+/* --- 偏差计算 --- */
+/* 模拟量差比和最小分母（防止除零） */
+#define TRACK_ERROR_MIN_DENOM             0.01f
+
+/* --- 默认参数 --- */
+#define TRACK_DEFAULT_BASE_SPEED          40
+#define TRACK_DEFAULT_CIRCLES             1
+
+/* 循迹PID默认参数（需实测调优） */
 #define TRACK_LINE_PID_KP        8.0f
 #define TRACK_LINE_PID_KI        0.0f
 #define TRACK_LINE_PID_KD        1.5f
 #define TRACK_LINE_PID_ILIMIT    50.0f
 #define TRACK_LINE_PID_OLIMIT    40.0f
 
+/* 陀螺仪PID默认参数 */
 #define TRACK_GYRO_PID_KP        3.0f
 #define TRACK_GYRO_PID_KI        0.0f
 #define TRACK_GYRO_PID_KD        0.5f
@@ -82,6 +103,7 @@ typedef enum {
     TRACK_STATE_RIGHT_ANGLE,        /* 直角弯道 */
     TRACK_STATE_LINE_LOST,          /* 丢线，陀螺仪维持航向 */
     TRACK_STATE_START_LINE,         /* 起点线（全黑） */
+    TRACK_STATE_CROSS,              /* 十字路口 */
     TRACK_STATE_FINISHED            /* 完成所有圈数 */
 } track_state_t;
 
@@ -101,6 +123,9 @@ typedef struct {
     uint32_t state_timer;           /* 状态计时 */
     uint32_t line_lost_count;       /* 丢线计数 */
 
+    /* --- 直角弯道多帧确认 --- */
+    uint8_t  right_angle_confirm;   /* 直角弯连续确认计数 */
+
     /* --- 圈数 --- */
     uint8_t  target_circles;
     uint8_t  current_circle;
@@ -113,7 +138,8 @@ typedef struct {
     float    turn_output;           /* 转向量(正=左转,负=右转) */
     int32_t  left_speed;            /* 左电机速度 */
     int32_t  right_speed;           /* 右电机速度 */
-    int32_t  base_speed;            /* 基础速度 */
+    int32_t  base_speed;            /* 当前基础速度（渐变） */
+    int32_t  target_speed;          /* 目标基础速度（由变速策略决定） */
 
     /* --- 配置 --- */
     bool     use_gyro;              /* 是否启用陀螺仪融合 */

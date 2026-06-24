@@ -1,6 +1,6 @@
 /**
  * @file    track_grayscale.c
- * @brief   八路灰度传感器驱动实现 — 直接操作 GPIO + ADC12
+ * @brief   八路灰度传感器驱动实现 — GPIO + ADC12 + 归一化 + data_ready
  */
 #include "track_grayscale.h"
 
@@ -51,6 +51,28 @@ static void Track_Grayscale_Hysteresis(uint8_t ch)
     /* grayB ≤ analog ≤ grayW → 保持上一状态 */
 }
 
+/* 归一化：将 ADC 值映射到 0(黑)~1(白) */
+static void Track_Grayscale_Normalize(uint8_t ch)
+{
+    if (!Track_Gray.calibrated) {
+        /* 未校准时用简单线性映射 */
+        Track_Gray.norm[ch] = (float)Track_Gray.analog[ch] / TRACK_GRAY_ADC_MAX;
+        return;
+    }
+
+    uint16_t w = Track_Gray.white[ch];
+    uint16_t b = Track_Gray.black[ch];
+    uint16_t range = w - b;
+    if (range < 1) range = 1;  /* 防止除零 */
+
+    int32_t val = (int32_t)Track_Gray.analog[ch] - b;
+    if (val < 0) val = 0;
+    if (val > range) val = range;
+
+    Track_Gray.norm[ch] = 1.0f - (float)val / (float)range;
+    /* norm=0 → 白（高ADC），norm=1 → 黑（低ADC） */
+}
+
 /* ============================================================
  * 对外接口
  * ============================================================ */
@@ -60,6 +82,7 @@ void Track_Grayscale_Init(void)
     for (uint8_t i = 0; i < TRACK_GRAY_CHANNEL_NUM; i++) {
         Track_Gray.digital[i] = 0;
         Track_Gray.analog[i]  = 0;
+        Track_Gray.norm[i]    = 0;
         Track_Gray.white[i]   = 0;
         Track_Gray.black[i]   = 0;
     }
@@ -67,6 +90,7 @@ void Track_Grayscale_Init(void)
     Track_Gray.last_switch_tick = 0;
     Track_Gray.calibrated       = 0;
     Track_Gray.black_count      = 0;
+    Track_Gray.data_ready       = 0;
 
     /* 选通通道0，开始第一轮扫描 */
     Track_Grayscale_Select(0);
@@ -82,18 +106,33 @@ void Track_Grayscale_Scan(void)
     /* ① 读取当前通道 ADC 值 */
     Track_Gray.analog[Track_Gray.current_ch] = Track_Grayscale_Read_ADC();
 
-    /* ② 滞回比较（需校准后才生效） */
+    /* ② 归一化 */
+    Track_Grayscale_Normalize(Track_Gray.current_ch);
+
+    /* ③ 滞回比较（需校准后才生效） */
     if (Track_Gray.calibrated) {
         Track_Grayscale_Hysteresis(Track_Gray.current_ch);
+    } else {
+        /* 未校准时用归一化阈值判断 */
+        Track_Gray.digital[Track_Gray.current_ch] =
+            (Track_Gray.norm[Track_Gray.current_ch] > 0.5f) ? 1 : 0;
     }
 
-    /* ③ 切换到下一个通道 */
+    /* ④ 切换到下一个通道 */
     Track_Gray.current_ch = (Track_Gray.current_ch + 1) & 0x07;
     Track_Grayscale_Select(Track_Gray.current_ch);
+
+    /* ⑤ 一轮8路扫描完成，设置 data_ready */
+    if (Track_Gray.current_ch == 0) {
+        Track_Gray.data_ready = 1;
+    }
 }
 
 void Track_Grayscale_Calibrate_White(void)
 {
+    /* 确保至少完成一轮扫描 */
+    if (!Track_Gray.data_ready) return;
+
     for (uint8_t i = 0; i < TRACK_GRAY_CHANNEL_NUM; i++) {
         Track_Gray.white[i] = Track_Gray.analog[i];
     }
@@ -102,6 +141,9 @@ void Track_Grayscale_Calibrate_White(void)
 
 void Track_Grayscale_Calibrate_Black(void)
 {
+    /* 确保至少完成一轮扫描 */
+    if (!Track_Gray.data_ready) return;
+
     for (uint8_t i = 0; i < TRACK_GRAY_CHANNEL_NUM; i++) {
         Track_Gray.black[i] = Track_Gray.analog[i];
     }

@@ -2,8 +2,18 @@
  * @file    track.c
  * @brief   灰度PID循迹任务调度实现（TASK层）
  * @note    数据流:
- *          Track_Grayscale_Scan → Track_Gray.digital[8] → Track_Calc_Error → PID → 差速 → Track_Motor
- *          Track_Gyro_Read      → Track_Gyro.heading    → 丢线辅助/直角弯道
+ *          Track_Grayscale_Scan → data_ready → Track_Calc_Error → PID → 差速 → Track_Motor
+ *          Track_Gyro_Read      → heading    → 丢线辅助/直角弯道
+ *
+ *          修复清单:
+ *          ✅ 灰度 data_ready 同步（PID只在完整扫描后执行）
+ *          ✅ 模拟量差比和偏差计算（连续精度）
+ *          ✅ 直角弯多帧确认（3帧防误触发）
+ *          ✅ 十字路口处理（CROSS状态）
+ *          ✅ 丢线恢复PID复位
+ *          ✅ 起点线退出条件（black_count下降也退出）
+ *          ✅ 电机内侧最低速度限制
+ *          ✅ 变速策略（直道加速/弯道减速/渐变）
  */
 #include "track.h"
 
@@ -26,30 +36,62 @@ static const float s_weights[8] = {
 track_t Track = {0};
 
 /* ============================================================
- * 内部函数：偏差计算
+ * 内部函数：偏差计算（模拟量差比和 — 连续精度）
  * ============================================================ */
 
 static void Track_Calc_Error(void)
 {
-    float weighted_sum = 0;
-    float total_weight = 0;
     Track_Gray.black_count = 0;
 
-    /* 保存上次偏差（用于丢线时方向判断） */
+    /* 保存上次偏差 */
     Track.last_error = Track.error;
+
+    /* 方法1：模拟量差比和（归一化值，连续精度）
+     * 左侧权重为负，右侧权重为正
+     * norm[i] = 1 表示黑线，0 表示白色
+     * error = Σ(weight[i] × norm[i]) / Σ(norm[i]) */
+    float weighted_sum = 0;
+    float total_weight = 0;
 
     for (uint8_t i = 0; i < TRACK_GRAY_CHANNEL_NUM; i++) {
         if (Track_Gray.digital[i]) {
-            weighted_sum += s_weights[i];
-            total_weight  += 1.0f;
             Track_Gray.black_count++;
         }
+        /* 用归一化值做加权（连续精度，不受数字量跳变影响） */
+        weighted_sum += s_weights[i] * Track_Gray.norm[i];
+        total_weight  += Track_Gray.norm[i];
     }
 
-    if (total_weight > 0) {
+    if (total_weight > TRACK_ERROR_MIN_DENOM) {
         Track.error = weighted_sum / total_weight;
     }
     /* 全白时保持上次 error 不变，由状态机处理 */
+}
+
+/* ============================================================
+ * 内部函数：变速策略
+ * ============================================================ */
+
+static void Track_Update_Speed(void)
+{
+    /* 根据偏差大小决定目标速度 */
+    if (Track.error > -TRACK_SPEED_SWITCH_ERR &&
+        Track.error <  TRACK_SPEED_SWITCH_ERR) {
+        Track.target_speed = TRACK_SPEED_STRAIGHT;   /* 直道加速 */
+    } else {
+        Track.target_speed = TRACK_SPEED_CURVE;       /* 弯道减速 */
+    }
+
+    /* 速度渐变（避免突变导致车身抖动） */
+    if (Track.base_speed < Track.target_speed) {
+        Track.base_speed += TRACK_SPEED_RAMP_STEP;
+        if (Track.base_speed > Track.target_speed)
+            Track.base_speed = Track.target_speed;
+    } else if (Track.base_speed > Track.target_speed) {
+        Track.base_speed -= TRACK_SPEED_RAMP_STEP;
+        if (Track.base_speed < Track.target_speed)
+            Track.base_speed = Track.target_speed;
+    }
 }
 
 /* ============================================================
@@ -58,28 +100,54 @@ static void Track_Calc_Error(void)
 
 static void Track_Detect_Pattern(void)
 {
-    /* 全黑检测：起点线 */
+    /* --- 十字路口检测 --- */
+    /* 中间4路(S2~S5)全黑 + 外侧至少1路白 */
+    uint8_t mid_black = 0;
+    for (uint8_t i = 2; i <= 5; i++) {
+        if (Track_Gray.digital[i]) mid_black++;
+    }
+    uint8_t outer_white = (!Track_Gray.digital[0] || !Track_Gray.digital[7]) ? 1 : 0;
+
+    if (mid_black >= TRACK_CROSS_MIN_BLACK && outer_white) {
+        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
+            Track.state = TRACK_STATE_CROSS;
+            Track.state_timer = 0;
+            return;
+        }
+    }
+
+    /* --- 起点线检测（≥6路黑） --- */
     if (Track_Gray.black_count >= TRACK_START_LINE_MIN_BLACK) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
             Track.target_heading = Track_Gyro.heading;
             Track.state = TRACK_STATE_START_LINE;
             Track.state_timer = 0;
         }
+        return;
     }
-    /* 直角弯道检测：外侧传感器检测到黑线且偏差较大 */
-    else if ((Track_Gray.digital[0] || Track_Gray.digital[7]) &&
-             (Track.error > TRACK_RIGHT_ANGLE_THRESHOLD ||
-              Track.error < -TRACK_RIGHT_ANGLE_THRESHOLD)) {
-        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.last_state = TRACK_STATE_LINE_FOLLOW;
-            Track.right_angle_target = Track_Gyro.heading +
-                (Track.error > 0 ? 90.0f : -90.0f);
-            Track.state = TRACK_STATE_RIGHT_ANGLE;
-            Track.state_timer = 0;
+
+    /* --- 直角弯道检测（多帧确认） --- */
+    if ((Track_Gray.digital[0] || Track_Gray.digital[7]) &&
+        (Track.error > TRACK_RIGHT_ANGLE_THRESHOLD ||
+         Track.error < -TRACK_RIGHT_ANGLE_THRESHOLD)) {
+        Track.right_angle_confirm++;
+        if (Track.right_angle_confirm >= TRACK_RIGHT_ANGLE_CONFIRM_FRAMES) {
+            if (Track.state == TRACK_STATE_LINE_FOLLOW) {
+                Track.last_state = TRACK_STATE_LINE_FOLLOW;
+                Track.right_angle_target = Track_Gyro.heading +
+                    (Track.error > 0 ? 90.0f : -90.0f);
+                Track.state = TRACK_STATE_RIGHT_ANGLE;
+                Track.state_timer = 0;
+                Track.right_angle_confirm = 0;
+            }
         }
+    } else {
+        /* 条件不满足，重置确认计数 */
+        Track.right_angle_confirm = 0;
     }
-    /* 丢线检测 */
-    else if (Track_Gray.black_count < TRACK_LINE_LOST_MAX_BLACK) {
+
+    /* --- 丢线检测 --- */
+    if (Track_Gray.black_count < TRACK_LINE_LOST_MAX_BLACK) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
             Track.last_state = TRACK_STATE_LINE_FOLLOW;
             Track.target_heading = Track_Gyro.heading;
@@ -98,6 +166,7 @@ static void Track_Handle_StartLine(void)
 {
     Track.state_timer++;
 
+    /* 起点线持续超过阈值视为有效过线 */
     if (Track.state_timer > TRACK_START_LINE_COUNT) {
         Track.current_circle++;
         if (Track.current_circle >= Track.target_circles) {
@@ -107,7 +176,15 @@ static void Track_Handle_StartLine(void)
         } else {
             Track.state = TRACK_STATE_LINE_FOLLOW;
         }
+        return;
     }
+
+    /* 起点线消失（black_count 降到阈值以下）也退出 */
+    if (Track_Gray.black_count < TRACK_START_LINE_MIN_BLACK) {
+        Track.state = TRACK_STATE_LINE_FOLLOW;
+        return;
+    }
+
     /* 起点线期间保持直行 */
     Track.turn_output = 0;
 }
@@ -129,11 +206,13 @@ static void Track_Handle_LineLost(void)
         Track.state = TRACK_STATE_FINISHED;
         Track.left_speed  = 0;
         Track.right_speed = 0;
+        return;
     }
 
-    /* 重新检测到线，恢复循迹 */
+    /* 重新检测到线，恢复循迹（PID复位防止积分突跳） */
     if (Track_Gray.black_count > 0) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
+        Track_PID_Reset(&Track.line_pid);
     }
 }
 
@@ -151,19 +230,49 @@ static void Track_Handle_RightAngle(void)
     if (angle_error > -TRACK_RIGHT_ANGLE_DONE_ERR &&
         angle_error <  TRACK_RIGHT_ANGLE_DONE_ERR) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
+        Track_PID_Reset(&Track.line_pid);
+        return;
     }
 
     /* 超时保护 */
     if (Track.state_timer > TRACK_RIGHT_ANGLE_TIMEOUT) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
+        Track_PID_Reset(&Track.line_pid);
     }
 }
 
-/* 差速输出到电机 */
+/* 十字路口处理：保持当前方向直行通过 */
+static void Track_Handle_Cross(void)
+{
+    Track.state_timer++;
+
+    /* 十字路口期间保持直行（turn_output=0） */
+    Track.turn_output = 0;
+
+    /* 通过计数超过阈值，视为已通过 */
+    if (Track.state_timer > TRACK_CROSS_PASS_COUNT) {
+        Track.state = TRACK_STATE_LINE_FOLLOW;
+    }
+
+    /* 如果检测到全白（偏离十字），也退出 */
+    if (Track_Gray.black_count < 1 && Track.state_timer > 10) {
+        Track.state = TRACK_STATE_LINE_FOLLOW;
+    }
+}
+
+/* 差速输出到电机（内侧电机最低速度限制） */
 static void Track_Motor_Output(void)
 {
     Track.left_speed  = Track.base_speed + (int32_t)Track.turn_output;
     Track.right_speed = Track.base_speed - (int32_t)Track.turn_output;
+
+    /* 内侧电机最低速度限制（不允许反转，避免急转抖动） */
+    if (Track.left_speed < TRACK_MOTOR_INNER_MIN && Track.right_speed > TRACK_MOTOR_INNER_MIN) {
+        Track.left_speed = TRACK_MOTOR_INNER_MIN;
+    }
+    if (Track.right_speed < TRACK_MOTOR_INNER_MIN && Track.left_speed > TRACK_MOTOR_INNER_MIN) {
+        Track.right_speed = TRACK_MOTOR_INNER_MIN;
+    }
 
     /* 电机速度限幅 */
     if (Track.left_speed >  TRACK_MOTOR_SPEED_MAX) Track.left_speed  =  TRACK_MOTOR_SPEED_MAX;
@@ -184,22 +293,24 @@ static void Track_Motor_Output(void)
 void Track_Init(void)
 {
     /* 状态机清零 */
-    Track.error          = 0;
-    Track.last_error     = 0;
-    Track.state          = TRACK_STATE_IDLE;
-    Track.last_state     = TRACK_STATE_IDLE;
-    Track.target_heading = 0;
+    Track.error              = 0;
+    Track.last_error         = 0;
+    Track.state              = TRACK_STATE_IDLE;
+    Track.last_state         = TRACK_STATE_IDLE;
+    Track.target_heading     = 0;
     Track.right_angle_target = 0;
-    Track.state_timer    = 0;
-    Track.line_lost_count = 0;
-    Track.target_circles = TRACK_DEFAULT_CIRCLES;
-    Track.current_circle = 0;
-    Track.turn_output    = 0;
-    Track.left_speed     = 0;
-    Track.right_speed    = 0;
-    Track.base_speed     = TRACK_DEFAULT_BASE_SPEED;
-    Track.use_gyro       = true;
-    Track.use_motor      = true;
+    Track.state_timer        = 0;
+    Track.line_lost_count    = 0;
+    Track.right_angle_confirm = 0;
+    Track.target_circles     = TRACK_DEFAULT_CIRCLES;
+    Track.current_circle     = 0;
+    Track.turn_output        = 0;
+    Track.left_speed         = 0;
+    Track.right_speed        = 0;
+    Track.base_speed         = TRACK_DEFAULT_BASE_SPEED;
+    Track.target_speed       = TRACK_DEFAULT_BASE_SPEED;
+    Track.use_gyro           = true;
+    Track.use_motor          = true;
 
     /* PID 初始化 */
     Track_PID_Init(&Track.line_pid,
@@ -230,20 +341,27 @@ void Track_Update(void)
     if (Track.state == TRACK_STATE_IDLE ||
         Track.state == TRACK_STATE_FINISHED) return;
 
-    /* ③ 读取陀螺仪数据 */
+    /* ③ 等待灰度传感器完成一轮完整扫描（数据同步） */
+    if (!Track_Gray.data_ready) return;
+    Track_Gray.data_ready = 0;  /* 消费标志 */
+
+    /* ④ 读取陀螺仪数据 */
 #if TRACK_USE_MPU6050
     if (Track.use_gyro) {
         Track_Gyro_Read();
     }
 #endif
 
-    /* ④ 计算偏差 */
+    /* ⑤ 计算偏差 */
     Track_Calc_Error();
 
-    /* ⑤ 检测赛道元素 */
+    /* ⑥ 变速策略 */
+    Track_Update_Speed();
+
+    /* ⑦ 检测赛道元素 */
     Track_Detect_Pattern();
 
-    /* ⑥ 状态机处理 */
+    /* ⑧ 状态机处理 */
     switch (Track.state) {
     case TRACK_STATE_LINE_FOLLOW:
         Track.turn_output = Track_PID_Calculate(&Track.line_pid, 0.0f, Track.error);
@@ -261,11 +379,15 @@ void Track_Update(void)
         Track_Handle_RightAngle();
         break;
 
+    case TRACK_STATE_CROSS:
+        Track_Handle_Cross();
+        break;
+
     default:
         break;
     }
 
-    /* ⑦ 差速输出到电机 */
+    /* ⑨ 差速输出到电机 */
     Track_Motor_Output();
 }
 
@@ -273,6 +395,7 @@ void Track_Start(void)
 {
     Track.state = TRACK_STATE_LINE_FOLLOW;
     Track.current_circle = 0;
+    Track.right_angle_confirm = 0;
     Track_PID_Reset(&Track.line_pid);
     Track_PID_Reset(&Track.gyro_pid);
 }
@@ -295,7 +418,8 @@ void Track_Set_Circles(uint8_t n)
 
 void Track_Set_Speed(int32_t base_speed)
 {
-    Track.base_speed = base_speed;
+    Track.base_speed   = base_speed;
+    Track.target_speed = base_speed;
 }
 
 void Track_Set_TrackPID(float kp, float ki, float kd)

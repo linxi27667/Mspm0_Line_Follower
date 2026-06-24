@@ -42,13 +42,21 @@
 /* I2C 时序延时(us) */
 #define TRACK_I2C_DELAY_US      2
 
+/* 零偏校准采样次数（上电静态采集） */
+#define TRACK_GYRO_CALIB_SAMPLES    500
+
+/* 零偏校准阈值：采样标准差超过此值说明有运动，校准失败 */
+#define TRACK_GYRO_CALIB_MAX_STD    5.0f
+
 /* ============================================================
  * 陀螺仪数据结构
  * ============================================================ */
 typedef struct {
-    float    gyro_z;                /* Z轴角速度(deg/s) */
+    float    gyro_z;                /* Z轴角速度(deg/s)，已减零偏 */
     float    heading;               /* 累计航向角(deg) */
+    float    gyro_z_offset;         /* Z轴零偏(deg/s)，校准得到 */
     uint8_t  gyro_ok;               /* 初始化成功标志 */
+    uint8_t  calibrated;            /* 零偏校准完成标志 */
 } Track_Gyro_t;
 
 /* ============================================================
@@ -58,7 +66,7 @@ typedef struct {
 /* 外部全局对象 */
 extern Track_Gyro_t Track_Gyro;
 
-/* 初始化 MPU6050（含 I2C 引脚配置） */
+/* 初始化 MPU6050（含 I2C 引脚配置 + 零偏校准） */
 void Track_Gyro_Init(void);
 
 /* 读取陀螺仪Z轴数据并积分航向角（5ms周期调用） */

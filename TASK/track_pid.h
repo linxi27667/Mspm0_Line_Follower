@@ -9,12 +9,20 @@
 #include <stddef.h>
 
 /* ============================================================
+ * PID 宏定义
+ * ============================================================ */
+
+/* 不完全微分系数 (0~1): 越大滤波越强，1=完全无微分，0=纯微分 */
+#define TRACK_PID_DERIV_ALPHA   0.6f
+
+/* ============================================================
  * PID 控制器结构体
  * ============================================================ */
 typedef struct {
     float kp, ki, kd;
     float error, last_error;
     float integral, derivative;
+    float last_derivative;              /* 上次微分值（用于不完全微分） */
     float integral_limit, output_limit;
     float integral_sep_threshold;
     float output;
