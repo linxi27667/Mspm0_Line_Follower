@@ -7,22 +7,19 @@
 static log_level_t g_log_level = MYLOG_DEFAULT_LEVEL;
 static bool        g_color     = MYLOG_DEFAULT_COLOR;
 
+/* IWAE 四级标签 */
 static const char * const s_level_str[] = {
-    [LOG_LVL_ASSERT]   = "A",
-    [LOG_LVL_ERROR]    = "E",
-    [LOG_LVL_WARN]     = "W",
-    [LOG_LVL_INFO]     = "I",
-    [LOG_LVL_DEBUG]    = "D",
-    [LOG_LVL_VERBOSE]  = "V",
+    [LOG_LVL_ASSERT]  = "A",
+    [LOG_LVL_ERROR]   = "E",
+    [LOG_LVL_WARN]    = "W",
+    [LOG_LVL_INFO]    = "I",
 };
 
 static const char * const s_level_clr[] = {
-    [LOG_LVL_ASSERT]   = _MYLOG_CLR_A,
-    [LOG_LVL_ERROR]    = _MYLOG_CLR_E,
-    [LOG_LVL_WARN]     = _MYLOG_CLR_W,
-    [LOG_LVL_INFO]     = _MYLOG_CLR_I,
-    [LOG_LVL_DEBUG]    = _MYLOG_CLR_D,
-    [LOG_LVL_VERBOSE]  = _MYLOG_CLR_V,
+    [LOG_LVL_ASSERT]  = _MYLOG_CLR_A,
+    [LOG_LVL_ERROR]   = _MYLOG_CLR_E,
+    [LOG_LVL_WARN]    = _MYLOG_CLR_W,
+    [LOG_LVL_INFO]    = _MYLOG_CLR_I,
 };
 
 /* ---------- 公共 API ---------- */
@@ -47,9 +44,10 @@ void my_log_set_color(bool enable)
 
 #if MYLOG_ENABLED
 
+extern volatile uint32_t systick_ms;  /* 引用 main.c 中的时标 */
+
 void my_log_write(log_level_t level, const char *tag, const char *fmt, ...)
 {
-    /* 级别过滤 — 最早退出，零浪费 */
     if (level > g_log_level) {
         return;
     }
@@ -57,26 +55,21 @@ void my_log_write(log_level_t level, const char *tag, const char *fmt, ...)
     char buf[MYLOG_BUF_SIZE];
     int  n = 0;
 
-    /* 颜色前缀 — 整行一个颜色 */
+    /* 格式: LEVEL/TAG  [tick] [TAG] message */
     if (g_color) {
         n += snprintf(buf + n, sizeof(buf) - n,
-                    "%s%s%s%s ",
+                    "%s%s/%-8s [%lu] [%s] ",
                     s_level_clr[level],
-                    _MYLOG_SEP_L,
-                    s_level_str[level],
-                    _MYLOG_SEP_M);
+                    s_level_str[level], tag,
+                    (unsigned long)systick_ms, tag);
     } else {
         n += snprintf(buf + n, sizeof(buf) - n,
-                    "%s%s%s ",
-                    _MYLOG_SEP_L,
-                    s_level_str[level],
-                    _MYLOG_SEP_M);
+                    "%s/%-8s [%lu] [%s] ",
+                    s_level_str[level], tag,
+                    (unsigned long)systick_ms, tag);
     }
 
-    /* tag */
-    n += snprintf(buf + n, sizeof(buf) - n, "%s: ", tag);
-
-    /* 用户格式 — 用 vsnprintf 防止溢出 */
+    /* 用户格式 */
     va_list args;
     va_start(args, fmt);
     n += vsnprintf(buf + n, sizeof(buf) - n, fmt, args);
@@ -90,7 +83,6 @@ void my_log_write(log_level_t level, const char *tag, const char *fmt, ...)
         buf[n++] = '\n';
     }
 
-    /* 直接推送到 RTT — 非阻塞，RTT 内部有自己的 ring buffer */
     SEGGER_RTT_Write(0, buf, (unsigned)n);
 }
 

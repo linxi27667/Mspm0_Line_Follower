@@ -17,15 +17,7 @@
 #include "bsp_stepper.h"
 #include "bsp_sw_i2c.h"
 #include "bsp_mpu6050.h"
-
-/* 硬件绑定层 (APP_HW) */
-#include "app_led.h"
-#include "app_key.h"
-#include "app_uart.h"
-#include "app_servo.h"
-#include "app_encoder_motor.h"
-#include "app_stepper.h"
-#include "app_sw_i2c.h"
-#include "app_mpu6050.h"
+#include "bsp_grayscale.h"
+#include "bsp_pid.h"
 
 #endif /* __BSP_ALL_H__ */

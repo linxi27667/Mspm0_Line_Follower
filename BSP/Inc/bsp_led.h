@@ -13,6 +13,7 @@ typedef struct {
     void    *port;
     uint32_t pin;
     uint8_t  state;
+    void (*Gpio_Write)(void *port, uint32_t pin, uint8_t level);
 } led_t;
 
 #define BSP_LED_NUM 8

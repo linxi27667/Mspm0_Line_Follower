@@ -1,8 +1,4 @@
- #ifndef __MAIN_H
+#ifndef __MAIN_H
 #define __MAIN_H
-
-#include "ti_msp_dl_config.h"
-
-
 
 #endif /* __MAIN_H */

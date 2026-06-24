@@ -1,9 +1,10 @@
 /**
  * @file    bsp_encoder_motor.c
- * @brief   霍尔电机核心逻辑实现
+ * @brief   霍尔编码器电机核心逻辑实现（BSP — 纯逻辑，跨平台）
  */
 #include "bsp_encoder_motor.h"
 
+/* ================= 1. 设备初始化 ================= */
 void BSP_Motor_Init_Device(bsp_motor_t *motor)
 {
     if (motor == NULL) return;
@@ -13,10 +14,11 @@ void BSP_Motor_Init_Device(bsp_motor_t *motor)
     motor->total_position = 0;
 
     if (motor->Init != NULL) {
-        motor->Init();
+        motor->Init(motor);
     }
 }
 
+/* ================= 2. 速度控制（正转/反转/停止） ================= */
 void BSP_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val)
 {
     if (motor == NULL) return;
@@ -50,12 +52,13 @@ void BSP_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val)
     }
 }
 
+/* ================= 3. 状态更新（编码器读取） ================= */
 void BSP_Motor_Update_Status(bsp_motor_t *motor)
 {
     if (motor == NULL) return;
 
     if (motor->Enc_Read != NULL) {
-        motor->encoder_speed = motor->Enc_Read();
+        motor->encoder_speed = motor->Enc_Read(motor->enc_timer);
         motor->total_position += motor->encoder_speed;
     }
 }

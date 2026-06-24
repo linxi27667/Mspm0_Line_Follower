@@ -1,27 +1,27 @@
 /**
  * @file    bsp_led.c
- * @brief   LED 核心逻辑实现
+ * @brief   LED 核心逻辑实现（BSP — 纯逻辑，跨平台）
  */
 #include "bsp_led.h"
-#include "bsp_common.h"
 
-led_t bsp_leds[BSP_LED_NUM];
-
+/* ================= 1. 设备初始化 ================= */
 void BSP_Led_Init(led_t *led)
 {
-    for (uint8_t i = 0; i < BSP_LED_NUM; i++) {
-        GPIO_WritePin(led[i].port, led[i].pin, led[i].state);
-    }
+    /* 初始化状态，具体GPIO配置由APP层完成 */
+    (void)led;
 }
 
+/* ================= 2. LED 控制 ================= */
 void BSP_Led_On(led_t *led)
 {
-    GPIO_WritePin(led->port, led->pin, LED_ON);
-    led->state = LED_ON;
+    if (led == NULL || led->Gpio_Write == NULL) return;
+    led->Gpio_Write(led->port, led->pin, 1);
+    led->state = 1;
 }
 
 void BSP_Led_Off(led_t *led)
 {
-    GPIO_WritePin(led->port, led->pin, LED_OFF);
-    led->state = LED_OFF;
+    if (led == NULL || led->Gpio_Write == NULL) return;
+    led->Gpio_Write(led->port, led->pin, 0);
+    led->state = 0;
 }

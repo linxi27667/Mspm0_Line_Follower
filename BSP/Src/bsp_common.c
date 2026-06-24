@@ -4,23 +4,6 @@
  */
 #include "bsp_common.h"
 
-static volatile uint32_t systick_ms = 0;
-
-/* SysTick 中断处理 —— 每 1ms 触发一次 */
-void BSP_SysTick_Handler(void)
-{
-    systick_ms++;
-}
-
-void BSP_SysTick_Init(void)
-{
-    systick_ms = 0;
-    DL_SYSTICK_enableInterrupt(SYSTICK);
-    DL_SYSTICK_setLoadValue(SYSTICK, 32000 - 1);  /* 32MHz / 1000 = 32000 */
-    DL_SYSTICK_enableCounter(SYSTICK);
-    DL_SYSTICK_startCounter(SYSTICK);
-}
-
 void BSP_Delay_ms(uint32_t ms)
 {
     uint32_t start = systick_ms;

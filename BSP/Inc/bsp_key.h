@@ -40,9 +40,9 @@ typedef struct {
     uint32_t doubleclick_time;
 } bsp_key_t;
 
-void BSP_Key_Init(void);
-void BSP_Key_Scan(bsp_key_t *key);
-void BSP_Key_EasyScan(bsp_key_t *key);
+void BSP_Key_Init(bsp_key_t *keys, uint8_t num);
+void BSP_Key_Scan(bsp_key_t *keys, uint8_t num);
+void BSP_Key_EasyScan(bsp_key_t *keys, uint8_t num);
 bsp_key_event_t BSP_Key_GetEvent(bsp_key_t *key);
 
 #endif /* __BSP_KEY_H__ */

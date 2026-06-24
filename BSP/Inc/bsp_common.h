@@ -38,7 +38,8 @@
  * SysTick 延时服务
  * ============================================================ */
 
-void BSP_SysTick_Init(void);
+extern volatile uint32_t systick_ms;  /* 定义在 main.c，由 SysTick_Handler 递增 */
+
 void BSP_Delay_ms(uint32_t ms);
 void BSP_Delay_us(uint32_t us);
 uint32_t BSP_GetTick(void);
