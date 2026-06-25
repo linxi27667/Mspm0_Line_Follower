@@ -31,7 +31,7 @@ typedef struct {
 } bsp_servo_t;
 
 /* --- 3. 对外核心API (跨平台通用) --- */
-void BSP_Servo_Init_Device(bsp_servo_t *servo);
-void BSP_Servo_Set_Angle(bsp_servo_t *servo, float angle);
+void Bsp_Servo_Init_Device(bsp_servo_t *servo);
+void Bsp_Servo_Set_Angle(bsp_servo_t *servo, float angle);
 
 #endif /* __BSP_SERVO_H__ */

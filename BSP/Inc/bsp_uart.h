@@ -5,8 +5,8 @@
  *          RX: DMA + IDLE/Timeout 帧检测 + 字节FIFO + 帧长环形队列（多帧缓冲，突发不丢帧）
  *          TX: 字节FIFO + DMA 零拷贝（DMA 直接从 FIFO 读取，完成中断自动链接下一块）
  */
-#ifndef __BSP_UART_H__
-#define __BSP_UART_H__
+#ifndef __Bsp_UART_H__
+#define __Bsp_UART_H__
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -52,31 +52,31 @@ typedef struct {
 } bsp_uart_t;
 
 /* ============ 对外 API ============ */
-void     BSP_UART_Init(bsp_uart_t *uart);
+void     Bsp_UART_Init(bsp_uart_t *uart);
 
 /* TX —— 非阻塞（FIFO 满则丢字节并置 tx_overflow） */
-void     BSP_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+void     Bsp_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
 /* TX —— 阻塞直到全部入队（不丢数据） */
-void     BSP_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+void     Bsp_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
 /* TX —— 发送字符串（阻塞） */
-void     BSP_UART_SendString(bsp_uart_t *uart, const char *s);
+void     Bsp_UART_SendString(bsp_uart_t *uart, const char *s);
 /* TX —— 阻塞等待 FIFO 排空 + DMA 完成 */
-void     BSP_UART_Flush(bsp_uart_t *uart);
+void     Bsp_UART_Flush(bsp_uart_t *uart);
 /* TX —— 查询待发送字节数 */
-uint16_t BSP_UART_TxPending(bsp_uart_t *uart);
+uint16_t Bsp_UART_TxPending(bsp_uart_t *uart);
 
 /* TX —— DMA 完成中断回调（在 DMA ISR 中调用） */
-void     BSP_UART_Tx_OnDMAComplete(bsp_uart_t *uart);
+void     Bsp_UART_Tx_OnDMAComplete(bsp_uart_t *uart);
 
 /* RX —— 帧到达回调（在 UART ISR 中调用，自动推入 FIFO + 重启 DMA） */
-void     BSP_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+void     Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
 /* RX —— 弹出一帧（返回 false 表示无完整帧） */
-bool     BSP_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len);
+bool     Bsp_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len);
 /* RX —— 查询可读字节数 */
-uint16_t BSP_UART_Available(bsp_uart_t *uart);
+uint16_t Bsp_UART_Available(bsp_uart_t *uart);
 /* RX —— 弹出一个字节 */
-bool     BSP_UART_ReadByte(bsp_uart_t *uart, uint8_t *out_byte);
+bool     Bsp_UART_ReadByte(bsp_uart_t *uart, uint8_t *out_byte);
 /* RX —— 查询待处理帧数 */
-uint16_t BSP_UART_Frame_Count(bsp_uart_t *uart);
+uint16_t Bsp_UART_Frame_Count(bsp_uart_t *uart);
 
-#endif /* __BSP_UART_H__ */
+#endif /* __Bsp_UART_H__ */

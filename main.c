@@ -10,10 +10,11 @@
 #include "bsp_uart.h"
 #include "app_all.h"
 #include "track.h"
+#include <stdio.h>
 
 /* ================= 全局时标 ================= */
 
-volatile uint32_t systick_ms = 0;  /* 唯一时标源，供 bsp_common.c 使用 */
+extern volatile uint32_t systick_ms;  /* 定义在 bsp_common.c */
 
 /* ================= 中断处理函数（全部集中于此） ================= */
 
@@ -51,7 +52,7 @@ void UART0_IRQHandler(void)
             }
 
             /* 4. 推入软件 FIFO + 记录帧长 + 自动重启 DMA RX */
-            App_UART_RX_IRQHandler(rx_len);
+            Uart_RX_IRQHandler(rx_len);
             break;
         }
 
@@ -66,7 +67,7 @@ void DMA_IRQHandler(void)
     switch (DL_DMA_getPendingInterrupt(DMA)) {
         case DL_DMA_EVENT_IIDX_DMACH1:
             /* TX DMA 完成一块 → 推进 FIFO tail + 链接下一块 */
-            App_UART_Tx_DMA_Done_IRQHandler();
+            Uart_Tx_DMA_Done_IRQHandler();
             break;
 
         default:
@@ -74,23 +75,43 @@ void DMA_IRQHandler(void)
     }
 }
 
+/* GPIO GROUP1 中断 — 右编码器PHA双沿触发 */
+void GROUP1_IRQHandler(void)
+{
+    /* 检查PB14(PHA)是否产生中断 */
+    if (DL_GPIO_getPendingInterrupt(RIGHT_ENC_PHA_PORT) &
+        RIGHT_ENC_PHA_PIN) {
+        DL_GPIO_clearInterruptStatus(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN);
+        Right_Encoder_IRQHandler();
+    }
+}
+
 /* ================= 组合逻辑函数（main 上方定义） ================= */
 
 static void System_Init(void)
 {
+    /* ① RTT 最早初始化，确保后续日志都能输出 */
+    SEGGER_RTT_Init();
+    SEGGER_RTT_Write(0, "\r\n===== MSPM0G3507 SmartCar Boot =====\r\n", 38);
+
+    /* ② 硬件外设初始化（GPIO/UART/DMA/ADC/I2C/Timer 全部由 SysConfig 生成） */
     SYSCFG_DL_init();
+
+    /* ③ 日志系统初始化（设置默认级别与颜色） */
     my_log_init();
 
-    /* 配置 SysTick 为 1ms 中断 */
+    /* ④ 启动 1ms SysTick 中断（必须在任何 Bsp_Delay_ms 调用前完成） */
     SysTick_Config(CPUCLK_FREQ / 1000);
 
-    /* 非循迹模块初始化（按键/LED/UART 仍走 APP 层） */
-    App_LED_System_Init();
-    App_Key_System_Init();
-    App_UART_System_Init();
+    /* ⑤ 非循迹模块初始化 */
+    App_Led_Init();
+    App_Key_Init();
+    App_Uart_Init();
 
-    /* 循迹任务初始化（自包含：灰度+电机+陀螺仪 全部在 TASK 层直驱） */
+    /* ⑥ 循迹任务初始化 */
     Track_Init();
+
+    elog_i("[SYS]", "System initialized - ready");
 }
 
 /* ================= 主函数 ================= */
@@ -99,38 +120,55 @@ int main(void)
 {
     System_Init();
 
-    elog_i("SYS", "System ready - waiting for keys");
+    elog_i("[SYS]", "Waiting for keys (K1=Start K2=Stop K3=WhiteCal K4=BlackCal)");
 
     /* 循迹小车: 设置3圈，基础速度40 */
     Track_Set_Circles(3);
     Track_Set_Speed(40);
 
     /* 时标调度变量 */
-    uint32_t last_10ms = 0, last_50ms = 0, last_100ms = 0;
+    uint32_t last_10ms = 0, last_500ms = 0, last_100ms = 0;
+    /* 状态变化检测：避免静止状态下重复打印相同状态 */
+    uint8_t  last_state = 0xFF;
+    uint8_t  last_circle = 0xFF;
+    uint8_t  last_bc = 0xFF;
 
     while (1)
     {
         uint32_t now = systick_ms;
 
         /* ===================== 循迹任务（自包含，全由 Track_Update 调度） ===================== */
-        /* 内部完成: 灰度扫描 → 陀螺仪读取 → 偏差计算 → PID → 电机输出 */
         Track_Update();
-
-        /* ===================== 时标轮询任务（非循迹） ===================== */
 
         /* ---- 10ms: 按键扫描（无阻塞状态机） ---- */
         if ((now - last_10ms) >= 10) {
             last_10ms = now;
-            App_Key_Scan_Task();
+            Key_Scan_Task();
         }
 
-        /* ---- 50ms: 日志输出 ---- */
-        if ((now - last_50ms) >= 50) {
-            last_50ms = now;
-            elog_i("TRACK", "St:%d Cir:%d Err:%.1f L:%d R:%d BC:%d",
-                   Track.state, Track.current_circle,
-                   Track.error, Track.left_speed, Track.right_speed,
-                   Track_Gray.black_count);
+        /* ---- 500ms: 传感器状态日志（降低频率，避免刷屏） ----
+         * 仅在状态/圈数/黑点数变化时打印，或在循迹运行中周期打印 */
+        if ((now - last_500ms) >= 500) {
+            last_500ms = now;
+            uint8_t cur_state  = (uint8_t)Track.state;
+            uint8_t cur_circle = (uint8_t)Track.current_circle;
+            uint8_t cur_bc     = Grayscale_Sensor.black_count;
+
+            bool state_changed = (cur_state != last_state) ||
+                                 (cur_circle != last_circle) ||
+                                 (cur_bc != last_bc);
+
+            /* 状态变化时必打印；运行中即使无变化也周期打印 */
+            if (state_changed || cur_state != 0) {
+                elog_i("[CAR]", "St:%d Cir:%d Err:%d L:%d R:%d BC:%d",
+                       Track.state, Track.current_circle,
+                       (int)(Track.error * 1000),
+                       Track.left_speed, Track.right_speed,
+                       cur_bc);
+                last_state  = cur_state;
+                last_circle = cur_circle;
+                last_bc     = cur_bc;
+            }
         }
 
         /* ---- 100ms: 按键事件处理 ---- */
@@ -138,29 +176,29 @@ int main(void)
             last_100ms = now;
             bsp_key_event_t evt;
             for (uint8_t i = 0; i < BSP_KEY_NUM; i++) {
-                evt = App_Key_GetEvent(i);
+                evt = Key_GetEvent(i);
                 if (evt == BSP_KEY_EVENT_PUSH) {
-                    App_LED_Toggle(i);
-                    elog_i("KEY", "Key%u pressed", i);
+                    Led_Toggle(i);
+                    elog_i("[KEY]", "K%u pressed", i);
                     /* KEY1: 启动循迹 */
                     if (i == 0) {
                         Track_Start();
-                        elog_i("TRACK", "Tracking started!");
+                        elog_i("[CTRL]", "Tracking started");
                     }
                     /* KEY2: 停止 */
                     if (i == 1) {
                         Track_Stop();
-                        elog_i("TRACK", "Tracking stopped!");
+                        elog_i("[CTRL]", "Tracking stopped");
                     }
                     /* KEY3: 白纸校准 */
                     if (i == 2) {
                         Track_Calibrate_White();
-                        elog_i("TRACK", "White calibrated");
+                        elog_i("[SENSOR]", "White calibrated");
                     }
                     /* KEY4: 黑纸校准 */
                     if (i == 3) {
                         Track_Calibrate_Black();
-                        elog_i("TRACK", "Black calibrated");
+                        elog_i("[SENSOR]", "Black calibrated");
                     }
                 }
             }
@@ -170,9 +208,9 @@ int main(void)
         {
             uint8_t frame[BSP_UART_RX_BUF_SIZE];
             uint16_t len = 0;
-            while (App_UART_Get_Frame(frame, &len)) {
+            while (Uart_Get_Frame(frame, &len)) {
                 frame[len] = '\0';
-                elog_i("UART", "RX(%u): %s", len, frame);
+                elog_i("[COMM]", "RX(%u): %s", len, frame);
             }
         }
     }

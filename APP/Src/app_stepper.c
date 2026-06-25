@@ -3,16 +3,21 @@
  * @brief   步进电机硬件绑定实现（MSPM0G3507）
  */
 #include "app_stepper.h"
-#include "ti_msp_dl_config.h"
-#include "bsp_common.h"
+#include "app_common.h"
+
+/* PINCM 索引定义（MSPM0G3507 引脚映射） */
+#define STEPPER_DIR_PINCM    7   /* PA2 */
+#define STEPPER_STEP_PINCM   8   /* PA3 */
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
 static void HW_GPIO_Config(void)
 {
-    DL_GPIO_initDigitalOutputFeatures(STEPPER_X_DIR_PORT,
-        STEPPER_X_DIR_PIN | STEPPER_X_STEP_PIN,
-        DL_GPIO_PIN_NO_PULL);
+    /* 步进电机引脚配置为推挽输出 */
+    DL_GPIO_initDigitalOutput(STEPPER_DIR_PINCM);
+    DL_GPIO_initDigitalOutput(STEPPER_STEP_PINCM);
+    DL_GPIO_clearPins(GPIOA, STEPPER_X_DIR_PIN | STEPPER_X_STEP_PIN);
+    DL_GPIO_enableOutput(GPIOA, STEPPER_X_DIR_PIN | STEPPER_X_STEP_PIN);
 }
 
 static void HW_Stepper_Init(void)
@@ -28,7 +33,7 @@ static void HW_Gpio_Write(void *port, uint32_t pin, uint8_t level)
 
 /* ================= 2. 对象实例化与引脚拼装 ================= */
 
-bsp_stepper_t App_Stepper_X = {
+bsp_stepper_t Stepper_X = {
     .dir_pin    = {STEPPER_X_DIR_PORT, STEPPER_X_DIR_PIN},
     .step_pin   = {STEPPER_X_STEP_PORT, STEPPER_X_STEP_PIN},
 
@@ -42,17 +47,17 @@ bsp_stepper_t App_Stepper_X = {
 
 /* ================= 3. 对外业务切入点 ================= */
 
-void App_Stepper_System_Init(void)
+void App_Stepper_Init(void)
 {
-    BSP_Stepper_Init_Device(&App_Stepper_X);
+    Bsp_Stepper_Init_Device(&Stepper_X);
 }
 
-void App_Stepper_Start(uint8_t dir, uint32_t steps, uint32_t delay_ticks)
+void Stepper_Start(uint8_t dir, uint32_t steps, uint32_t delay_ticks)
 {
-    BSP_Stepper_Start(&App_Stepper_X, dir, steps, delay_ticks);
+    Bsp_Stepper_Start(&Stepper_X, dir, steps, delay_ticks);
 }
 
-void App_Stepper_Task(void)
+void Stepper_Task(void)
 {
-    BSP_Stepper_Task(&App_Stepper_X);
+    Bsp_Stepper_Task(&Stepper_X);
 }

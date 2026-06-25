@@ -23,8 +23,8 @@ typedef struct {
     void    (*Delay_us)(uint32_t us);
 } bsp_sw_i2c_t;
 
-void    BSP_I2C_Init_Device(bsp_sw_i2c_t *bus);
-uint8_t BSP_I2C_Write_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, uint16_t len);
-uint8_t BSP_I2C_Read_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len);
+void    Bsp_I2C_Init_Device(bsp_sw_i2c_t *bus);
+uint8_t Bsp_I2C_Write_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, uint16_t len);
+uint8_t Bsp_I2C_Read_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len);
 
 #endif /* __BSP_SW_I2C_H__ */

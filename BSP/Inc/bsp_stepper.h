@@ -36,8 +36,8 @@ typedef struct {
     void (*Gpio_Write)(void *port, uint32_t pin, uint8_t level);
 } bsp_stepper_t;
 
-void BSP_Stepper_Init_Device(bsp_stepper_t *stepper);
-void BSP_Stepper_Start(bsp_stepper_t *stepper, uint8_t dir, uint32_t steps, uint32_t delay_ticks);
-void BSP_Stepper_Task(bsp_stepper_t *stepper);
+void Bsp_Stepper_Init_Device(bsp_stepper_t *stepper);
+void Bsp_Stepper_Start(bsp_stepper_t *stepper, uint8_t dir, uint32_t steps, uint32_t delay_ticks);
+void Bsp_Stepper_Task(bsp_stepper_t *stepper);
 
 #endif /* __BSP_STEPPER_H__ */

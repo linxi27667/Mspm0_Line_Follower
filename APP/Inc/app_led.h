@@ -6,23 +6,24 @@
 #define APP_LED_H
 
 #include "bsp_led.h"
+#include "ti_msp_dl_config.h"
 
-/* ============ LED硬件配置 ============ */
-#define LED1_PORT       GPIOB
-#define LED1_PIN        DL_GPIO_PIN_22
-#define LED2_PORT       GPIOB
-#define LED2_PIN        DL_GPIO_PIN_21
-#define LED3_PORT       GPIOB
-#define LED3_PIN        DL_GPIO_PIN_27
-#define LED4_PORT       GPIOB
-#define LED4_PIN        DL_GPIO_PIN_16
+/* ============ LED硬件配置（由SysConfig生成） ============ */
+#define LED1_PORT       Led_Group_PORT
+#define LED1_PIN        Led_Group_LED1_PIN
+#define LED2_PORT       Led_Group_PORT
+#define LED2_PIN        Led_Group_LED2_PIN
+#define LED3_PORT       Led_Group_PORT
+#define LED3_PIN        Led_Group_LED3_PIN
+#define LED4_PORT       Led_Group_PORT
+#define LED4_PIN        Led_Group_LED4_PIN
 
 /* ============ 业务接口声明 ============ */
-extern led_t app_leds[BSP_LED_NUM];
+extern led_t Led_Devices[BSP_LED_NUM];
 
-void App_LED_System_Init(void);
-void App_LED_On(uint8_t index);
-void App_LED_Off(uint8_t index);
-void App_LED_Toggle(uint8_t index);
+void App_Led_Init(void);
+void Led_On(uint8_t index);
+void Led_Off(uint8_t index);
+void Led_Toggle(uint8_t index);
 
 #endif /* APP_LED_H */

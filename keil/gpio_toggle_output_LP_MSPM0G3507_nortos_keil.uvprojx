@@ -390,11 +390,6 @@
               <FilePath>..\main.c</FilePath>
             </File>
             <File>
-              <FileName>main.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\main.h</FilePath>
-            </File>
-            <File>
               <FileName>TI_moban.syscfg</FileName>
               <FileType>5</FileType>
               <FilePath>..\TI_moban.syscfg</FilePath>
@@ -499,6 +494,21 @@
               <FileType>5</FileType>
               <FilePath>..\APP\Inc\app_mpu6050.h</FilePath>
             </File>
+            <File>
+              <FileName>app_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_common.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_common.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -513,46 +523,6 @@
               <FileName>track.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\TASK\track.h</FilePath>
-            </File>
-            <File>
-              <FileName>track_pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\TASK\track_pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>track_pid.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\TASK\track_pid.h</FilePath>
-            </File>
-            <File>
-              <FileName>track_grayscale.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\TASK\track_grayscale.c</FilePath>
-            </File>
-            <File>
-              <FileName>track_grayscale.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\TASK\track_grayscale.h</FilePath>
-            </File>
-            <File>
-              <FileName>track_motor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\TASK\track_motor.c</FilePath>
-            </File>
-            <File>
-              <FileName>track_motor.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\TASK\track_motor.h</FilePath>
-            </File>
-            <File>
-              <FileName>track_gyro.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\TASK\track_gyro.c</FilePath>
-            </File>
-            <File>
-              <FileName>track_gyro.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\TASK\track_gyro.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -608,16 +578,6 @@
               <FileName>bsp_uart.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BSP\Inc\bsp_uart.h</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\Src\bsp_pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_pid.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BSP\Inc\bsp_pid.h</FilePath>
             </File>
             <File>
               <FileName>bsp_grayscale.c</FileName>

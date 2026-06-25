@@ -1,24 +1,14 @@
 /**
  * @file    track.c
- * @brief   灰度PID循迹任务调度实现（TASK层）
+ * @brief   灰度PID循迹任务调度实现（TASK层 — 纯业务逻辑）
  * @note    数据流:
- *          Track_Grayscale_Scan → data_ready → Track_Calc_Error → PID → 差速 → Track_Motor
- *          Track_Gyro_Read      → heading    → 丢线辅助/直角弯道
+ *          Grayscale_Update → data_ready → Track_Calc_Error → PID → 差速 → Motor
+ *          Mpu_Update_Heading → heading → 丢线辅助/直角弯道
  *
- *          修复清单:
- *          ✅ 灰度 data_ready 同步（PID只在完整扫描后执行）
- *          ✅ 模拟量差比和偏差计算（连续精度）
- *          ✅ 直角弯多帧确认（3帧防误触发）
- *          ✅ 十字路口处理（CROSS状态）
- *          ✅ 丢线恢复PID复位
- *          ✅ 起点线退出条件（black_count下降也退出）
- *          ✅ 电机内侧最低速度限制
- *          ✅ 变速策略（直道加速/弯道减速/渐变）
+ *          本文件不直接操作任何硬件寄存器，全部通过 BSP/APP 层 API 调用
  */
 #include "track.h"
-
-/* systick_ms 定义在 main.c */
-extern volatile uint32_t systick_ms;
+#include "bsp_common.h"
 
 /* ============================================================
  * 常量
@@ -41,25 +31,20 @@ track_t Track = {0};
 
 static void Track_Calc_Error(void)
 {
-    Track_Gray.black_count = 0;
-
     /* 保存上次偏差 */
     Track.last_error = Track.error;
 
-    /* 方法1：模拟量差比和（归一化值，连续精度）
+    /* 模拟量差比和（归一化值，连续精度）
      * 左侧权重为负，右侧权重为正
      * norm[i] = 1 表示黑线，0 表示白色
      * error = Σ(weight[i] × norm[i]) / Σ(norm[i]) */
     float weighted_sum = 0;
     float total_weight = 0;
 
-    for (uint8_t i = 0; i < TRACK_GRAY_CHANNEL_NUM; i++) {
-        if (Track_Gray.digital[i]) {
-            Track_Gray.black_count++;
-        }
+    for (uint8_t i = 0; i < BSP_GRAY_CHANNEL_NUM; i++) {
         /* 用归一化值做加权（连续精度，不受数字量跳变影响） */
-        weighted_sum += s_weights[i] * Track_Gray.norm[i];
-        total_weight  += Track_Gray.norm[i];
+        weighted_sum += s_weights[i] * Grayscale_Sensor.norm[i];
+        total_weight  += Grayscale_Sensor.norm[i];
     }
 
     if (total_weight > TRACK_ERROR_MIN_DENOM) {
@@ -104,9 +89,9 @@ static void Track_Detect_Pattern(void)
     /* 中间4路(S2~S5)全黑 + 外侧至少1路白 */
     uint8_t mid_black = 0;
     for (uint8_t i = 2; i <= 5; i++) {
-        if (Track_Gray.digital[i]) mid_black++;
+        if (Grayscale_Sensor.digital[i]) mid_black++;
     }
-    uint8_t outer_white = (!Track_Gray.digital[0] || !Track_Gray.digital[7]) ? 1 : 0;
+    uint8_t outer_white = (!Grayscale_Sensor.digital[0] || !Grayscale_Sensor.digital[7]) ? 1 : 0;
 
     if (mid_black >= TRACK_CROSS_MIN_BLACK && outer_white) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
@@ -117,9 +102,9 @@ static void Track_Detect_Pattern(void)
     }
 
     /* --- 起点线检测（≥6路黑） --- */
-    if (Track_Gray.black_count >= TRACK_START_LINE_MIN_BLACK) {
+    if (Grayscale_Sensor.black_count >= TRACK_START_LINE_MIN_BLACK) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.target_heading = Track_Gyro.heading;
+            Track.target_heading = Mpu_Sensor.heading;
             Track.state = TRACK_STATE_START_LINE;
             Track.state_timer = 0;
         }
@@ -127,14 +112,14 @@ static void Track_Detect_Pattern(void)
     }
 
     /* --- 直角弯道检测（多帧确认） --- */
-    if ((Track_Gray.digital[0] || Track_Gray.digital[7]) &&
+    if ((Grayscale_Sensor.digital[0] || Grayscale_Sensor.digital[7]) &&
         (Track.error > TRACK_RIGHT_ANGLE_THRESHOLD ||
          Track.error < -TRACK_RIGHT_ANGLE_THRESHOLD)) {
         Track.right_angle_confirm++;
         if (Track.right_angle_confirm >= TRACK_RIGHT_ANGLE_CONFIRM_FRAMES) {
             if (Track.state == TRACK_STATE_LINE_FOLLOW) {
                 Track.last_state = TRACK_STATE_LINE_FOLLOW;
-                Track.right_angle_target = Track_Gyro.heading +
+                Track.right_angle_target = Mpu_Sensor.heading +
                     (Track.error > 0 ? 90.0f : -90.0f);
                 Track.state = TRACK_STATE_RIGHT_ANGLE;
                 Track.state_timer = 0;
@@ -147,10 +132,10 @@ static void Track_Detect_Pattern(void)
     }
 
     /* --- 丢线检测 --- */
-    if (Track_Gray.black_count < TRACK_LINE_LOST_MAX_BLACK) {
+    if (Grayscale_Sensor.black_count < TRACK_LINE_LOST_MAX_BLACK) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
             Track.last_state = TRACK_STATE_LINE_FOLLOW;
-            Track.target_heading = Track_Gyro.heading;
+            Track.target_heading = Mpu_Sensor.heading;
             Track.state = TRACK_STATE_LINE_LOST;
             Track.line_lost_count = 0;
         }
@@ -180,7 +165,7 @@ static void Track_Handle_StartLine(void)
     }
 
     /* 起点线消失（black_count 降到阈值以下）也退出 */
-    if (Track_Gray.black_count < TRACK_START_LINE_MIN_BLACK) {
+    if (Grayscale_Sensor.black_count < TRACK_START_LINE_MIN_BLACK) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
         return;
     }
@@ -194,8 +179,8 @@ static void Track_Handle_LineLost(void)
 {
     Track.line_lost_count++;
 
-    if (Track.use_gyro && Track_Gyro.gyro_ok) {
-        float gyro_error = Track.target_heading - Track_Gyro.heading;
+    if (Track.use_gyro && Mpu_Sensor.gyro_ok) {
+        float gyro_error = Track.target_heading - Mpu_Sensor.heading;
         Track.turn_output = Track.gyro_pid.kp * gyro_error;
     } else {
         Track.turn_output = Track.last_error * TRACK_LINE_LOST_GAIN;
@@ -210,9 +195,9 @@ static void Track_Handle_LineLost(void)
     }
 
     /* 重新检测到线，恢复循迹（PID复位防止积分突跳） */
-    if (Track_Gray.black_count > 0) {
+    if (Grayscale_Sensor.black_count > 0) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
-        Track_PID_Reset(&Track.line_pid);
+        Pid_Reset(&Track.line_pid);
     }
 }
 
@@ -221,23 +206,23 @@ static void Track_Handle_RightAngle(void)
 {
     Track.state_timer++;
 
-    float angle_error = Track.right_angle_target - Track_Gyro.heading;
-    Track.turn_output = Track_PID_Calculate(&Track.gyro_pid,
-                                            Track.right_angle_target,
-                                            Track_Gyro.heading);
+    float angle_error = Track.right_angle_target - Mpu_Sensor.heading;
+    Track.turn_output = Pid_Compute(&Track.gyro_pid,
+                                     Track.right_angle_target,
+                                     Mpu_Sensor.heading);
 
     /* 角度误差小于阈值，视为完成转弯 */
     if (angle_error > -TRACK_RIGHT_ANGLE_DONE_ERR &&
         angle_error <  TRACK_RIGHT_ANGLE_DONE_ERR) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
-        Track_PID_Reset(&Track.line_pid);
+        Pid_Reset(&Track.line_pid);
         return;
     }
 
     /* 超时保护 */
     if (Track.state_timer > TRACK_RIGHT_ANGLE_TIMEOUT) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
-        Track_PID_Reset(&Track.line_pid);
+        Pid_Reset(&Track.line_pid);
     }
 }
 
@@ -255,7 +240,7 @@ static void Track_Handle_Cross(void)
     }
 
     /* 如果检测到全白（偏离十字），也退出 */
-    if (Track_Gray.black_count < 1 && Track.state_timer > 10) {
+    if (Grayscale_Sensor.black_count < 1 && Track.state_timer > 10) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
     }
 }
@@ -281,8 +266,8 @@ static void Track_Motor_Output(void)
     if (Track.right_speed < TRACK_MOTOR_SPEED_MIN) Track.right_speed =  TRACK_MOTOR_SPEED_MIN;
 
     if (Track.use_motor) {
-        Track_Motor_SetLeft(Track.left_speed);
-        Track_Motor_SetRight(Track.right_speed);
+        Motor_Set_Speed(Track.left_speed);
+        Motor_Right_Set_Speed(Track.right_speed);
     }
 }
 
@@ -312,29 +297,33 @@ void Track_Init(void)
     Track.use_gyro           = true;
     Track.use_motor          = true;
 
-    /* PID 初始化 */
-    Track_PID_Init(&Track.line_pid,
-                   TRACK_LINE_PID_KP, TRACK_LINE_PID_KI, TRACK_LINE_PID_KD,
-                   TRACK_LINE_PID_ILIMIT, TRACK_LINE_PID_OLIMIT);
-    Track_PID_Init(&Track.gyro_pid,
-                   TRACK_GYRO_PID_KP, TRACK_GYRO_PID_KI, TRACK_GYRO_PID_KD,
-                   TRACK_GYRO_PID_ILIMIT, TRACK_GYRO_PID_OLIMIT);
+    /* PID 初始化（使用BSP层 bsp_pid_t） */
+    Pid_Init(&Track.line_pid,
+             TRACK_LINE_PID_KP, TRACK_LINE_PID_KI, TRACK_LINE_PID_KD,
+             TRACK_LINE_PID_ILIMIT, TRACK_LINE_PID_OLIMIT);
+    Track.line_pid.deriv_alpha = TRACK_LINE_PID_DERIV_ALPHA;  /* 不完全微分 */
 
-    /* 子模块初始化 */
-    Track_Grayscale_Init();
-#if TRACK_USE_MPU6050
-    Track_Gyro_Init();
-#endif
+    Pid_Init(&Track.gyro_pid,
+             TRACK_GYRO_PID_KP, TRACK_GYRO_PID_KI, TRACK_GYRO_PID_KD,
+             TRACK_GYRO_PID_ILIMIT, TRACK_GYRO_PID_OLIMIT);
+
+    App_Grayscale_Init();
+    App_Mpu_Init();
+    Mpu_Calibrate();
+    App_Motor_Init();
+
+    /* 启用速度PID闭环（编码器反馈修正PWM） */
+    App_Motor_Enable_Speed_PID(true);
 }
 
 void Track_Update(void)
 {
-    /* ① 灰度传感器非阻塞扫描 */
-    Track_Grayscale_Scan();
+    /* ① 灰度传感器非阻塞扫描（APP层API） */
+    Grayscale_Update();
 
     /* ② 固定5ms周期执行循迹状态机 */
     static uint32_t last_update_tick = 0;
-    uint32_t now = systick_ms;
+    uint32_t now = Bsp_GetTick();
     if ((now - last_update_tick) < TRACK_UPDATE_PERIOD_MS) return;
     last_update_tick = now;
 
@@ -342,15 +331,13 @@ void Track_Update(void)
         Track.state == TRACK_STATE_FINISHED) return;
 
     /* ③ 等待灰度传感器完成一轮完整扫描（数据同步） */
-    if (!Track_Gray.data_ready) return;
-    Track_Gray.data_ready = 0;  /* 消费标志 */
+    if (!Grayscale_Sensor.data_ready) return;
+    Grayscale_Sensor.data_ready = 0;  /* 消费标志 */
 
-    /* ④ 读取陀螺仪数据 */
-#if TRACK_USE_MPU6050
+    /* ④ 读取陀螺仪数据并更新航向（APP层API） */
     if (Track.use_gyro) {
-        Track_Gyro_Read();
+        Mpu_Update_Heading(TRACK_UPDATE_PERIOD_MS / 1000.0f);
     }
-#endif
 
     /* ⑤ 计算偏差 */
     Track_Calc_Error();
@@ -364,7 +351,7 @@ void Track_Update(void)
     /* ⑧ 状态机处理 */
     switch (Track.state) {
     case TRACK_STATE_LINE_FOLLOW:
-        Track.turn_output = Track_PID_Calculate(&Track.line_pid, 0.0f, Track.error);
+        Track.turn_output = Pid_Compute(&Track.line_pid, 0.0f, Track.error);
         break;
 
     case TRACK_STATE_START_LINE:
@@ -387,8 +374,11 @@ void Track_Update(void)
         break;
     }
 
-    /* ⑨ 差速输出到电机 */
+    /* ⑨ 差速输出到电机（BSP层API） */
     Track_Motor_Output();
+
+    /* ⑩ 速度PID闭环更新（编码器反馈 → 修正PWM） */
+    App_Motor_Speed_PID_Update();
 }
 
 void Track_Start(void)
@@ -396,8 +386,8 @@ void Track_Start(void)
     Track.state = TRACK_STATE_LINE_FOLLOW;
     Track.current_circle = 0;
     Track.right_angle_confirm = 0;
-    Track_PID_Reset(&Track.line_pid);
-    Track_PID_Reset(&Track.gyro_pid);
+    Pid_Reset(&Track.line_pid);
+    Pid_Reset(&Track.gyro_pid);
 }
 
 void Track_Stop(void)
@@ -406,8 +396,8 @@ void Track_Stop(void)
     Track.left_speed  = 0;
     Track.right_speed = 0;
     if (Track.use_motor) {
-        Track_Motor_SetLeft(0);
-        Track_Motor_SetRight(0);
+        Motor_Set_Speed(0);
+        Motor_Right_Set_Speed(0);
     }
 }
 
@@ -424,17 +414,17 @@ void Track_Set_Speed(int32_t base_speed)
 
 void Track_Set_TrackPID(float kp, float ki, float kd)
 {
-    Track_PID_Set_Params(&Track.line_pid, kp, ki, kd);
+    Pid_Set_Params(&Track.line_pid, kp, ki, kd);
 }
 
 void Track_Calibrate_White(void)
 {
-    Track_Grayscale_Calibrate_White();
+    Grayscale_Calibrate_White();
 }
 
 void Track_Calibrate_Black(void)
 {
-    Track_Grayscale_Calibrate_Black();
+    Grayscale_Calibrate_Black();
 }
 
 track_state_t Track_Get_State(void)

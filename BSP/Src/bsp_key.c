@@ -3,9 +3,8 @@
  * @brief   按键扫描状态机实现
  */
 #include "bsp_key.h"
-#include "bsp_common.h"
 
-void BSP_Key_Init(bsp_key_t *keys, uint8_t num)
+void Bsp_Key_Init(bsp_key_t *keys, uint8_t num)
 {
     for (uint8_t i = 0; i < num; i++) {
         keys[i].judge = BSP_KEY_JUDGE_IDLE;
@@ -18,10 +17,10 @@ void BSP_Key_Init(bsp_key_t *keys, uint8_t num)
     }
 }
 
-void BSP_Key_Scan(bsp_key_t *keys, uint8_t num)
+void Bsp_Key_Scan(bsp_key_t *keys, uint8_t num)
 {
     for (uint8_t i = 0; i < num; i++) {
-        keys[i].state = GPIO_ReadPin(keys[i].port, keys[i].pin);
+        keys[i].state = keys[i].Pin_Read(keys[i].port, keys[i].pin);
 
         switch (keys[i].judge) {
         case BSP_KEY_JUDGE_IDLE:
@@ -76,10 +75,10 @@ void BSP_Key_Scan(bsp_key_t *keys, uint8_t num)
     }
 }
 
-void BSP_Key_EasyScan(bsp_key_t *keys, uint8_t num)
+void Bsp_Key_EasyScan(bsp_key_t *keys, uint8_t num)
 {
     for (uint8_t i = 0; i < num; i++) {
-        keys[i].state = GPIO_ReadPin(keys[i].port, keys[i].pin);
+        keys[i].state = keys[i].Pin_Read(keys[i].port, keys[i].pin);
     }
 
     for (uint8_t i = 0; i < num; i++) {
@@ -104,7 +103,7 @@ void BSP_Key_EasyScan(bsp_key_t *keys, uint8_t num)
     }
 }
 
-bsp_key_event_t BSP_Key_GetEvent(bsp_key_t *key)
+bsp_key_event_t Bsp_Key_GetEvent(bsp_key_t *key)
 {
     if (key->f_push)       { key->f_push = 0; return BSP_KEY_EVENT_PUSH; }
     if (key->f_longpush)   { key->f_longpush = 0; return BSP_KEY_EVENT_LONGPUSH; }

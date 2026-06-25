@@ -1,35 +1,41 @@
-# === IDE ===
-.vscode/
-.trae/
-*.uvguix.*
-
-# === Build artifacts ===
+# Keil build artifacts
 keil/Objects/
 keil/Listings/
-*.o
-*.d
-*.axf
-*.htm
-*.lnp
-*.dep
-*.map
-*.hex
-*.crf
-*.lst
-*.sct.bak
+keil/*.log
+keil/*.txt
+keil/build_log.txt
+keil/build_output.txt
+keil/flash_log.txt
 
-# === Debugger ===
-JLinkLog.txt
-JLinkSettings.ini
+# Debug scripts and temp files
+*.jlink
+*.ps1
+ram_dump.bin
+rtt_*.txt
+rtt_*.bin
+rtt_*.log
+read_systick*
+-LLogFile
+build_log.txt
+flash_log.txt
+flash_log.txt
+device.cmd.genlibs
+device.lds.genlibs
+device.opt
+device_linker.cmd
+device_linker.lds
+open_sysconfig.bat
+reset_script.jlink
 
-# === Generated files ===
-README.html
-Event.dot
+# SysConfig generated (kept for reference, can be regenerated)
+# ti_msp_dl_config.c/h are kept as they contain manual fixes
 
-# === Tools ===
-RTTView/
+# IDE files
+.vscode/
+.idea/
+*.swp
+*~
 
-# === OS ===
+# OS files
 Thumbs.db
-Desktop.ini
 .DS_Store

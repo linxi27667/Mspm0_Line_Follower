@@ -1,58 +1,51 @@
 /**
  * @file    app_led.c
  * @brief   LED硬件绑定实现（MSPM0G3507）
+ * @note    GPIO引脚和输出使能由SysConfig配置，无需手动初始化
  */
 #include "app_led.h"
-#include "ti_msp_dl_config.h"
+#include "app_common.h"
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
 static void HW_Gpio_Write(void *port, uint32_t pin, uint8_t level)
 {
     if (port == NULL) return;
-    if (level) {
-        DL_GPIO_setPins((GPIO_Regs *)port, pin);
-    } else {
-        DL_GPIO_clearPins((GPIO_Regs *)port, pin);
-    }
+    GPIO_WritePin((GPIO_Regs *)port, pin, level);
 }
 
 /* ================= 2. 对象实例化与引脚拼装 ================= */
 
-led_t app_leds[BSP_LED_NUM] = {
+led_t Led_Devices[BSP_LED_NUM] = {
     {LED1_PORT, LED1_PIN, 0, HW_Gpio_Write},
     {LED2_PORT, LED2_PIN, 0, HW_Gpio_Write},
     {LED3_PORT, LED3_PIN, 0, HW_Gpio_Write},
     {LED4_PORT, LED4_PIN, 0, HW_Gpio_Write},
-    {GPIOA, DL_GPIO_PIN_0, 0, HW_Gpio_Write},
-    {GPIOA, DL_GPIO_PIN_1, 0, HW_Gpio_Write},
-    {GPIOA, DL_GPIO_PIN_2, 0, HW_Gpio_Write},
-    {GPIOA, DL_GPIO_PIN_3, 0, HW_Gpio_Write},
 };
 
 /* ================= 3. 对外业务切入点 ================= */
 
-void App_LED_System_Init(void)
+void App_Led_Init(void)
 {
-    BSP_Led_Init(app_leds);
+    Bsp_Led_Init(Led_Devices);
 }
 
-void App_LED_On(uint8_t index)
+void Led_On(uint8_t index)
 {
-    if (index < BSP_LED_NUM) BSP_Led_On(&app_leds[index]);
+    if (index < BSP_LED_NUM) Bsp_Led_On(&Led_Devices[index]);
 }
 
-void App_LED_Off(uint8_t index)
+void Led_Off(uint8_t index)
 {
-    if (index < BSP_LED_NUM) BSP_Led_Off(&app_leds[index]);
+    if (index < BSP_LED_NUM) Bsp_Led_Off(&Led_Devices[index]);
 }
 
-void App_LED_Toggle(uint8_t index)
+void Led_Toggle(uint8_t index)
 {
     if (index >= BSP_LED_NUM) return;
-    if (app_leds[index].state) {
-        BSP_Led_Off(&app_leds[index]);
+    if (Led_Devices[index].state) {
+        Bsp_Led_Off(&Led_Devices[index]);
     } else {
-        BSP_Led_On(&app_leds[index]);
+        Bsp_Led_On(&Led_Devices[index]);
     }
 }

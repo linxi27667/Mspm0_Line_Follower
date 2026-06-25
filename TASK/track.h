@@ -1,25 +1,24 @@
 /**
  * @file    track.h
- * @brief   灰度PID循迹任务主头文件（TASK层 — 调度层）
+ * @brief   灰度PID循迹任务调度层（TASK层 — 纯业务逻辑）
  * @note    传感器布局: S0 S1 S2 S3 S4 S5 S6 S7（左→右）
  *          偏差权重:   -3.5 -2.5 -1.5 -0.5 +0.5 +1.5 +2.5 +3.5
  *          负偏差=偏左(需右转)  正偏差=偏右(需左转)
  *
- *          子模块:
- *          - track_pid.h       PID控制器
- *          - track_grayscale.h 灰度传感器
- *          - track_motor.h     电机驱动
- *          - track_gyro.h      MPU6050陀螺仪
+ *          架构:
+ *          BSP层: bsp_grayscale / bsp_pid / bsp_mpu6050 / bsp_encoder_motor
+ *          APP层: app_grayscale / app_mpu6050 / app_encoder_motor
+ *          TASK层: 本文件 — 只写业务逻辑，不碰任何硬件寄存器
  */
 #ifndef __TRACK_H__
 #define __TRACK_H__
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "track_pid.h"
-#include "track_grayscale.h"
-#include "track_motor.h"
-#include "track_gyro.h"
+#include "app_pid.h"
+#include "app_grayscale.h"
+#include "app_mpu6050.h"
+#include "app_encoder_motor.h"
 
 /* ============================================================
  * 循迹调度宏定义
@@ -29,51 +28,36 @@
 #define TRACK_UPDATE_PERIOD_MS    5
 
 /* --- 直角弯道检测 --- */
-/* 外侧传感器偏差超过此值触发候选 */
 #define TRACK_RIGHT_ANGLE_THRESHOLD       2.5f
-/* 连续检测帧数：必须连续 N 次5ms满足条件才确认直角弯 */
 #define TRACK_RIGHT_ANGLE_CONFIRM_FRAMES  3
-/* 直角弯道超时计数阈值 */
 #define TRACK_RIGHT_ANGLE_TIMEOUT         1000
-/* 直角弯道完成角度误差阈值(deg) */
 #define TRACK_RIGHT_ANGLE_DONE_ERR        5.0f
 
 /* --- 十字路口检测 --- */
-/* 中间4路(S2~S5)全黑 + 外侧至少1路白 → 十字路口 */
 #define TRACK_CROSS_MIN_BLACK             4
-/* 十字路口通过计数阈值（超过此值视为已通过） */
 #define TRACK_CROSS_PASS_COUNT            60
 
 /* --- 起点线检测 --- */
-/* 黑色通道数 ≥ 此值视为起点线 */
 #define TRACK_START_LINE_MIN_BLACK        6
-/* 起点线持续计数阈值 */
 #define TRACK_START_LINE_COUNT            100
 
 /* --- 丢线检测 --- */
-/* 黑色通道数 < 此值视为丢线 */
 #define TRACK_LINE_LOST_MAX_BLACK         1
-/* 丢线超时计数阈值 */
 #define TRACK_LINE_LOST_TIMEOUT           500
-/* 丢线时无陀螺仪的转向增益 */
 #define TRACK_LINE_LOST_GAIN              2.0f
 
 /* --- 变速策略 --- */
-/* 直道速度（偏差 < 阈值时） */
 #define TRACK_SPEED_STRAIGHT              60
-/* 弯道速度（偏差 ≥ 阈值时） */
 #define TRACK_SPEED_CURVE                 35
-/* 直道/弯道切换偏差阈值 */
 #define TRACK_SPEED_SWITCH_ERR            1.0f
-/* 速度渐变步进（每次5ms变化量） */
 #define TRACK_SPEED_RAMP_STEP             2
 
 /* --- 电机差速 --- */
-/* 内侧电机最低速度（不允许反转，避免急转抖动） */
 #define TRACK_MOTOR_INNER_MIN             0
+#define TRACK_MOTOR_SPEED_MAX             100
+#define TRACK_MOTOR_SPEED_MIN             (-100)
 
 /* --- 偏差计算 --- */
-/* 模拟量差比和最小分母（防止除零） */
 #define TRACK_ERROR_MIN_DENOM             0.01f
 
 /* --- 默认参数 --- */
@@ -86,6 +70,7 @@
 #define TRACK_LINE_PID_KD        1.5f
 #define TRACK_LINE_PID_ILIMIT    50.0f
 #define TRACK_LINE_PID_OLIMIT    40.0f
+#define TRACK_LINE_PID_DERIV_ALPHA 0.6f   /* 不完全微分系数 */
 
 /* 陀螺仪PID默认参数 */
 #define TRACK_GYRO_PID_KP        3.0f
@@ -108,7 +93,7 @@ typedef enum {
 } track_state_t;
 
 /* ============================================================
- * 循迹调度对象 — 只包含状态机和输出
+ * 循迹调度对象 — 只包含状态机和输出（纯业务数据）
  * ============================================================ */
 typedef struct {
     /* --- 偏差计算 --- */
@@ -130,9 +115,9 @@ typedef struct {
     uint8_t  target_circles;
     uint8_t  current_circle;
 
-    /* --- PID --- */
-    Track_PID_t line_pid;           /* 循迹位置PID */
-    Track_PID_t gyro_pid;           /* 陀螺仪航向PID */
+    /* --- PID（使用BSP层 bsp_pid_t） --- */
+    bsp_pid_t line_pid;             /* 循迹位置PID */
+    bsp_pid_t gyro_pid;             /* 陀螺仪航向PID */
 
     /* --- 输出 --- */
     float    turn_output;           /* 转向量(正=左转,负=右转) */

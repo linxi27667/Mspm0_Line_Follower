@@ -5,13 +5,14 @@
 #ifndef APP_ALL_H
 #define APP_ALL_H
 
+#include "app_common.h"
 #include "app_encoder_motor.h"
+#include "app_grayscale.h"
 #include "app_key.h"
 #include "app_led.h"
-#include "app_servo.h"
-#include "app_stepper.h"
 #include "app_sw_i2c.h"
 #include "app_mpu6050.h"
 #include "app_uart.h"
+#include "app_pid.h"
 
 #endif /* APP_ALL_H */

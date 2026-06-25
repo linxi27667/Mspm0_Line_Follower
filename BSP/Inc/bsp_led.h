@@ -16,10 +16,10 @@ typedef struct {
     void (*Gpio_Write)(void *port, uint32_t pin, uint8_t level);
 } led_t;
 
-#define BSP_LED_NUM 8
+#define BSP_LED_NUM 4
 
-void BSP_Led_Init(led_t *led);
-void BSP_Led_On(led_t *led);
-void BSP_Led_Off(led_t *led);
+void Bsp_Led_Init(led_t *led);
+void Bsp_Led_On(led_t *led);
+void Bsp_Led_Off(led_t *led);
 
 #endif /* __BSP_LED_H__ */

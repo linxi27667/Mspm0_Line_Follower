@@ -3,8 +3,7 @@
  * @brief   软件I2C硬件绑定实现（MSPM0G3507）
  */
 #include "app_sw_i2c.h"
-#include "bsp_common.h"
-#include "ti_msp_dl_config.h"
+#include "app_common.h"
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
@@ -18,27 +17,23 @@ static void HW_I2C_Init(void)
 static void HW_Pin_Write(void *port, uint32_t pin, uint8_t level)
 {
     if (port == NULL) return;
-    if (level) {
-        DL_GPIO_setPins((GPIO_Regs *)port, pin);
-    } else {
-        DL_GPIO_clearPins((GPIO_Regs *)port, pin);
-    }
+    GPIO_WritePin((GPIO_Regs *)port, pin, level);
 }
 
 static uint8_t HW_Pin_Read(void *port, uint32_t pin)
 {
     if (port == NULL) return 0;
-    return (DL_GPIO_readPins((GPIO_Regs *)port, pin) != 0) ? 1 : 0;
+    return GPIO_ReadPin((GPIO_Regs *)port, pin);
 }
 
 static void HW_Delay_us(uint32_t us)
 {
-    BSP_Delay_us(us);
+    Bsp_Delay_us(us);
 }
 
 /* ================= 2. 对象实例化与引脚拼装 ================= */
 
-bsp_sw_i2c_t App_I2C_Bus_1 = {
+bsp_sw_i2c_t I2C_Bus_1 = {
     .scl       = {I2C_BUS1_SCL_PORT, I2C_BUS1_SCL_PIN},
     .sda       = {I2C_BUS1_SDA_PORT, I2C_BUS1_SDA_PIN},
 
@@ -50,7 +45,7 @@ bsp_sw_i2c_t App_I2C_Bus_1 = {
 
 /* ================= 3. 对外业务切入点 ================= */
 
-void App_I2C_System_Init(void)
+void App_I2C_Init(void)
 {
-    BSP_I2C_Init_Device(&App_I2C_Bus_1);
+    Bsp_I2C_Init_Device(&I2C_Bus_1);
 }

@@ -14,8 +14,8 @@
 #define I2C_BUS1_SDA_PIN           DL_GPIO_PIN_9
 
 /* ============ 业务接口声明 ============ */
-extern bsp_sw_i2c_t App_I2C_Bus_1;
+extern bsp_sw_i2c_t I2C_Bus_1;
 
-void App_I2C_System_Init(void);
+void App_I2C_Init(void);
 
 #endif /* APP_SW_I2C_H */

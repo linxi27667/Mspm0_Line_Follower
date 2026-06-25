@@ -5,7 +5,7 @@
 #include "bsp_servo.h"
 
 /* ================= 1. 设备初始化 ================= */
-void BSP_Servo_Init_Device(bsp_servo_t *servo)
+void Bsp_Servo_Init_Device(bsp_servo_t *servo)
 {
     if (servo == NULL) return;
 
@@ -17,7 +17,7 @@ void BSP_Servo_Init_Device(bsp_servo_t *servo)
 }
 
 /* ================= 2. 角度控制 ================= */
-void BSP_Servo_Set_Angle(bsp_servo_t *servo, float angle)
+void Bsp_Servo_Set_Angle(bsp_servo_t *servo, float angle)
 {
     if (servo == NULL) return;
 

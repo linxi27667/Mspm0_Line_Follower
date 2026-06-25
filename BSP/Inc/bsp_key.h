@@ -12,6 +12,10 @@
 #define BSP_KEY_LONGPUSH_MIN_TIME 80   /* 长按判定周期数 (ms) */
 #define BSP_KEY_DOUBLE_TIMEOUT    15   /* 双击判定窗口 (ms) */
 
+/* 电平约定（纯逻辑，不依赖硬件头文件） */
+#define KEY_PRESS   0
+#define KEY_RELEASE 1
+
 typedef enum {
     BSP_KEY_JUDGE_IDLE = 0,
     BSP_KEY_JUDGE_PRESS,
@@ -32,6 +36,7 @@ typedef struct {
     uint8_t  state;
     void    *port;
     uint32_t pin;
+    uint8_t  (*Pin_Read)(void *port, uint32_t pin);
     volatile uint8_t f_push;
     volatile uint8_t f_longpush;
     volatile uint8_t f_doubleclick;
@@ -40,9 +45,9 @@ typedef struct {
     uint32_t doubleclick_time;
 } bsp_key_t;
 
-void BSP_Key_Init(bsp_key_t *keys, uint8_t num);
-void BSP_Key_Scan(bsp_key_t *keys, uint8_t num);
-void BSP_Key_EasyScan(bsp_key_t *keys, uint8_t num);
-bsp_key_event_t BSP_Key_GetEvent(bsp_key_t *key);
+void Bsp_Key_Init(bsp_key_t *keys, uint8_t num);
+void Bsp_Key_Scan(bsp_key_t *keys, uint8_t num);
+void Bsp_Key_EasyScan(bsp_key_t *keys, uint8_t num);
+bsp_key_event_t Bsp_Key_GetEvent(bsp_key_t *key);
 
 #endif /* __BSP_KEY_H__ */

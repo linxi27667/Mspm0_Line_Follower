@@ -1,4 +1,5 @@
 #include "my_easylog.h"
+#include "bsp_common.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -44,7 +45,7 @@ void my_log_set_color(bool enable)
 
 #if MYLOG_ENABLED
 
-extern volatile uint32_t systick_ms;  /* 引用 main.c 中的时标 */
+/* systick_ms 通过 bsp_common.h 的 extern 声明访问 */
 
 void my_log_write(log_level_t level, const char *tag, const char *fmt, ...)
 {
@@ -55,18 +56,19 @@ void my_log_write(log_level_t level, const char *tag, const char *fmt, ...)
     char buf[MYLOG_BUF_SIZE];
     int  n = 0;
 
-    /* 格式: LEVEL/TAG  [tick] [TAG] message */
+    /* 简洁格式: \x1B[2;32m[I TAG]\x1B[0m message\r\n
+     * - 颜色只包裹级别+TAG头部，message保持默认色，便于阅读
+     * - 去掉 tick 时间戳（调试时可单独打印，常规运行无需）
+     * - 去掉重复的 [[TAG]] 结构 */
     if (g_color) {
         n += snprintf(buf + n, sizeof(buf) - n,
-                    "%s%s/%-8s [%lu] [%s] ",
+                    "%s[%s %s]\x1B[0m ",
                     s_level_clr[level],
-                    s_level_str[level], tag,
-                    (unsigned long)systick_ms, tag);
+                    s_level_str[level], tag);
     } else {
         n += snprintf(buf + n, sizeof(buf) - n,
-                    "%s/%-8s [%lu] [%s] ",
-                    s_level_str[level], tag,
-                    (unsigned long)systick_ms, tag);
+                    "[%s %s] ",
+                    s_level_str[level], tag);
     }
 
     /* 用户格式 */
@@ -75,13 +77,9 @@ void my_log_write(log_level_t level, const char *tag, const char *fmt, ...)
     n += vsnprintf(buf + n, sizeof(buf) - n, fmt, args);
     va_end(args);
 
-    /* 行尾 + 颜色复位 */
-    if (g_color) {
-        n += snprintf(buf + n, sizeof(buf) - n, "%s\r\n", _MYLOG_RST);
-    } else {
-        buf[n++] = '\r';
-        buf[n++] = '\n';
-    }
+    /* 行尾 */
+    buf[n++] = '\r';
+    buf[n++] = '\n';
 
     SEGGER_RTT_Write(0, buf, (unsigned)n);
 }

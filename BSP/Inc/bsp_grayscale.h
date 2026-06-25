@@ -12,6 +12,7 @@
 
 #define BSP_GRAY_CHANNEL_NUM    8       /* 通道数 */
 #define BSP_GRAY_SETTLE_MS      1       /* 通道切换稳定时间(ms)，基础款1ms，青春款10ms */
+#define BSP_GRAY_ADC_MAX        4095    /* ADC满量程（12位） */
 
 /* --- 抽象GPIO对象 --- */
 typedef struct {
@@ -31,9 +32,11 @@ typedef struct {
     uint8_t  current_ch;                        /* 当前通道 0~7 */
     uint32_t last_switch_tick;                  /* 上次切换通道的时间戳 */
     uint16_t analog[BSP_GRAY_CHANNEL_NUM];      /* 8路原始ADC值 */
+    float    norm[BSP_GRAY_CHANNEL_NUM];        /* 8路归一化值(0=白,1=黑) */
     uint16_t white[BSP_GRAY_CHANNEL_NUM];       /* 白纸校准值 */
     uint16_t black[BSP_GRAY_CHANNEL_NUM];       /* 黑纸校准值 */
     uint8_t  digital[BSP_GRAY_CHANNEL_NUM];     /* 滞回比较结果: 1=黑, 0=白 */
+    uint8_t  black_count;                       /* 当前黑色通道数 */
     uint8_t  data_ready;                        /* 一轮扫描完成标志 */
     uint8_t  calibrated;                        /* 校准完成标志 */
 
@@ -45,9 +48,9 @@ typedef struct {
 } bsp_grayscale_t;
 
 /* --- 4. 对外核心API (跨平台通用) --- */
-void BSP_Grayscale_Init_Device(bsp_grayscale_t *gs);
-void BSP_Grayscale_Update(bsp_grayscale_t *gs);
-void BSP_Grayscale_Calibrate_White(bsp_grayscale_t *gs);
-void BSP_Grayscale_Calibrate_Black(bsp_grayscale_t *gs);
+void Bsp_Grayscale_Init_Device(bsp_grayscale_t *gs);
+void Bsp_Grayscale_Update(bsp_grayscale_t *gs);
+void Bsp_Grayscale_Calibrate_White(bsp_grayscale_t *gs);
+void Bsp_Grayscale_Calibrate_Black(bsp_grayscale_t *gs);
 
 #endif /* __BSP_GRAYSCALE_H__ */

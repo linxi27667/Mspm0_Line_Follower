@@ -63,12 +63,12 @@ static uint8_t I2C_Read_Byte(bsp_sw_i2c_t *bus, uint8_t ack)
     return data;
 }
 
-void BSP_I2C_Init_Device(bsp_sw_i2c_t *bus)
+void Bsp_I2C_Init_Device(bsp_sw_i2c_t *bus)
 {
     if (bus && bus->Init) bus->Init();
 }
 
-uint8_t BSP_I2C_Write_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr,
+uint8_t Bsp_I2C_Write_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr,
                           const uint8_t *data, uint16_t len)
 {
     if (!bus) return 1;
@@ -85,7 +85,7 @@ uint8_t BSP_I2C_Write_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr,
     return 0;
 }
 
-uint8_t BSP_I2C_Read_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr,
+uint8_t Bsp_I2C_Read_Reg(bsp_sw_i2c_t *bus, uint8_t dev_addr, uint8_t reg_addr,
                          uint8_t *data, uint16_t len)
 {
     if (!bus) return 1;

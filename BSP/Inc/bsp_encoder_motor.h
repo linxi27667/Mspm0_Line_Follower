@@ -6,6 +6,7 @@
 #define __BSP_ENCODER_MOTOR_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 /* --- 抽象 GPIO 对象 --- */
@@ -33,9 +34,11 @@ struct bsp_motor {
     void     *enc_timer;
 
     /* --- 2. 运行状态 (Status) --- */
-    int32_t current_pwm;
-    int32_t encoder_speed;
-    int32_t total_position;
+    int32_t current_pwm;        /* 当前实际PWM输出值 */
+    int32_t target_speed;       /* 目标速度(0-100)，由业务层设置 */
+    int32_t encoder_speed;      /* 编码器速度(计数/周期) */
+    int32_t total_position;     /* 编码器累计位置 */
+    bool    use_speed_pid;      /* true=速度PID闭环, false=开环直写PWM */
 
     /* --- 3. 抽象硬件操作方法 (Function Pointers) --- */
     void    (*Gpio_Config)(void);
@@ -46,8 +49,9 @@ struct bsp_motor {
 };
 
 /* --- 4. 对外核心API (跨平台通用) --- */
-void BSP_Motor_Init_Device(bsp_motor_t *motor);
-void BSP_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val);
-void BSP_Motor_Update_Status(bsp_motor_t *motor);
+void Bsp_Motor_Init_Device(bsp_motor_t *motor);
+void Bsp_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val);
+void Bsp_Motor_Write_Pwm(bsp_motor_t *motor, int32_t pwm_val);
+void Bsp_Motor_Update_Status(bsp_motor_t *motor);
 
 #endif /* __BSP_ENCODER_MOTOR_H__ */

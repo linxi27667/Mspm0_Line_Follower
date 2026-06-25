@@ -4,8 +4,8 @@
  * @note    FIFO 环形缓冲 + 帧长队列，硬件无关
  *
  * 数据流：
- *   RX: HW ISR → BSP_UART_Rx_OnFrame() → 字节FIFO + 帧长队列 → BSP_UART_Get_Frame()
- *   TX: BSP_UART_Send() → 字节FIFO → BSP_UART_Tx_Kick() → DMA → ISR → 链接下一块
+ *   RX: HW ISR → Bsp_UART_Rx_OnFrame() → 字节FIFO + 帧长队列 → Bsp_UART_Get_Frame()
+ *   TX: Bsp_UART_Send() → 字节FIFO → Bsp_UART_Tx_Kick() → DMA → ISR → 链接下一块
  */
 #include "bsp_uart.h"
 #include <string.h>
@@ -73,7 +73,7 @@ static inline bool rx_frame_empty(const bsp_uart_t *u)
 /* ============================================================
  *  1. 初始化
  * ============================================================ */
-void BSP_UART_Init(bsp_uart_t *uart)
+void Bsp_UART_Init(bsp_uart_t *uart)
 {
     if (uart == NULL) return;
 
@@ -123,7 +123,7 @@ static void tx_kick(bsp_uart_t *u)
 /* ============================================================
  *  3. TX —— 发送接口
  * ============================================================ */
-void BSP_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+void Bsp_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
 {
     if (uart == NULL || data == NULL || len == 0) return;
 
@@ -139,7 +139,7 @@ void BSP_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
     tx_kick(uart);
 }
 
-void BSP_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+void Bsp_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
 {
     if (uart == NULL || data == NULL || len == 0) return;
 
@@ -154,20 +154,20 @@ void BSP_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
     tx_kick(uart);
 }
 
-void BSP_UART_SendString(bsp_uart_t *uart, const char *s)
+void Bsp_UART_SendString(bsp_uart_t *uart, const char *s)
 {
     if (uart == NULL || s == NULL) return;
-    BSP_UART_Send_Block(uart, (const uint8_t *)s, (uint16_t)strlen(s));
+    Bsp_UART_Send_Block(uart, (const uint8_t *)s, (uint16_t)strlen(s));
 }
 
-void BSP_UART_Flush(bsp_uart_t *uart)
+void Bsp_UART_Flush(bsp_uart_t *uart)
 {
     if (uart == NULL) return;
     /* 等待 FIFO 排空且 DMA 空闲 */
     while (!tx_fifo_empty(uart) || uart->tx_busy) {}
 }
 
-uint16_t BSP_UART_TxPending(bsp_uart_t *uart)
+uint16_t Bsp_UART_TxPending(bsp_uart_t *uart)
 {
     if (uart == NULL) return 0;
     return tx_fifo_used(uart);
@@ -176,7 +176,7 @@ uint16_t BSP_UART_TxPending(bsp_uart_t *uart)
 /* ============================================================
  *  4. TX —— DMA 完成中断回调（在 DMA ISR 中调用）
  * ============================================================ */
-void BSP_UART_Tx_OnDMAComplete(bsp_uart_t *uart)
+void Bsp_UART_Tx_OnDMAComplete(bsp_uart_t *uart)
 {
     if (uart == NULL) return;
     /* 推进 tail（DMA 已读走 chunk 字节） */
@@ -191,7 +191,7 @@ void BSP_UART_Tx_OnDMAComplete(bsp_uart_t *uart)
  *  5. RX —— 帧到达回调（在 UART ISR 中调用）
  *      将 data[0..len) 推入字节 FIFO，并在帧长队列记录一帧
  * ============================================================ */
-void BSP_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+void Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
 {
     if (uart == NULL) {
         goto restart;
@@ -237,7 +237,7 @@ restart:
 /* ============================================================
  *  6. RX —— 帧弹出 / 字节弹出 / 查询
  * ============================================================ */
-bool BSP_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len)
+bool Bsp_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len)
 {
     if (uart == NULL) return false;
     if (rx_frame_empty(uart)) return false;
@@ -245,7 +245,7 @@ bool BSP_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len)
     uint16_t len = uart->rx_frame_lens[uart->rx_frame_tail];
 
     /* 安全限制：若帧长超出 FIFO 实际可用字节（溢出后可能不一致），截断 */
-    uint16_t avail = BSP_UART_Available(uart);
+    uint16_t avail = Bsp_UART_Available(uart);
     if (len > avail) len = avail;
 
     if (out_buf != NULL && len > 0) {
@@ -266,14 +266,14 @@ bool BSP_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len)
     return true;
 }
 
-uint16_t BSP_UART_Available(bsp_uart_t *uart)
+uint16_t Bsp_UART_Available(bsp_uart_t *uart)
 {
     if (uart == NULL) return 0;
     uint16_t h = uart->rx_fifo_head, t = uart->rx_fifo_tail;
     return (h >= t) ? (uint16_t)(h - t) : (uint16_t)(uart->rx_fifo_size - t + h);
 }
 
-bool BSP_UART_ReadByte(bsp_uart_t *uart, uint8_t *out_byte)
+bool Bsp_UART_ReadByte(bsp_uart_t *uart, uint8_t *out_byte)
 {
     if (uart == NULL || rx_fifo_empty(uart)) return false;
     if (out_byte) *out_byte = uart->rx_fifo_buf[uart->rx_fifo_tail];
@@ -282,7 +282,7 @@ bool BSP_UART_ReadByte(bsp_uart_t *uart, uint8_t *out_byte)
     return true;
 }
 
-uint16_t BSP_UART_Frame_Count(bsp_uart_t *uart)
+uint16_t Bsp_UART_Frame_Count(bsp_uart_t *uart)
 {
     if (uart == NULL) return 0;
     uint16_t h = uart->rx_frame_head, t = uart->rx_frame_tail;

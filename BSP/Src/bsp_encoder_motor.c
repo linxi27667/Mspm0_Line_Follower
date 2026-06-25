@@ -5,11 +5,12 @@
 #include "bsp_encoder_motor.h"
 
 /* ================= 1. 设备初始化 ================= */
-void BSP_Motor_Init_Device(bsp_motor_t *motor)
+void Bsp_Motor_Init_Device(bsp_motor_t *motor)
 {
     if (motor == NULL) return;
 
     motor->current_pwm    = 0;
+    motor->target_speed   = 0;
     motor->encoder_speed  = 0;
     motor->total_position = 0;
 
@@ -18,28 +19,28 @@ void BSP_Motor_Init_Device(bsp_motor_t *motor)
     }
 }
 
-/* ================= 2. 速度控制（正转/反转/停止） ================= */
-void BSP_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val)
+/* ================= 2. PWM底层写入（方向+占空比） ================= */
+void Bsp_Motor_Write_Pwm(bsp_motor_t *motor, int32_t pwm_val)
 {
     if (motor == NULL) return;
 
-    motor->current_pwm = speed_val;
+    motor->current_pwm = pwm_val;
 
-    if (speed_val > 0) {
+    if (pwm_val > 0) {
         if (motor->Gpio_Write) {
             motor->Gpio_Write(motor->dir_pin1.port, motor->dir_pin1.pin, 1);
             motor->Gpio_Write(motor->dir_pin2.port, motor->dir_pin2.pin, 0);
         }
         if (motor->Pwm_Write) {
-            motor->Pwm_Write(motor->pwm_timer, motor->pwm_channel, (uint32_t)speed_val);
+            motor->Pwm_Write(motor->pwm_timer, motor->pwm_channel, (uint32_t)pwm_val);
         }
-    } else if (speed_val < 0) {
+    } else if (pwm_val < 0) {
         if (motor->Gpio_Write) {
             motor->Gpio_Write(motor->dir_pin1.port, motor->dir_pin1.pin, 0);
             motor->Gpio_Write(motor->dir_pin2.port, motor->dir_pin2.pin, 1);
         }
         if (motor->Pwm_Write) {
-            motor->Pwm_Write(motor->pwm_timer, motor->pwm_channel, (uint32_t)(-speed_val));
+            motor->Pwm_Write(motor->pwm_timer, motor->pwm_channel, (uint32_t)(-pwm_val));
         }
     } else {
         if (motor->Gpio_Write) {
@@ -52,8 +53,22 @@ void BSP_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val)
     }
 }
 
-/* ================= 3. 状态更新（编码器读取） ================= */
-void BSP_Motor_Update_Status(bsp_motor_t *motor)
+/* ================= 3. 速度设定（开环/闭环统一入口） ================= */
+void Bsp_Motor_Set_Speed(bsp_motor_t *motor, int32_t speed_val)
+{
+    if (motor == NULL) return;
+
+    motor->target_speed = speed_val;
+
+    if (!motor->use_speed_pid) {
+        /* 开环模式：直接写PWM */
+        Bsp_Motor_Write_Pwm(motor, speed_val);
+    }
+    /* 闭环模式：由速度PID更新函数负责写PWM */
+}
+
+/* ================= 4. 状态更新（编码器读取） ================= */
+void Bsp_Motor_Update_Status(bsp_motor_t *motor)
 {
     if (motor == NULL) return;
 

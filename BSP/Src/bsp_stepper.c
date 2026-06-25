@@ -5,7 +5,7 @@
 #include "bsp_stepper.h"
 
 /* ================= 1. 设备初始化 ================= */
-void BSP_Stepper_Init_Device(bsp_stepper_t *stepper)
+void Bsp_Stepper_Init_Device(bsp_stepper_t *stepper)
 {
     if (stepper == NULL || stepper->Init == NULL) return;
     stepper->state = STEPPER_STATE_IDLE;
@@ -15,7 +15,7 @@ void BSP_Stepper_Init_Device(bsp_stepper_t *stepper)
 }
 
 /* ================= 2. 启动步进电机 ================= */
-void BSP_Stepper_Start(bsp_stepper_t *stepper, uint8_t dir, uint32_t steps, uint32_t delay_ticks)
+void Bsp_Stepper_Start(bsp_stepper_t *stepper, uint8_t dir, uint32_t steps, uint32_t delay_ticks)
 {
     if (stepper == NULL || steps == 0) return;
 
@@ -27,7 +27,7 @@ void BSP_Stepper_Start(bsp_stepper_t *stepper, uint8_t dir, uint32_t steps, uint
 }
 
 /* ================= 3. 状态机任务（非阻塞） ================= */
-void BSP_Stepper_Task(bsp_stepper_t *stepper)
+void Bsp_Stepper_Task(bsp_stepper_t *stepper)
 {
     if (stepper == NULL || stepper->Gpio_Write == NULL) return;
 

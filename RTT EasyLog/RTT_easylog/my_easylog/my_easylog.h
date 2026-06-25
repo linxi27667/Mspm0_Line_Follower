@@ -37,13 +37,13 @@ typedef enum {
     LOG_LVL_INFO    = 3,
 } log_level_t;
 
-/* ========== 配色方案（J-Link RTT Viewer 兼容） ========== */
+/* ========== 配色方案（参照 LOG.h，使用 \x1B[2;3Xm dim 风格，J-Link RTT Viewer 兼容） ========== */
 
-#define _MYLOG_CLR_A    "\033[1;35m"   /* assert  · 亮品红 */
-#define _MYLOG_CLR_E    "\033[1;31m"   /* error   · 亮红   */
-#define _MYLOG_CLR_W    "\033[1;33m"   /* warn    · 亮黄   */
-#define _MYLOG_CLR_I    "\033[36m"     /* info    · 青色   */
-#define _MYLOG_RST      "\033[0m"      /* 复位     */
+#define _MYLOG_CLR_A    "\x1B[2;35m"   /* assert  · 品红 */
+#define _MYLOG_CLR_E    "\x1B[2;31m"   /* error   · 红色 */
+#define _MYLOG_CLR_W    "\x1B[2;33m"   /* warn    · 黄色 */
+#define _MYLOG_CLR_I    "\x1B[2;32m"   /* info    · 绿色 */
+#define _MYLOG_RST      "\x1B[0m"      /* 复位    */
 
 /* ========== API ========== */
 
