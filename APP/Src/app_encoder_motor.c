@@ -54,7 +54,11 @@ static void HW_Pwm_Write(void *timer, uint32_t channel, uint32_t duty)
     DL_TimerG_setCaptureCompareValue((GPTIMER_Regs *)timer, duty, (DL_TIMER_CC_INDEX)channel);
 }
 
-/* 左电机编码器读取 — 硬件QEI */
+/* 左电机编码器读取 — 硬件QEI
+ * 修复: 原代码 delta = last - current 与右编码器(current - last)符号相反，
+ * 若两电机对称安装导致正转时计数方向一致，则左右速度符号相反，
+ * PID 对一侧持续推高 PWM 至限幅。统一为 current - last。
+ * 注: 若实测发现左电机方向反，可在此处取反 delta。 */
 static int32_t HW_Enc_Read_Left(void *enc_timer)
 {
     static uint32_t last_count = 0;
@@ -68,16 +72,25 @@ static int32_t HW_Enc_Read_Left(void *enc_timer)
         return 0;
     }
 
-    int16_t delta = (int16_t)(last_count - current_count);
+    int16_t delta = (int16_t)(current_count - last_count);
     last_count = current_count;
     return (int32_t)delta;
 }
 
-/* 右电机编码器读取 — GPIO中断计数差值 */
+/* 右电机编码器读取 — GPIO中断计数差值
+ * 修复: 增加 first_read 保护，避免首次调用返回累计大值导致 PID 误差尖峰 */
 static int32_t HW_Enc_Read_Right(void *enc_timer)
 {
     (void)enc_timer;  /* 右编码器不使用定时器 */
+    static bool first_read = true;
+
     int32_t current = g_right_enc_count;
+    if (first_read) {
+        s_right_enc_last = current;
+        first_read = false;
+        return 0;
+    }
+
     int32_t delta = current - s_right_enc_last;
     s_right_enc_last = current;
     return delta;
@@ -123,7 +136,8 @@ void Right_Encoder_IRQHandler(void)
     uint8_t pha = DL_GPIO_readPins(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN) ? 1 : 0;
     uint8_t phb = DL_GPIO_readPins(RIGHT_ENC_PHB_PORT, RIGHT_ENC_PHB_PIN) ? 1 : 0;
 
-    /* PHA与PHB同相=正转，反相=反转 */
+    /* 修复注释: PHA与PHB异相=正转(递增)，同相=反转(递减)
+     * 双沿解码: PHA上升沿+PHB=0 → 异相 → 正转，正确 */
     if (pha ^ phb) {
         g_right_enc_count++;
     } else {
@@ -182,6 +196,13 @@ void App_Motor_Enable_Speed_PID(bool enable)
         /* 切换到闭环时，复位PID防止积分突跳 */
         Pid_Reset(&s_left_speed_pid);
         Pid_Reset(&s_right_speed_pid);
+        /* 修复: 同步编码器基准，避免首次读取产生大 delta 导致 PID 误差尖峰。
+         * 调用 Bsp_Motor_Update_Status 更新 last_count 为当前值，
+         * 然后清零 encoder_speed 丢弃这次读取。 */
+        Bsp_Motor_Update_Status(&Motor_Left);
+        Bsp_Motor_Update_Status(&Motor_Right);
+        Motor_Left.encoder_speed  = 0;
+        Motor_Right.encoder_speed = 0;
     } else {
         /* 切换回开环时，同步current_pwm = target_speed */
         Bsp_Motor_Write_Pwm(&Motor_Left,  Motor_Left.target_speed);
@@ -200,14 +221,14 @@ void App_Motor_Set_Speed_Scale(float scale)
 
 void App_Motor_Init(void)
 {
-    HW_Motor_Init(&Motor_Left);
+    /* 修复: Bsp_Motor_Init_Device 内部已调用 motor->Init (即 HW_Motor_Init)，
+     * 原代码重复调用导致时钟使能/启动计数器执行两次。删除显式调用。 */
     Bsp_Motor_Init_Device(&Motor_Left);
-
-    HW_Motor_Init(&Motor_Right);
     Bsp_Motor_Init_Device(&Motor_Right);
 
-    /* 使能右编码器GPIO中断 */
-    DL_GPIO_enableInterrupt(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN);
+    /* 使能右编码器GPIO中断 NVIC
+     * 注: SysConfig 生成的 SYSCFG_DL_GPIO_init 已调用
+     * DL_GPIO_setLowerPinsPolarity + enableInterrupt，此处仅需 NVIC 使能 */
     NVIC_EnableIRQ(GPIOB_INT_IRQn);
 
     /* 初始化速度PID */
@@ -217,6 +238,11 @@ void App_Motor_Init(void)
     Pid_Init(&s_right_speed_pid,
              MOTOR_SPEED_PID_KP, MOTOR_SPEED_PID_KI, MOTOR_SPEED_PID_KD,
              MOTOR_SPEED_PID_ILIMIT, MOTOR_SPEED_PID_OLIMIT);
+
+    /* 修复: 启用积分分离，避免启动/急停时积分饱和导致超调
+     * 误差超过阈值时不累加积分，PID 仍正常计算 P/D */
+    s_left_speed_pid.integral_sep_threshold  = MOTOR_SPEED_PID_INTEGRAL_SEP;
+    s_right_speed_pid.integral_sep_threshold = MOTOR_SPEED_PID_INTEGRAL_SEP;
 }
 
 void Motor_Set_Speed(int32_t speed)

@@ -78,9 +78,12 @@ void DMA_IRQHandler(void)
 /* GPIO GROUP1 中断 — 右编码器PHA双沿触发 */
 void GROUP1_IRQHandler(void)
 {
-    /* 检查PB14(PHA)是否产生中断 */
-    if (DL_GPIO_getPendingInterrupt(RIGHT_ENC_PHA_PORT) &
-        RIGHT_ENC_PHA_PIN) {
+    /* 检查PB14(PHA)是否产生中断
+     * 注意: DL_GPIO_getPendingInterrupt 返回 IIDX 枚举(非位掩码)，
+     *       与 RIGHT_ENC_PHA_PIN(位掩码)按位与恒为0，导致右编码器中断
+     *       永不触发。必须用 getEnabledInterruptStatus 按位掩码判断。 */
+    if (DL_GPIO_getEnabledInterruptStatus(RIGHT_ENC_PHA_PORT,
+                                          RIGHT_ENC_PHA_PIN)) {
         DL_GPIO_clearInterruptStatus(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN);
         Right_Encoder_IRQHandler();
     }
@@ -127,7 +130,7 @@ int main(void)
     Track_Set_Speed(40);
 
     /* 时标调度变量 */
-    uint32_t last_10ms = 0, last_500ms = 0, last_100ms = 0;
+    uint32_t last_5ms = 0, last_10ms = 0, last_500ms = 0, last_100ms = 0;
     /* 状态变化检测：避免静止状态下重复打印相同状态 */
     uint8_t  last_state = 0xFF;
     uint8_t  last_circle = 0xFF;
@@ -139,6 +142,15 @@ int main(void)
 
         /* ===================== 循迹任务（自包含，全由 Track_Update 调度） ===================== */
         Track_Update();
+
+        /* ---- 5ms: 速度PID更新（独立于循迹状态机，保证 IDLE/FINISHED 时也能更新）
+         * 修复: 原代码速度PID只在 Track_Update 末尾调用，受 5ms 节流+8ms 数据同步
+         * 双重约束，且 FINISHED/IDLE 状态下完全不执行 → 电机保持最后PWM。
+         * 独立调用确保 target=0 时能自然减速到停。 */
+        if ((now - last_5ms) >= 5) {
+            last_5ms = now;
+            App_Motor_Speed_PID_Update();
+        }
 
         /* ---- 10ms: 按键扫描（无阻塞状态机） ---- */
         if ((now - last_10ms) >= 10) {
@@ -158,8 +170,11 @@ int main(void)
                                  (cur_circle != last_circle) ||
                                  (cur_bc != last_bc);
 
-            /* 状态变化时必打印；运行中即使无变化也周期打印 */
-            if (state_changed || cur_state != 0) {
+            /* 状态变化时必打印；运行中即使无变化也周期打印
+             * 修复: FINISHED 状态不再持续打印，避免浪费 RTT 带宽 */
+            if (state_changed ||
+                (cur_state != TRACK_STATE_IDLE &&
+                 cur_state != TRACK_STATE_FINISHED)) {
                 elog_i("[CAR]", "St:%d Cir:%d Err:%d L:%d R:%d BC:%d",
                        Track.state, Track.current_circle,
                        (int)(Track.error * 1000),
@@ -179,7 +194,7 @@ int main(void)
                 evt = Key_GetEvent(i);
                 if (evt == BSP_KEY_EVENT_PUSH) {
                     Led_Toggle(i);
-                    elog_i("[KEY]", "K%u pressed", i);
+                    elog_i("[KEY]", "K%d pressed", (int)i);
                     /* KEY1: 启动循迹 */
                     if (i == 0) {
                         Track_Start();
@@ -206,11 +221,13 @@ int main(void)
 
         /* ---- UART 帧处理（事件驱动，非周期，多帧一次排空） ---- */
         {
-            uint8_t frame[BSP_UART_RX_BUF_SIZE];
+            /* 修复: 缓冲区 +1 留给 '\0'，避免 len==BSP_UART_RX_BUF_SIZE 时越界 */
+            uint8_t frame[BSP_UART_RX_BUF_SIZE + 1];
             uint16_t len = 0;
             while (Uart_Get_Frame(frame, &len)) {
+                if (len >= BSP_UART_RX_BUF_SIZE) len = BSP_UART_RX_BUF_SIZE - 1;
                 frame[len] = '\0';
-                elog_i("[COMM]", "RX(%u): %s", len, frame);
+                elog_i("[COMM]", "RX(%u): %s", (unsigned)len, (char*)frame);
             }
         }
     }

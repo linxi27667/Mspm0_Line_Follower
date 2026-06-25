@@ -9,6 +9,7 @@
  */
 #include "track.h"
 #include "bsp_common.h"
+#include "my_easylog.h"
 
 /* ============================================================
  * 常量
@@ -85,30 +86,47 @@ static void Track_Update_Speed(void)
 
 static void Track_Detect_Pattern(void)
 {
+    /* --- 起点线检测（≥6路黑） — 必须在十字路口之前检测 ---
+     * 修复1: 原代码先检测十字(中4路黑+外侧白)，起点线(6路黑)会满足
+     *        十字条件被误判为十字路口，导致圈数计数失效。
+     * 修复2: 添加 start_line_armed 标志，起点线必须先消失再出现才重新计数，
+     *        避免慢速通过时一条起点线被记多圈。 */
+    if (Track.start_line_armed &&
+        Grayscale_Sensor.black_count >= TRACK_START_LINE_MIN_BLACK) {
+        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
+            Track.target_heading = Mpu_Sensor.heading;
+            Track.state = TRACK_STATE_START_LINE;
+            Track.state_timer = 0;
+            Track.start_line_armed = false;  /* 需等黑线消失后重新武装 */
+            elog_i("[TRACK]", "LINE_FOLLOW -> START_LINE (bc=%d)",
+                   Grayscale_Sensor.black_count);
+        }
+        return;
+    }
+
+    /* 起点线未检测到时，若黑通道数降到阈值以下，重新武装起点线检测 */
+    if (!Track.start_line_armed &&
+        Grayscale_Sensor.black_count < TRACK_START_LINE_MIN_BLACK) {
+        Track.start_line_armed = true;
+    }
+
     /* --- 十字路口检测 --- */
-    /* 中间4路(S2~S5)全黑 + 外侧至少1路白 */
+    /* 中间4路(S2~S5)全黑 + 外侧至少1路白 + 非起点线(黑通道<6) */
     uint8_t mid_black = 0;
     for (uint8_t i = 2; i <= 5; i++) {
         if (Grayscale_Sensor.digital[i]) mid_black++;
     }
     uint8_t outer_white = (!Grayscale_Sensor.digital[0] || !Grayscale_Sensor.digital[7]) ? 1 : 0;
 
-    if (mid_black >= TRACK_CROSS_MIN_BLACK && outer_white) {
+    if (mid_black >= TRACK_CROSS_MIN_BLACK && outer_white &&
+        Grayscale_Sensor.black_count < TRACK_START_LINE_MIN_BLACK) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
             Track.state = TRACK_STATE_CROSS;
             Track.state_timer = 0;
+            elog_i("[TRACK]", "LINE_FOLLOW -> CROSS (bc=%d)",
+                   Grayscale_Sensor.black_count);
             return;
         }
-    }
-
-    /* --- 起点线检测（≥6路黑） --- */
-    if (Grayscale_Sensor.black_count >= TRACK_START_LINE_MIN_BLACK) {
-        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.target_heading = Mpu_Sensor.heading;
-            Track.state = TRACK_STATE_START_LINE;
-            Track.state_timer = 0;
-        }
-        return;
     }
 
     /* --- 直角弯道检测（多帧确认） --- */
@@ -124,6 +142,8 @@ static void Track_Detect_Pattern(void)
                 Track.state = TRACK_STATE_RIGHT_ANGLE;
                 Track.state_timer = 0;
                 Track.right_angle_confirm = 0;
+                elog_i("[TRACK]", "LINE_FOLLOW -> RIGHT_ANGLE (err=%d target=%d)",
+                       (int)Track.error, (int)Track.right_angle_target);
             }
         }
     } else {
@@ -131,14 +151,37 @@ static void Track_Detect_Pattern(void)
         Track.right_angle_confirm = 0;
     }
 
-    /* --- 丢线检测 --- */
+    /* --- 丢线检测（多帧确认，抗瞬时干扰） --- */
     if (Grayscale_Sensor.black_count < TRACK_LINE_LOST_MAX_BLACK) {
-        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.last_state = TRACK_STATE_LINE_FOLLOW;
-            Track.target_heading = Mpu_Sensor.heading;
-            Track.state = TRACK_STATE_LINE_LOST;
-            Track.line_lost_count = 0;
+        Track.line_lost_confirm++;
+        if (Track.line_lost_confirm >= TRACK_LINE_LOST_CONFIRM_FRAMES) {
+            if (Track.state == TRACK_STATE_LINE_FOLLOW) {
+                Track.last_state = TRACK_STATE_LINE_FOLLOW;
+                Track.target_heading = Mpu_Sensor.heading;
+                Track.state = TRACK_STATE_LINE_LOST;
+                Track.line_lost_count = 0;
+                Pid_Reset(&Track.gyro_pid);  /* 进入丢线时复位 gyro_pid 防积分突跳 */
+                elog_w("[TRACK]", "LINE_FOLLOW -> LINE_LOST (hdg=%d)",
+                       (int)Mpu_Sensor.heading);
+            }
         }
+    } else {
+        Track.line_lost_confirm = 0;
+    }
+}
+
+/* ============================================================
+ * 内部函数：立即停车（切开环+直写PWM=0，避免闭环下电机持续运转）
+ * ============================================================ */
+static void Track_Motor_Stop_Immediate(void)
+{
+    Track.left_speed  = 0;
+    Track.right_speed = 0;
+    Track.turn_output = 0;
+    if (Track.use_motor) {
+        App_Motor_Enable_Speed_PID(false);
+        Bsp_Motor_Write_Pwm(&Motor_Left, 0);
+        Bsp_Motor_Write_Pwm(&Motor_Right, 0);
     }
 }
 
@@ -156,10 +199,11 @@ static void Track_Handle_StartLine(void)
         Track.current_circle++;
         if (Track.current_circle >= Track.target_circles) {
             Track.state = TRACK_STATE_FINISHED;
-            Track.left_speed  = 0;
-            Track.right_speed = 0;
+            Track_Motor_Stop_Immediate();   /* 立即停车(安全) */
+            elog_i("[TRACK]", "FINISHED! circles=%d/%d", Track.current_circle, Track.target_circles);
         } else {
             Track.state = TRACK_STATE_LINE_FOLLOW;
+            elog_i("[TRACK]", "Circle %d/%d completed", Track.current_circle, Track.target_circles);
         }
         return;
     }
@@ -180,8 +224,11 @@ static void Track_Handle_LineLost(void)
     Track.line_lost_count++;
 
     if (Track.use_gyro && Mpu_Sensor.gyro_ok) {
-        float gyro_error = Track.target_heading - Mpu_Sensor.heading;
-        Track.turn_output = Track.gyro_pid.kp * gyro_error;
+        /* 修复: 统一用完整 PID(含 D 项)而非仅 P 控制，与直角弯道策略一致。
+         * Pid_Compute 内部 error = target - feedback = target_heading - heading */
+        Track.turn_output = Pid_Compute(&Track.gyro_pid,
+                                        Track.target_heading,
+                                        Mpu_Sensor.heading);
     } else {
         Track.turn_output = Track.last_error * TRACK_LINE_LOST_GAIN;
     }
@@ -189,8 +236,7 @@ static void Track_Handle_LineLost(void)
     /* 丢线超时停车 */
     if (Track.line_lost_count > TRACK_LINE_LOST_TIMEOUT) {
         Track.state = TRACK_STATE_FINISHED;
-        Track.left_speed  = 0;
-        Track.right_speed = 0;
+        Track_Motor_Stop_Immediate();   /* 立即停车(安全) */
         return;
     }
 
@@ -198,6 +244,9 @@ static void Track_Handle_LineLost(void)
     if (Grayscale_Sensor.black_count > 0) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
         Pid_Reset(&Track.line_pid);
+        Track.line_lost_confirm = 0;    /* 修复: 复位确认计数，避免立即重入 LINE_LOST */
+        elog_i("[TRACK]", "LINE_LOST -> LINE_FOLLOW (recovered, bc=%d)",
+               Grayscale_Sensor.black_count);
     }
 }
 
@@ -251,13 +300,11 @@ static void Track_Motor_Output(void)
     Track.left_speed  = Track.base_speed + (int32_t)Track.turn_output;
     Track.right_speed = Track.base_speed - (int32_t)Track.turn_output;
 
-    /* 内侧电机最低速度限制（不允许反转，避免急转抖动） */
-    if (Track.left_speed < TRACK_MOTOR_INNER_MIN && Track.right_speed > TRACK_MOTOR_INNER_MIN) {
-        Track.left_speed = TRACK_MOTOR_INNER_MIN;
-    }
-    if (Track.right_speed < TRACK_MOTOR_INNER_MIN && Track.left_speed > TRACK_MOTOR_INNER_MIN) {
-        Track.right_speed = TRACK_MOTOR_INNER_MIN;
-    }
+    /* 内侧电机最低速度限制（不允许反转，避免急转抖动）
+     * 修复: 原代码双 if 互斥条件在两轮都低于 MIN 时均不执行，
+     * 导致内侧电机可反转。改为分别钳位。 */
+    if (Track.left_speed  < TRACK_MOTOR_INNER_MIN) Track.left_speed  = TRACK_MOTOR_INNER_MIN;
+    if (Track.right_speed < TRACK_MOTOR_INNER_MIN) Track.right_speed = TRACK_MOTOR_INNER_MIN;
 
     /* 电机速度限幅 */
     if (Track.left_speed >  TRACK_MOTOR_SPEED_MAX) Track.left_speed  =  TRACK_MOTOR_SPEED_MAX;
@@ -287,6 +334,8 @@ void Track_Init(void)
     Track.state_timer        = 0;
     Track.line_lost_count    = 0;
     Track.right_angle_confirm = 0;
+    Track.line_lost_confirm  = 0;
+    Track.start_line_armed   = true;  /* 初始可检测起点线 */
     Track.target_circles     = TRACK_DEFAULT_CIRCLES;
     Track.current_circle     = 0;
     Track.turn_output        = 0;
@@ -306,6 +355,7 @@ void Track_Init(void)
     Pid_Init(&Track.gyro_pid,
              TRACK_GYRO_PID_KP, TRACK_GYRO_PID_KI, TRACK_GYRO_PID_KD,
              TRACK_GYRO_PID_ILIMIT, TRACK_GYRO_PID_OLIMIT);
+    Track.gyro_pid.deriv_alpha = 0.4f;  /* 修复: 启用微分滤波，抑制陀螺仪噪声 */
 
     App_Grayscale_Init();
     App_Mpu_Init();
@@ -325,7 +375,6 @@ void Track_Update(void)
     static uint32_t last_update_tick = 0;
     uint32_t now = Bsp_GetTick();
     if ((now - last_update_tick) < TRACK_UPDATE_PERIOD_MS) return;
-    last_update_tick = now;
 
     if (Track.state == TRACK_STATE_IDLE ||
         Track.state == TRACK_STATE_FINISHED) return;
@@ -334,9 +383,15 @@ void Track_Update(void)
     if (!Grayscale_Sensor.data_ready) return;
     Grayscale_Sensor.data_ready = 0;  /* 消费标志 */
 
+    /* 修复: 时间戳必须在真正执行时才更新(原代码在 data_ready 检查前更新，
+     * 导致因 data_ready=0 提前返回时时间戳仍推进，dt 与实际周期不匹配)。
+     * 同时传入真实 dt(而非固定 5ms)，保证陀螺仪航向积分准确。 */
+    float dt = (now - last_update_tick) / 1000.0f;
+    last_update_tick = now;
+
     /* ④ 读取陀螺仪数据并更新航向（APP层API） */
     if (Track.use_gyro) {
-        Mpu_Update_Heading(TRACK_UPDATE_PERIOD_MS / 1000.0f);
+        Mpu_Update_Heading(dt);
     }
 
     /* ⑤ 计算偏差 */
@@ -351,7 +406,11 @@ void Track_Update(void)
     /* ⑧ 状态机处理 */
     switch (Track.state) {
     case TRACK_STATE_LINE_FOLLOW:
-        Track.turn_output = Pid_Compute(&Track.line_pid, 0.0f, Track.error);
+        /* 偏差>0表示黑线在车体右侧，需要右转 → turn_output应为正
+         * Pid_Compute(pid, setpoint, feedback) 内部 error = setpoint - feedback
+         * 传入 (Track.error, 0) 使 PID error = Track.error，输出极性正确
+         * 修复: 原代码 (0, Track.error) 导致 PID 极性反接，车会偏离黑线 */
+        Track.turn_output = Pid_Compute(&Track.line_pid, Track.error, 0.0f);
         break;
 
     case TRACK_STATE_START_LINE:
@@ -377,8 +436,8 @@ void Track_Update(void)
     /* ⑨ 差速输出到电机（BSP层API） */
     Track_Motor_Output();
 
-    /* ⑩ 速度PID闭环更新（编码器反馈 → 修正PWM） */
-    App_Motor_Speed_PID_Update();
+    /* 速度PID闭环更新已移至 main.c 的 5ms 独立节拍，
+     * 保证 IDLE/FINISHED 状态下也能更新(避免电机保持最后PWM)。 */
 }
 
 void Track_Start(void)
@@ -386,8 +445,12 @@ void Track_Start(void)
     Track.state = TRACK_STATE_LINE_FOLLOW;
     Track.current_circle = 0;
     Track.right_angle_confirm = 0;
+    Track.line_lost_confirm = 0;
+    Track.start_line_armed = true;
     Pid_Reset(&Track.line_pid);
     Pid_Reset(&Track.gyro_pid);
+    elog_i("[TRACK]", "Tracking started (circles=%d speed=%d)",
+           Track.target_circles, Track.base_speed);
 }
 
 void Track_Stop(void)
@@ -395,10 +458,17 @@ void Track_Stop(void)
     Track.state = TRACK_STATE_FINISHED;
     Track.left_speed  = 0;
     Track.right_speed = 0;
+    Track.turn_output = 0;
     if (Track.use_motor) {
-        Motor_Set_Speed(0);
-        Motor_Right_Set_Speed(0);
+        /* 修复: 闭环模式下 Motor_Set_Speed 只更新 target_speed，
+         * 不写 PWM；而 Track_Update 在 FINISHED 状态直接 return，
+         * 速度 PID 永远不会再执行 → 电机保持最后一次 PWM 持续运转。
+         * 必须切开环 + 直写 PWM=0 才能真正停车。 */
+        App_Motor_Enable_Speed_PID(false);
+        Bsp_Motor_Write_Pwm(&Motor_Left, 0);
+        Bsp_Motor_Write_Pwm(&Motor_Right, 0);
     }
+    elog_i("[TRACK]", "Tracking stopped (state=FINISHED)");
 }
 
 void Track_Set_Circles(uint8_t n)

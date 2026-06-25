@@ -3,7 +3,8 @@
  * @brief   灰度PID循迹任务调度层（TASK层 — 纯业务逻辑）
  * @note    传感器布局: S0 S1 S2 S3 S4 S5 S6 S7（左→右）
  *          偏差权重:   -3.5 -2.5 -1.5 -0.5 +0.5 +1.5 +2.5 +3.5
- *          负偏差=偏左(需右转)  正偏差=偏右(需左转)
+ *          负偏差=黑线在左侧(需左转)  正偏差=黑线在右侧(需右转)
+ *          turn_output>0=右转(左轮加速) <0=左转(右轮加速)
  *
  *          架构:
  *          BSP层: bsp_grayscale / bsp_pid / bsp_mpu6050 / bsp_encoder_motor
@@ -39,12 +40,13 @@
 
 /* --- 起点线检测 --- */
 #define TRACK_START_LINE_MIN_BLACK        6
-#define TRACK_START_LINE_COUNT            100
+#define TRACK_START_LINE_COUNT            50    /* 50*5ms=250ms 持续黑线视为过起点 */
 
 /* --- 丢线检测 --- */
 #define TRACK_LINE_LOST_MAX_BLACK         1
 #define TRACK_LINE_LOST_TIMEOUT           500
 #define TRACK_LINE_LOST_GAIN              2.0f
+#define TRACK_LINE_LOST_CONFIRM_FRAMES    5     /* 连续5帧全白才确认丢线(抗干扰) */
 
 /* --- 变速策略 --- */
 #define TRACK_SPEED_STRAIGHT              60
@@ -53,7 +55,7 @@
 #define TRACK_SPEED_RAMP_STEP             2
 
 /* --- 电机差速 --- */
-#define TRACK_MOTOR_INNER_MIN             0
+#define TRACK_MOTOR_INNER_MIN             15    /* 内侧电机最低速度(避免急转停止抖动) */
 #define TRACK_MOTOR_SPEED_MAX             100
 #define TRACK_MOTOR_SPEED_MIN             (-100)
 
@@ -110,6 +112,10 @@ typedef struct {
 
     /* --- 直角弯道多帧确认 --- */
     uint8_t  right_angle_confirm;   /* 直角弯连续确认计数 */
+    uint8_t  line_lost_confirm;     /* 丢线连续确认计数 */
+
+    /* --- 起点线防重复计数 --- */
+    bool     start_line_armed;      /* true=可检测起点线, false=需等黑线消失后重新武装 */
 
     /* --- 圈数 --- */
     uint8_t  target_circles;
@@ -120,7 +126,7 @@ typedef struct {
     bsp_pid_t gyro_pid;             /* 陀螺仪航向PID */
 
     /* --- 输出 --- */
-    float    turn_output;           /* 转向量(正=左转,负=右转) */
+    float    turn_output;           /* 转向量(正=右转,负=左转) */
     int32_t  left_speed;            /* 左电机速度 */
     int32_t  right_speed;           /* 右电机速度 */
     int32_t  base_speed;            /* 当前基础速度（渐变） */

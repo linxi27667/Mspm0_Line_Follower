@@ -36,15 +36,25 @@
 
 /* ============ 速度PID参数 ============
  * 级联控制: 位置PID(循迹) → 目标速度 → 速度PID → PWM
+ *
  * speed_scale: 编码器计数/周期 对应 1% PWM 的系数
- *   校准方法: 设PWM=50, 测encoder_speed, scale = encoder_speed / 50
+ *   计算式: actual_speed = encoder_speed / speed_scale
+ *   校准方法: 设 PWM=50, 测 encoder_speed, scale = encoder_speed / 50
+ *   注意: 未校准时 scale=1.0, encoder_speed 被直接当作速度单位,
+ *         闭环性能不可靠。需实车标定后调用 App_Motor_Set_Speed_Scale()。
+ *   左编码器(QEI 4x)与右编码器(GPIO 2x)分辨率不同,
+ *         若发现左右轮增益不一致, 需分别为左右设置不同 scale。
+ *
+ * integral_sep: 积分分离阈值, 误差超过此值时不累加积分
+ *   作用: 启动/急停时避免积分饱和导致超调
  */
 #define MOTOR_SPEED_PID_KP          0.8f
 #define MOTOR_SPEED_PID_KI          0.2f
 #define MOTOR_SPEED_PID_KD          0.0f
 #define MOTOR_SPEED_PID_ILIMIT      30.0f
 #define MOTOR_SPEED_PID_OLIMIT      30.0f   /* PID修正量限幅(前馈+修正≤100) */
-#define MOTOR_SPEED_SCALE_DEFAULT   1.0f    /* 需实测校准 */
+#define MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f  /* 积分分离阈值(误差>15%时不累加I) */
+#define MOTOR_SPEED_SCALE_DEFAULT   1.0f    /* 默认值, 需实车校准 */
 
 /* ============ 业务接口声明 ============ */
 extern bsp_motor_t Motor_Left;

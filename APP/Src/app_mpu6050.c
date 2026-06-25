@@ -116,6 +116,9 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
     }
 
     /* 第2步: 读数据 */
+    /* 先清空 RX FIFO 中可能残留的数据 */
+    DL_I2C_flushControllerRXFIFO(i2c);
+
     DL_I2C_startControllerTransfer(i2c, dev_addr,
         DL_I2C_CONTROLLER_DIRECTION_RX, len);
 
@@ -126,6 +129,12 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
         if (--timeout == 0) return 2;
     }
     DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_RX_DONE);
+
+    /* 检查NACK（设备不应答） */
+    if (DL_I2C_getRawInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_NACK)) {
+        DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_NACK);
+        return 1;
+    }
 
     /* 从RX FIFO读取数据 */
     for (uint16_t i = 0; i < len; i++) {
@@ -182,10 +191,14 @@ bsp_mpu_t Mpu_Sensor = {
 void App_Mpu_Init(void)
 {
 #if MPU6050_USE_HW_I2C
-    /* 硬件 I2C: SysConfig 只生成了 setClockConfig + glitch filter，
-     * 缺失 enableController → 启动后 I2C 完全无 SDA/SCL 输出，
-     * startControllerTransfer 后 TX_DONE 永远不会置位。
-     * 这里补上 controller 使能 + 设备启用。 */
+    /* 硬件 I2C: SysConfig 生成的 SYSCFG_DL_MPU6050_I2C_init() 只调用
+     * setClockConfig(BUSCLK/1) + glitch filter，缺失 enableController →
+     * 启动后 I2C 完全无 SDA/SCL 输出，startControllerTransfer 后
+     * TX_DONE 永远不会置位。这里补上 controller 使能。
+     *
+     * 注: driverlib 1.30 未提供 SCL 频率设置 API（DL_I2C_setBitTime 不存在）。
+     * SCL 频率由 I2C 控制器内部基于 BUSCLK=32MHz 自动分频，默认约 100kHz。
+     * MPU6050 支持 100kHz-400kHz，能正常通信。 */
     DL_I2C_enableController(MPU6050_HW_I2C_INST);
 
     /* 给 I2C 一些稳定时间（外设使能后 SCL/SDA 才进入空闲态） */

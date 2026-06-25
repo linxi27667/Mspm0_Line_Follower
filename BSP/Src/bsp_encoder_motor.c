@@ -24,6 +24,11 @@ void Bsp_Motor_Write_Pwm(bsp_motor_t *motor, int32_t pwm_val)
 {
     if (motor == NULL) return;
 
+    /* 修复: PWM 限幅 [-100, 100]，避免调用方传入越界值导致语义混乱
+     * (定时器 period=100, CC>100 时输出恒高=100%占空) */
+    if (pwm_val > 100)  pwm_val = 100;
+    if (pwm_val < -100) pwm_val = -100;
+
     motor->current_pwm = pwm_val;
 
     if (pwm_val > 0) {
