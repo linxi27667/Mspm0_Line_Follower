@@ -197,23 +197,23 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_clearPins(GPIOA, Grayscale_ADDR_B_AD2_PIN |
 		Monitor_Dir_Monitor_AIN1_PIN |
 		Monitor_Dir_Monitor_AIN2_PIN |
-		Right_Motor_Dir_AIN1_PIN |
-		Right_Motor_Dir_AIN2_PIN |
 		Grayscale_ADDR_A_AD0_PIN |
 		Grayscale_ADDR_A_AD1_PIN);
     DL_GPIO_enableOutput(GPIOA, Grayscale_ADDR_B_AD2_PIN |
 		Monitor_Dir_Monitor_AIN1_PIN |
 		Monitor_Dir_Monitor_AIN2_PIN |
-		Right_Motor_Dir_AIN1_PIN |
-		Right_Motor_Dir_AIN2_PIN |
 		Grayscale_ADDR_A_AD0_PIN |
 		Grayscale_ADDR_A_AD1_PIN);
     DL_GPIO_clearPins(GPIOB, GPIO_GRP_1_PIN_1_PIN |
+		Right_Motor_Dir_AIN1_PIN |
+		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
 		Led_Group_LED2_PIN |
 		Led_Group_LED3_PIN |
 		Led_Group_LED4_PIN);
     DL_GPIO_enableOutput(GPIOB, GPIO_GRP_1_PIN_1_PIN |
+		Right_Motor_Dir_AIN1_PIN |
+		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
 		Led_Group_LED2_PIN |
 		Led_Group_LED3_PIN |
