@@ -26,7 +26,10 @@ static void Gray_Select_Channel(bsp_grayscale_t *gs, uint8_t ch)
  * mid = (black + white) / 2
  * hyst = |white - black| / 4   (25%滞回)
  * 正常极性: ADC > mid+hyst → 白;  ADC < mid-hyst → 黑
- * 反向极性: ADC > mid+hyst → 黑;  ADC < mid-hyst → 白 */
+ * 反向极性: ADC > mid+hyst → 黑;  ADC < mid-hyst → 白
+ *
+ * ADC异常保护: 当ADC远低于black/white基准时(传感器抬起/悬空),
+ * 认为传感器异常,保持上一状态,防止冲出赛道时全黑误判导致直行跑飞。 */
 static void Gray_Hysteresis(bsp_grayscale_t *gs, uint8_t ch)
 {
     uint16_t b = gs->black[ch];
@@ -35,6 +38,12 @@ static void Gray_Hysteresis(bsp_grayscale_t *gs, uint8_t ch)
     uint16_t hyst = (w > b) ? ((w - b) / 4) : ((b - w) / 4);
     uint16_t high = mid + hyst;
     uint16_t low  = mid - hyst;
+
+    /* ADC异常保护: ADC低于基准一半时,传感器可能抬起/悬空,保持上一状态 */
+    uint16_t min_base = (b < w) ? b : w;
+    if (gs->analog[ch] < (uint16_t)(min_base / 2)) {
+        return;  /* 传感器异常,保持上一状态 */
+    }
 
     if (w >= b) {
         /* 正常极性: 黑线ADC低, 白地ADC高 */
@@ -117,6 +126,7 @@ void Bsp_Grayscale_Init_Device(bsp_grayscale_t *gs)
     gs->current_ch       = 0;
     gs->data_ready       = 0;
     gs->calibrated       = 0;
+    gs->black_calibrated = 0;
     gs->black_count      = 0;
     gs->last_switch_tick = 0;
 
@@ -142,29 +152,22 @@ void Bsp_Grayscale_Update(bsp_grayscale_t *gs)
     /* ① 读取当前通道ADC值（上一次选通的通道，现已稳定） */
     gs->analog[gs->current_ch] = gs->ADC_Read();
 
-    /* ①.5 动态跟踪: 只更新 black, 不更新 white (保持开机白基准)
-     * white 由开机自动校准确定(车放白地), 后续不更新。
-     * black 由动态跟踪更新: 正常极性通道遇到黑线时 black 降低,
-     *   反向极性通道遇到黑线时 ADC 升高超过 white, 此时 black>white,
-     *   归一化/滞回会自动识别为反向极性。
-     * 手动 K4 校准黑色会直接覆盖 black, 优先级高于动态跟踪。
-     * 注意: 动态跟踪可能把 black 更新为白地ADC波动值(比初始猜测高),
-     *   但只要 black < white, 滞回区间仍在, 不会误判。 */
-    if (gs->calibrated) {
-        uint8_t ch = gs->current_ch;
-        /* black 跟踪最小值 (正常极性: 黑线ADC低)
-         * 反向极性通道 black 保持初始猜测值, 等 K4 手动校准 */
-        if (gs->analog[ch] < gs->black[ch]) gs->black[ch] = gs->analog[ch];
-    }
+    /* ①.5 校准策略: 开机自动校准white + 手动K4校准black
+     * 去除动态跟踪: 实测发现动态跟踪会把black越拉越低(白地ADC噪声波动),
+     *   最终 black=0 导致滞回区间失效, Digital乱跳。
+     * 现在black只由手动K4校准确定, 保证基准稳定。
+     * white由开机自动校准确定(车放白地), 后续不更新。 */
 
     /* ② 归一化（0=白, 1=黑） */
     Gray_Normalize(gs, gs->current_ch);
 
-    /* ③ 黑白判断: 滞回比较器(自适应极性) */
-    if (gs->calibrated) {
+    /* ③ 黑白判断: 滞回比较器(自适应极性)
+     * 需要白色校准(calibrated) + 黑色校准(black_calibrated)都完成才判断,
+     * 否则强制白色(防止black=white/2猜测值导致反向极性传感器误判) */
+    if (gs->calibrated && gs->black_calibrated) {
         Gray_Hysteresis(gs, gs->current_ch);
     } else {
-        gs->digital[gs->current_ch] = 0;  /* 未校准: 强制白 */
+        gs->digital[gs->current_ch] = 0;  /* 未校准黑线: 强制白 */
     }
 
     /* ④ 切换到下一个通道 */
@@ -196,4 +199,5 @@ void Bsp_Grayscale_Calibrate_Black(bsp_grayscale_t *gs)
         gs->black[i] = gs->analog[i];
     }
     gs->calibrated = 1;
+    gs->black_calibrated = 1;  /* 标记黑色已手动校准 */
 }

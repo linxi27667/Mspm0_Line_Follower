@@ -38,7 +38,8 @@ typedef struct {
     uint8_t  digital[BSP_GRAY_CHANNEL_NUM];     /* 滞回比较结果: 1=黑, 0=白 */
     uint8_t  black_count;                       /* 当前黑色通道数 */
     uint8_t  data_ready;                        /* 一轮扫描完成标志 */
-    uint8_t  calibrated;                        /* 校准完成标志 */
+    uint8_t  calibrated;                        /* 白色校准完成标志 */
+    uint8_t  black_calibrated;                  /* 黑色手动校准完成标志(K4) */
 
     /* --- 3. 抽象硬件操作方法 (Function Pointers) --- */
     void     (*Init)(void);

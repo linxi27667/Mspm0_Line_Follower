@@ -29,33 +29,81 @@
 #define TRACK_UPDATE_PERIOD_MS    5
 
 /* --- 直角弯道检测 --- */
+#ifndef USER_RIGHT_ANGLE_THRESHOLD
 #define TRACK_RIGHT_ANGLE_THRESHOLD       2.5f
+#else
+#define TRACK_RIGHT_ANGLE_THRESHOLD       USER_RIGHT_ANGLE_THRESHOLD
+#endif
+#ifndef USER_RIGHT_ANGLE_CONFIRM_FRAMES
 #define TRACK_RIGHT_ANGLE_CONFIRM_FRAMES  3
+#else
+#define TRACK_RIGHT_ANGLE_CONFIRM_FRAMES  USER_RIGHT_ANGLE_CONFIRM_FRAMES
+#endif
+#ifndef USER_RIGHT_ANGLE_TIMEOUT
 #define TRACK_RIGHT_ANGLE_TIMEOUT         1000
+#else
+#define TRACK_RIGHT_ANGLE_TIMEOUT         USER_RIGHT_ANGLE_TIMEOUT
+#endif
+#ifndef USER_RIGHT_ANGLE_DONE_ERR
 #define TRACK_RIGHT_ANGLE_DONE_ERR        5.0f
+#else
+#define TRACK_RIGHT_ANGLE_DONE_ERR        USER_RIGHT_ANGLE_DONE_ERR
+#endif
 
 /* --- 十字路口检测 --- */
+#ifndef USER_CROSS_MIN_BLACK
 #define TRACK_CROSS_MIN_BLACK             4
+#else
+#define TRACK_CROSS_MIN_BLACK             USER_CROSS_MIN_BLACK
+#endif
 #define TRACK_CROSS_PASS_COUNT            60
 
 /* --- 起点线检测 --- */
+#ifndef USER_START_LINE_MIN_BLACK
 #define TRACK_START_LINE_MIN_BLACK        6
+#else
+#define TRACK_START_LINE_MIN_BLACK        USER_START_LINE_MIN_BLACK
+#endif
 #define TRACK_START_LINE_COUNT            50    /* 50*5ms=250ms 持续黑线视为过起点 */
 
 /* --- 丢线检测 --- */
 #define TRACK_LINE_LOST_MAX_BLACK         1
+#ifndef USER_LINE_LOST_TIMEOUT
 #define TRACK_LINE_LOST_TIMEOUT           500
+#else
+#define TRACK_LINE_LOST_TIMEOUT           USER_LINE_LOST_TIMEOUT
+#endif
+#ifndef USER_LINE_LOST_GAIN
 #define TRACK_LINE_LOST_GAIN              2.0f
+#else
+#define TRACK_LINE_LOST_GAIN              USER_LINE_LOST_GAIN
+#endif
 #define TRACK_LINE_LOST_CONFIRM_FRAMES    5     /* 连续5帧全白才确认丢线(抗干扰) */
 
 /* --- 变速策略 --- */
+#ifndef USER_TRACK_SPEED_STRAIGHT
 #define TRACK_SPEED_STRAIGHT              60
+#else
+#define TRACK_SPEED_STRAIGHT              USER_TRACK_SPEED_STRAIGHT
+#endif
+#ifndef USER_TRACK_SPEED_CURVE
 #define TRACK_SPEED_CURVE                 35
+#else
+#define TRACK_SPEED_CURVE                 USER_TRACK_SPEED_CURVE
+#endif
 #define TRACK_SPEED_SWITCH_ERR            1.0f
+#ifndef USER_TRACK_SPEED_RAMP_STEP
 #define TRACK_SPEED_RAMP_STEP             2
+#else
+#define TRACK_SPEED_RAMP_STEP             USER_TRACK_SPEED_RAMP_STEP
+#endif
 
 /* --- 电机差速 --- */
-#define TRACK_MOTOR_INNER_MIN             15    /* 内侧电机最低速度(避免急转停止抖动) */
+#ifndef USER_TRACK_MOTOR_INNER_MIN
+#define TRACK_MOTOR_INNER_MIN             15
+#else
+#define TRACK_MOTOR_INNER_MIN             USER_TRACK_MOTOR_INNER_MIN
+#endif
 #define TRACK_MOTOR_SPEED_MAX             100
 #define TRACK_MOTOR_SPEED_MIN             (-100)
 
@@ -63,23 +111,75 @@
 #define TRACK_ERROR_MIN_DENOM             0.01f
 
 /* --- 默认参数 --- */
+#ifndef USER_TRACK_BASE_SPEED
 #define TRACK_DEFAULT_BASE_SPEED          40
+#else
+#define TRACK_DEFAULT_BASE_SPEED          USER_TRACK_BASE_SPEED
+#endif
+#ifndef USER_TRACK_CIRCLES
 #define TRACK_DEFAULT_CIRCLES             1
+#else
+#define TRACK_DEFAULT_CIRCLES             USER_TRACK_CIRCLES
+#endif
 
 /* 循迹PID默认参数（需实测调优） */
+#ifndef USER_LINE_PID_KP
 #define TRACK_LINE_PID_KP        8.0f
+#else
+#define TRACK_LINE_PID_KP        USER_LINE_PID_KP
+#endif
+#ifndef USER_LINE_PID_KI
 #define TRACK_LINE_PID_KI        0.0f
+#else
+#define TRACK_LINE_PID_KI        USER_LINE_PID_KI
+#endif
+#ifndef USER_LINE_PID_KD
 #define TRACK_LINE_PID_KD        1.5f
+#else
+#define TRACK_LINE_PID_KD        USER_LINE_PID_KD
+#endif
+#ifndef USER_LINE_PID_ILIMIT
 #define TRACK_LINE_PID_ILIMIT    50.0f
+#else
+#define TRACK_LINE_PID_ILIMIT    USER_LINE_PID_ILIMIT
+#endif
+#ifndef USER_LINE_PID_OLIMIT
 #define TRACK_LINE_PID_OLIMIT    40.0f
-#define TRACK_LINE_PID_DERIV_ALPHA 0.6f   /* 不完全微分系数 */
+#else
+#define TRACK_LINE_PID_OLIMIT    USER_LINE_PID_OLIMIT
+#endif
+#ifndef USER_LINE_PID_DERIV_ALPHA
+#define TRACK_LINE_PID_DERIV_ALPHA 0.6f
+#else
+#define TRACK_LINE_PID_DERIV_ALPHA USER_LINE_PID_DERIV_ALPHA
+#endif
 
 /* 陀螺仪PID默认参数 */
+#ifndef USER_GYRO_PID_KP
 #define TRACK_GYRO_PID_KP        3.0f
+#else
+#define TRACK_GYRO_PID_KP        USER_GYRO_PID_KP
+#endif
+#ifndef USER_GYRO_PID_KI
 #define TRACK_GYRO_PID_KI        0.0f
+#else
+#define TRACK_GYRO_PID_KI        USER_GYRO_PID_KI
+#endif
+#ifndef USER_GYRO_PID_KD
 #define TRACK_GYRO_PID_KD        0.5f
+#else
+#define TRACK_GYRO_PID_KD        USER_GYRO_PID_KD
+#endif
+#ifndef USER_GYRO_PID_ILIMIT
 #define TRACK_GYRO_PID_ILIMIT    30.0f
+#else
+#define TRACK_GYRO_PID_ILIMIT    USER_GYRO_PID_ILIMIT
+#endif
+#ifndef USER_GYRO_PID_OLIMIT
 #define TRACK_GYRO_PID_OLIMIT    40.0f
+#else
+#define TRACK_GYRO_PID_OLIMIT    USER_GYRO_PID_OLIMIT
+#endif
 
 /* ============================================================
  * 循迹状态机

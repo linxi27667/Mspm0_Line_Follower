@@ -362,16 +362,16 @@ void Track_Init(void)
     Mpu_Calibrate();
     App_Motor_Init();
 
-    /* ====== 灰度校准策略: 自动校准白色(一次) + 手动校准黑色 + 动态跟踪 ======
-     * 传感器硬件现状: 8通道极性不一致(部分反向), 但开机在白地时,
-     *   每通道的"白地ADC"是确定的, 可以自动校准。
+    /* ====== 灰度校准策略: 自动校准白色(一次) + 手动K4校准黑色 ======
+     * 传感器硬件现状: 8通道极性不一致(部分反向)。
      * 方案:
      *   1. 开机时车放白地 → 自动校准每通道 white (只一次)
-     *   2. black 初始化为 white±500 (双向扩展, 不知极性)
-     *   3. 车跑动后动态跟踪只更新 black (遇到黑线时收敛)
-     *   4. 手动 K4 可校准黑色 (覆盖动态跟踪值)
-     * white 保持开机值不更新, 保证白地基准准确。
-     * 滞回比较器/归一化通过 black/white 大小自适应极性。 */
+     *   2. black 初始化为 white 的一半 (假设黑线ADC约为白地一半)
+     *      这样滞回区间大致在 [white/4, 3*white/4], 白地ADC>3*white/4判白
+     *   3. 手动 K4 校准黑色 (车放黑线按K4, 直接覆盖black为真实值)
+     *   4. 不做动态跟踪 (实测会把black拉低到0导致失效)
+     * white 保持开机值不更新, black 保持初始值直到K4校准。
+     * 滞回比较器通过 black/white 大小自适应极性。 */
     elog_i("TRACK", "Gray auto-cal WHITE (place car on white surface):");
     /* 扫描3轮让ADC稳定 + 取每通道当前ADC作为white */
     for (uint8_t round = 0; round < 3; round++) {
@@ -383,9 +383,9 @@ void Track_Init(void)
     for (uint8_t i = 0; i < 8; i++) {
         uint16_t adc = Grayscale_Sensor.analog[i];
         Grayscale_Sensor.white[i] = adc;
-        /* black 初始化为 white-500 (正常极性猜测),
-         * 动态跟踪/手动校准会修正为真实黑线值 */
-        Grayscale_Sensor.black[i] = (adc > 500) ? adc - 500 : 0;
+        /* black 初始化为 white/2 (合理猜测: 黑线ADC约为白地一半)
+         * 用户按K4手动校准后会更新为真实黑线值 */
+        Grayscale_Sensor.black[i] = adc / 2;
         Grayscale_Sensor.digital[i] = 0;
         elog_i("TRACK", "  S%d: ADC=%u white=%u black=%u",
                i, adc, adc, Grayscale_Sensor.black[i]);
@@ -472,6 +472,11 @@ void Track_Update(void)
 
 void Track_Start(void)
 {
+    /* 检查黑色校准状态,未校准时警告(允许启动但循迹不可靠) */
+    if (!Grayscale_Sensor.black_calibrated) {
+        elog_w("TRACK", "WARNING: Black NOT calibrated! Place car on black line and press K4");
+    }
+
     Track.state = TRACK_STATE_LINE_FOLLOW;
     Track.current_circle = 0;
     Track.right_angle_confirm = 0;
@@ -479,8 +484,9 @@ void Track_Start(void)
     Track.start_line_armed = true;
     Pid_Reset(&Track.line_pid);
     Pid_Reset(&Track.gyro_pid);
-    elog_i("TRACK", "Tracking started (circles=%d speed=%d)",
-           Track.target_circles, Track.base_speed);
+    elog_i("TRACK", "Tracking started (circles=%d speed=%d black_cal=%d)",
+           Track.target_circles, Track.base_speed,
+           Grayscale_Sensor.black_calibrated);
 }
 
 void Track_Stop(void)

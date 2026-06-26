@@ -7,8 +7,89 @@
  *            Track 阶段     — 循迹主循环
  *          调试:
  *            SELFTEST_MODE=1 启动后跑一遍自检并打印诊断
- *            SELFTEST_MODE=0 跳过自检直接进入循迹
+ *            SELFTEST_MODE=0 跳过自检直接进入循迹模式
  */
+
+/* ==================================================================
+ * ====== 用户调参区 (所有可调参数集中于此,方便手动调试) ======
+ * 说明: 此处定义优先于 track.h / app_encoder_motor.h 中的默认值
+ *       修改后重新编译烧录即可生效
+ * ================================================================== */
+
+/* ---------- 1. 循迹线PID (主循迹,输入灰度误差,输出转向量) ----------
+ * 调参方法:
+ *   1. 先只调KP: 从小值(2.0)开始,车能跟线但反应慢→加大KP
+ *   2. 车甩出弯道→KP太大,减小
+ *   3. 车左右震荡→加KD(从0.5开始),KD约为KP的1/5~1/3
+ *   4. 直线有静差→加KI(从0.1开始),但通常循迹KI=0
+ *   5. 转向量过大→减小OLIMIT */
+#define USER_LINE_PID_KP           8.0f    /* 比例增益(建议2~15) */
+#define USER_LINE_PID_KI           0.0f    /* 积分增益(循迹通常为0) */
+#define USER_LINE_PID_KD           1.5f    /* 微分增益(建议KP的1/5~1/3) */
+#define USER_LINE_PID_ILIMIT       50.0f   /* 积分限幅 */
+#define USER_LINE_PID_OLIMIT       40.0f   /* 输出限幅(转向量最大值) */
+#define USER_LINE_PID_DERIV_ALPHA  0.6f    /* 不完全微分系数(0~1,越大滤波越弱) */
+
+/* ---------- 2. 陀螺仪PID (丢线/直角弯时用,输入航向角偏差) ----------
+ * 调参方法:
+ *   1. 直角弯转不过去→加大KP
+ *   2. 转过头→加KD或减小KP
+ *   3. 丢线时车跑偏→加大KP */
+#define USER_GYRO_PID_KP           3.0f    /* 比例增益 */
+#define USER_GYRO_PID_KI           0.0f    /* 积分增益 */
+#define USER_GYRO_PID_KD           0.5f    /* 微分增益 */
+#define USER_GYRO_PID_ILIMIT       30.0f   /* 积分限幅 */
+#define USER_GYRO_PID_OLIMIT       40.0f   /* 输出限幅 */
+
+/* ---------- 3. 速度PID (电机闭环,输入目标速度,反馈编码器,输出PWM) ----------
+ * 调参方法:
+ *   1. 空转时PWM很高(如90)是正常的(编码器读数≈0,PID拼命加PWM)
+ *   2. 接轮子后车不动→加大KP
+ *   3. 车速震荡→加KD或减小KP
+ *   4. 速度跟不上→加大OLIMIT或减小INTEGRAL_SEP
+ * 速度比例尺(SPEED_SCALE): 需实车校准
+ *   方法: 设PWM=50,测encoder_speed,SPEED_SCALE = encoder_speed / 50 */
+#define USER_MOTOR_SPEED_PID_KP    0.8f    /* 速度PID比例增益 */
+#define USER_MOTOR_SPEED_PID_KI    0.2f    /* 速度PID积分增益 */
+#define USER_MOTOR_SPEED_PID_KD    0.0f    /* 速度PID微分增益 */
+#define USER_MOTOR_SPEED_PID_ILIMIT 30.0f  /* 速度PID积分限幅 */
+#define USER_MOTOR_SPEED_PID_OLIMIT 30.0f  /* 速度PID输出限幅(前馈+修正≤100) */
+#define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f /* 积分分离阈值(误差>此值不累加I) */
+#define USER_MOTOR_SPEED_SCALE     1.0f    /* 编码器速度→速度单位比例尺(需实车校准) */
+
+/* ---------- 4. 循迹策略参数 ----------
+ * 调参方法:
+ *   1. 车速太快冲出弯道→减小BASE_SPEED或SPEED_STRAIGHT
+ *   2. 直道不够快→加大SPEED_STRAIGHT
+ *   3. 弯道转不过→减小SPEED_CURVE或加大MOTOR_INNER_MIN
+ *   4. 急转时内侧轮停转→减小MOTOR_INNER_MIN(最低15) */
+#define USER_TRACK_BASE_SPEED      40      /* 基础速度(启动时) */
+#define USER_TRACK_SPEED_STRAIGHT  60      /* 直道速度 */
+#define USER_TRACK_SPEED_CURVE     35      /* 弯道速度 */
+#define USER_TRACK_SPEED_RAMP_STEP 2       /* 速度渐变步进(避免突变抖动) */
+#define USER_TRACK_MOTOR_INNER_MIN 15      /* 内侧电机最低速度(防急转停转) */
+#define USER_TRACK_CIRCLES         1       /* 目标圈数 */
+
+/* ---------- 5. 丢线/直角弯参数 ----------
+ * 调参方法:
+ *   1. 丢线后车立即停车→加大LINE_LOST_TIMEOUT
+ *   2. 直角弯检测不到→减小RIGHT_ANGLE_THRESHOLD
+ *   3. 普通弯道被误判为直角弯→加大RIGHT_ANGLE_THRESHOLD或CONFIRM_FRAMES */
+#define USER_LINE_LOST_TIMEOUT     500     /* 丢线超时停车(ms) */
+#define USER_LINE_LOST_GAIN        2.0f    /* 丢线时转向增益(无陀螺仪时用) */
+#define USER_RIGHT_ANGLE_THRESHOLD 2.5f    /* 直角弯检测误差阈值 */
+#define USER_RIGHT_ANGLE_CONFIRM_FRAMES 3  /* 直角弯连续确认帧数 */
+#define USER_RIGHT_ANGLE_TIMEOUT   1000    /* 直角弯超时(ms) */
+#define USER_RIGHT_ANGLE_DONE_ERR  5.0f    /* 直角弯完成角度误差(度) */
+
+/* ---------- 6. 起点线/十字路口参数 ---------- */
+#define USER_START_LINE_MIN_BLACK  6       /* 起点线最少黑色通道数 */
+#define USER_CROSS_MIN_BLACK       4       /* 十字路口中间黑色通道数 */
+
+/* ==================================================================
+ * ====== 用户调参区结束 (以下不要修改) ======
+ * ================================================================== */
+
 #include "ti_msp_dl_config.h"
 #include <elog.h>
 #include "SEGGER_RTT.h"
@@ -485,14 +566,25 @@ int main(void)
             if (changed ||
                 (cur_state != TRACK_STATE_IDLE &&
                  cur_state != TRACK_STATE_FINISHED)) {
-                /* 诊断: 打印实际PWM(current_pwm)和编码器速度(encoder_speed)
-                 * L/R=目标速度, LPwm/RPwm=实际PWM, LEnc/REnc=编码器速度 */
-                elog_i("CAR", "St:%d Cir:%d Err:%d L:%d R:%d BC:%d | LPwm:%ld RPwm:%ld LEnc:%ld REnc:%ld",
+                /* 诊断: 打印完整电机状态
+                 * State/Circle/Error/LeftTarget/RightTarget/BlackCount
+                 * LeftPwm/RightPwm/LeftEncoder/RightEncoder
+                 * LeftDir1/LeftDir2/RightDir1/RightDir2 (方向引脚DOUT状态)
+                 * LeftTotalPos/RightTotalPos (累计位置) */
+                uint8_t ld1 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR1_PIN)  ? 1 : 0;
+                uint8_t ld2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN)  ? 1 : 0;
+                uint8_t rd1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1 : 0;
+                uint8_t rd2 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1 : 0;
+                elog_i("CAR", "State:%d Circle:%d Error:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
                        Track.state, Track.current_circle,
-                       (int)(Track.error * 1000),
-                       Track.left_speed, Track.right_speed, cur_bc,
+                       (long)(Track.error * 1000),
+                       Track.left_speed, Track.right_speed, cur_bc);
+                elog_i("MOTOR", "LeftPwm:%ld RightPwm:%ld | LeftEnc:%ld RightEnc:%ld | LeftTotal:%ld RightTotal:%ld",
                        (long)Motor_Left.current_pwm, (long)Motor_Right.current_pwm,
-                       (long)Motor_Left.encoder_speed, (long)Motor_Right.encoder_speed);
+                       (long)Motor_Left.encoder_speed, (long)Motor_Right.encoder_speed,
+                       (long)Motor_Left.total_position, (long)Motor_Right.total_position);
+                elog_i("MOTOR", "LeftDir1:%d LeftDir2:%d | RightDir1:%d RightDir2:%d",
+                       ld1, ld2, rd1, rd2);
                 last_state  = cur_state;
                 last_circle = cur_circle;
                 last_bc     = cur_bc;
@@ -500,24 +592,26 @@ int main(void)
         }
 
         /* ====== 灰度传感器诊断（每1秒打印8通道ADC原始值+数字值+校准基准） ======
-         * 用于定位 BC=5~6 异常高的原因 */
+         * ADC: 原始ADC值, DIG: 黑白判定(0=白 1=黑), CAL: 校准基准(black/white) */
         if ((now - last_1000ms) >= 1000) {
             last_1000ms = now;
-            elog_i("GRAY", "ADC: %d %d %d %d %d %d %d %d",
+            elog_i("GRAY", "ADC_Ch0:%d ADC_Ch1:%d ADC_Ch2:%d ADC_Ch3:%d ADC_Ch4:%d ADC_Ch5:%d ADC_Ch6:%d ADC_Ch7:%d",
                    Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
                    Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
                    Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
                    Grayscale_Sensor.analog[6], Grayscale_Sensor.analog[7]);
-            elog_i("GRAY", "DIG: %d %d %d %d %d %d %d %d | BC=%d",
+            elog_i("GRAY", "Digital:%d %d %d %d %d %d %d %d | BlackCount:%d",
                    Grayscale_Sensor.digital[0], Grayscale_Sensor.digital[1],
                    Grayscale_Sensor.digital[2], Grayscale_Sensor.digital[3],
                    Grayscale_Sensor.digital[4], Grayscale_Sensor.digital[5],
                    Grayscale_Sensor.digital[6], Grayscale_Sensor.digital[7],
                    Grayscale_Sensor.black_count);
-            elog_i("GRAY", "CAL: black=%d white=%d | gW=%d gB=%d",
+            elog_i("GRAY", "Cal: Black:%d White:%d | HystHigh:%d HystLow:%d",
                    Grayscale_Sensor.black[0], Grayscale_Sensor.white[0],
-                   (int)((Grayscale_Sensor.black[0] + 2*Grayscale_Sensor.white[0]) / 3),
-                   (int)((2*Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 3));
+                   (int)((Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 2 +
+                         (Grayscale_Sensor.white[0] - Grayscale_Sensor.black[0]) / 4),
+                   (int)((Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 2 -
+                         (Grayscale_Sensor.white[0] - Grayscale_Sensor.black[0]) / 4));
         }
 
         if ((now - last_100ms) >= 100) {

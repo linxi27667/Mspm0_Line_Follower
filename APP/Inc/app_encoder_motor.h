@@ -48,13 +48,35 @@
  * integral_sep: 积分分离阈值, 误差超过此值时不累加积分
  *   作用: 启动/急停时避免积分饱和导致超调
  */
-#define MOTOR_SPEED_PID_KP          0.8f
-#define MOTOR_SPEED_PID_KI          0.2f
-#define MOTOR_SPEED_PID_KD          0.0f
-#define MOTOR_SPEED_PID_ILIMIT      30.0f
-#define MOTOR_SPEED_PID_OLIMIT      30.0f   /* PID修正量限幅(前馈+修正≤100) */
-#define MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f  /* 积分分离阈值(误差>15%时不累加I) */
-#define MOTOR_SPEED_SCALE_DEFAULT   1.0f    /* 默认值, 需实车校准 */
+#ifndef USER_MOTOR_SPEED_PID_KP
+#define USER_MOTOR_SPEED_PID_KP    0.8f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_KI
+#define USER_MOTOR_SPEED_PID_KI    0.2f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_KD
+#define USER_MOTOR_SPEED_PID_KD    0.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_ILIMIT
+#define USER_MOTOR_SPEED_PID_ILIMIT 30.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_OLIMIT
+#define USER_MOTOR_SPEED_PID_OLIMIT 30.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_INTEGRAL_SEP
+#define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f
+#endif
+#ifndef USER_MOTOR_SPEED_SCALE
+#define USER_MOTOR_SPEED_SCALE     1.0f
+#endif
+
+#define MOTOR_SPEED_PID_KP          USER_MOTOR_SPEED_PID_KP
+#define MOTOR_SPEED_PID_KI          USER_MOTOR_SPEED_PID_KI
+#define MOTOR_SPEED_PID_KD          USER_MOTOR_SPEED_PID_KD
+#define MOTOR_SPEED_PID_ILIMIT      USER_MOTOR_SPEED_PID_ILIMIT
+#define MOTOR_SPEED_PID_OLIMIT      USER_MOTOR_SPEED_PID_OLIMIT
+#define MOTOR_SPEED_PID_INTEGRAL_SEP USER_MOTOR_SPEED_PID_INTEGRAL_SEP
+#define MOTOR_SPEED_SCALE_DEFAULT   USER_MOTOR_SPEED_SCALE
 
 /* ============ 业务接口声明 ============ */
 extern bsp_motor_t Motor_Left;
