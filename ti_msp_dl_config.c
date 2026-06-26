@@ -150,6 +150,10 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
     DL_GPIO_initDigitalOutput(Grayscale_ADDR_B_AD2_IOMUX);
 
+    DL_GPIO_initDigitalInputFeatures(Key_PA30_KEY4_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
     DL_GPIO_initDigitalOutput(Monitor_Dir_Monitor_AIN1_IOMUX);
 
     DL_GPIO_initDigitalOutput(Monitor_Dir_Monitor_AIN2_IOMUX);
@@ -174,10 +178,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
 
-    DL_GPIO_initDigitalInputFeatures(Key_PA30_KEY4_IOMUX,
-		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
-		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
-
     DL_GPIO_initDigitalOutput(Led_Group_LED1_IOMUX);
 
     DL_GPIO_initDigitalOutput(Led_Group_LED2_IOMUX);
@@ -194,17 +194,16 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
 
-    DL_GPIO_clearPins(GPIOA, Grayscale_ADDR_B_AD2_PIN |
-		Monitor_Dir_Monitor_AIN1_PIN |
+    DL_GPIO_clearPins(GPIOA, Monitor_Dir_Monitor_AIN1_PIN |
 		Monitor_Dir_Monitor_AIN2_PIN |
 		Grayscale_ADDR_A_AD0_PIN |
 		Grayscale_ADDR_A_AD1_PIN);
-    DL_GPIO_enableOutput(GPIOA, Grayscale_ADDR_B_AD2_PIN |
-		Monitor_Dir_Monitor_AIN1_PIN |
+    DL_GPIO_enableOutput(GPIOA, Monitor_Dir_Monitor_AIN1_PIN |
 		Monitor_Dir_Monitor_AIN2_PIN |
 		Grayscale_ADDR_A_AD0_PIN |
 		Grayscale_ADDR_A_AD1_PIN);
     DL_GPIO_clearPins(GPIOB, GPIO_GRP_1_PIN_1_PIN |
+		Grayscale_ADDR_B_AD2_PIN |
 		Right_Motor_Dir_AIN1_PIN |
 		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
@@ -212,13 +211,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		Led_Group_LED3_PIN |
 		Led_Group_LED4_PIN);
     DL_GPIO_enableOutput(GPIOB, GPIO_GRP_1_PIN_1_PIN |
+		Grayscale_ADDR_B_AD2_PIN |
 		Right_Motor_Dir_AIN1_PIN |
 		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
 		Led_Group_LED2_PIN |
 		Led_Group_LED3_PIN |
 		Led_Group_LED4_PIN);
-    DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_14_EDGE_RISE_FALL);
+    DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_12_EDGE_RISE_FALL);
     DL_GPIO_clearInterruptStatus(GPIOB, Right_Encoder_PHA_PIN);
     DL_GPIO_enableInterrupt(GPIOB, Right_Encoder_PHA_PIN);
 

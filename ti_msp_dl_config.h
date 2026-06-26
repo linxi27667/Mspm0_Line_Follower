@@ -180,60 +180,60 @@ extern "C" {
 /* Port definition for Pin Group GPIO_GRP_1 */
 #define GPIO_GRP_1_PORT                                                  (GPIOB)
 
-/* Defines for PIN_1: GPIOB.13 with pinCMx 30 on package pin 1 */
-#define GPIO_GRP_1_PIN_1_PIN                                    (DL_GPIO_PIN_13)
-#define GPIO_GRP_1_PIN_1_IOMUX                                   (IOMUX_PINCM30)
+/* Defines for PIN_1: GPIOB.14 with pinCMx 31 on package pin 2 */
+#define GPIO_GRP_1_PIN_1_PIN                                    (DL_GPIO_PIN_14)
+#define GPIO_GRP_1_PIN_1_IOMUX                                   (IOMUX_PINCM31)
 /* Port definition for Pin Group Grayscale_ADDR_B */
-#define Grayscale_ADDR_B_PORT                                            (GPIOA)
+#define Grayscale_ADDR_B_PORT                                            (GPIOB)
 
-/* Defines for AD2: GPIOA.7 with pinCMx 14 on package pin 49 */
-#define Grayscale_ADDR_B_AD2_PIN                                 (DL_GPIO_PIN_7)
-#define Grayscale_ADDR_B_AD2_IOMUX                               (IOMUX_PINCM14)
-/* Port definition for Pin Group Monitor_Dir */
-#define Monitor_Dir_PORT                                                 (GPIOA)
-
-/* Defines for Monitor_AIN1: GPIOA.12 with pinCMx 34 on package pin 5 */
-#define Monitor_Dir_Monitor_AIN1_PIN                            (DL_GPIO_PIN_12)
-#define Monitor_Dir_Monitor_AIN1_IOMUX                           (IOMUX_PINCM34)
-/* Defines for Monitor_AIN2: GPIOA.15 with pinCMx 37 on package pin 8 */
-#define Monitor_Dir_Monitor_AIN2_PIN                            (DL_GPIO_PIN_15)
-#define Monitor_Dir_Monitor_AIN2_IOMUX                           (IOMUX_PINCM37)
-/* Port definition for Pin Group Right_Motor_Dir */
-#define Right_Motor_Dir_PORT                                             (GPIOB)
-
-/* Defines for AIN1: GPIOB.8 with pinCMx 25 on package pin 60 */
-#define Right_Motor_Dir_AIN1_PIN                                 (DL_GPIO_PIN_8)
-#define Right_Motor_Dir_AIN1_IOMUX                               (IOMUX_PINCM25)
-/* Defines for AIN2: GPIOB.9 with pinCMx 26 on package pin 61 */
-#define Right_Motor_Dir_AIN2_PIN                                 (DL_GPIO_PIN_9)
-#define Right_Motor_Dir_AIN2_IOMUX                               (IOMUX_PINCM26)
-/* Port definition for Pin Group Grayscale_ADDR_A */
-#define Grayscale_ADDR_A_PORT                                            (GPIOA)
-
-/* Defines for AD0: GPIOA.3 with pinCMx 8 on package pin 43 */
-#define Grayscale_ADDR_A_AD0_PIN                                 (DL_GPIO_PIN_3)
-#define Grayscale_ADDR_A_AD0_IOMUX                                (IOMUX_PINCM8)
-/* Defines for AD1: GPIOA.5 with pinCMx 10 on package pin 45 */
-#define Grayscale_ADDR_A_AD1_PIN                                 (DL_GPIO_PIN_5)
-#define Grayscale_ADDR_A_AD1_IOMUX                               (IOMUX_PINCM10)
-/* Port definition for Pin Group Key_Group */
-#define Key_Group_PORT                                                   (GPIOB)
-
-/* Defines for KEY1: GPIOB.0 with pinCMx 12 on package pin 47 */
-#define Key_Group_KEY1_PIN                                       (DL_GPIO_PIN_0)
-#define Key_Group_KEY1_IOMUX                                     (IOMUX_PINCM12)
-/* Defines for KEY2: GPIOB.1 with pinCMx 13 on package pin 48 */
-#define Key_Group_KEY2_PIN                                       (DL_GPIO_PIN_1)
-#define Key_Group_KEY2_IOMUX                                     (IOMUX_PINCM13)
-/* Defines for KEY3: GPIOB.2 with pinCMx 15 on package pin 50 */
-#define Key_Group_KEY3_PIN                                       (DL_GPIO_PIN_2)
-#define Key_Group_KEY3_IOMUX                                     (IOMUX_PINCM15)
+/* Defines for AD2: GPIOB.24 with pinCMx 52 on package pin 23 */
+#define Grayscale_ADDR_B_AD2_PIN                                (DL_GPIO_PIN_24)
+#define Grayscale_ADDR_B_AD2_IOMUX                               (IOMUX_PINCM52)
 /* Port definition for Pin Group Key_PA30 */
 #define Key_PA30_PORT                                                    (GPIOA)
 
 /* Defines for KEY4: GPIOA.30 with pinCMx 5 on package pin 37 */
 #define Key_PA30_KEY4_PIN                                       (DL_GPIO_PIN_30)
 #define Key_PA30_KEY4_IOMUX                                       (IOMUX_PINCM5)
+/* Port definition for Pin Group Monitor_Dir */
+#define Monitor_Dir_PORT                                                 (GPIOA)
+
+/* Defines for Monitor_AIN1: GPIOA.22 with pinCMx 47 on package pin 18 */
+#define Monitor_Dir_Monitor_AIN1_PIN                            (DL_GPIO_PIN_22)
+#define Monitor_Dir_Monitor_AIN1_IOMUX                           (IOMUX_PINCM47)
+/* Defines for Monitor_AIN2: GPIOA.15 with pinCMx 37 on package pin 8 */
+#define Monitor_Dir_Monitor_AIN2_PIN                            (DL_GPIO_PIN_15)
+#define Monitor_Dir_Monitor_AIN2_IOMUX                           (IOMUX_PINCM37)
+/* Port definition for Pin Group Right_Motor_Dir */
+#define Right_Motor_Dir_PORT                                             (GPIOB)
+
+/* Defines for AIN1: GPIOB.0 with pinCMx 12 on package pin 47 */
+#define Right_Motor_Dir_AIN1_PIN                                 (DL_GPIO_PIN_0)
+#define Right_Motor_Dir_AIN1_IOMUX                               (IOMUX_PINCM12)
+/* Defines for AIN2: GPIOB.11 with pinCMx 28 on package pin 63 */
+#define Right_Motor_Dir_AIN2_PIN                                (DL_GPIO_PIN_11)
+#define Right_Motor_Dir_AIN2_IOMUX                               (IOMUX_PINCM28)
+/* Port definition for Pin Group Grayscale_ADDR_A */
+#define Grayscale_ADDR_A_PORT                                            (GPIOA)
+
+/* Defines for AD0: GPIOA.26 with pinCMx 59 on package pin 30 */
+#define Grayscale_ADDR_A_AD0_PIN                                (DL_GPIO_PIN_26)
+#define Grayscale_ADDR_A_AD0_IOMUX                               (IOMUX_PINCM59)
+/* Defines for AD1: GPIOA.24 with pinCMx 54 on package pin 25 */
+#define Grayscale_ADDR_A_AD1_PIN                                (DL_GPIO_PIN_24)
+#define Grayscale_ADDR_A_AD1_IOMUX                               (IOMUX_PINCM54)
+/* Port definition for Pin Group Key_Group */
+#define Key_Group_PORT                                                   (GPIOB)
+
+/* Defines for KEY1: GPIOB.15 with pinCMx 32 on package pin 3 */
+#define Key_Group_KEY1_PIN                                      (DL_GPIO_PIN_15)
+#define Key_Group_KEY1_IOMUX                                     (IOMUX_PINCM32)
+/* Defines for KEY2: GPIOB.16 with pinCMx 33 on package pin 4 */
+#define Key_Group_KEY2_PIN                                      (DL_GPIO_PIN_16)
+#define Key_Group_KEY2_IOMUX                                     (IOMUX_PINCM33)
+/* Defines for KEY3: GPIOB.2 with pinCMx 15 on package pin 50 */
+#define Key_Group_KEY3_PIN                                       (DL_GPIO_PIN_2)
+#define Key_Group_KEY3_IOMUX                                     (IOMUX_PINCM15)
 /* Port definition for Pin Group Led_Group */
 #define Led_Group_PORT                                                   (GPIOB)
 
@@ -243,25 +243,25 @@ extern "C" {
 /* Defines for LED2: GPIOB.5 with pinCMx 18 on package pin 53 */
 #define Led_Group_LED2_PIN                                       (DL_GPIO_PIN_5)
 #define Led_Group_LED2_IOMUX                                     (IOMUX_PINCM18)
-/* Defines for LED3: GPIOB.6 with pinCMx 23 on package pin 58 */
-#define Led_Group_LED3_PIN                                       (DL_GPIO_PIN_6)
-#define Led_Group_LED3_IOMUX                                     (IOMUX_PINCM23)
-/* Defines for LED4: GPIOB.7 with pinCMx 24 on package pin 59 */
-#define Led_Group_LED4_PIN                                       (DL_GPIO_PIN_7)
-#define Led_Group_LED4_IOMUX                                     (IOMUX_PINCM24)
+/* Defines for LED3: GPIOB.7 with pinCMx 24 on package pin 59 */
+#define Led_Group_LED3_PIN                                       (DL_GPIO_PIN_7)
+#define Led_Group_LED3_IOMUX                                     (IOMUX_PINCM24)
+/* Defines for LED4: GPIOB.9 with pinCMx 26 on package pin 61 */
+#define Led_Group_LED4_PIN                                       (DL_GPIO_PIN_9)
+#define Led_Group_LED4_IOMUX                                     (IOMUX_PINCM26)
 /* Port definition for Pin Group Right_Encoder */
 #define Right_Encoder_PORT                                               (GPIOB)
 
-/* Defines for PHA: GPIOB.14 with pinCMx 31 on package pin 2 */
+/* Defines for PHA: GPIOB.12 with pinCMx 29 on package pin 64 */
 // pins affected by this interrupt request:["PHA"]
 #define Right_Encoder_INT_IRQN                                  (GPIOB_INT_IRQn)
 #define Right_Encoder_INT_IIDX                  (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
-#define Right_Encoder_PHA_IIDX                              (DL_GPIO_IIDX_DIO14)
-#define Right_Encoder_PHA_PIN                                   (DL_GPIO_PIN_14)
-#define Right_Encoder_PHA_IOMUX                                  (IOMUX_PINCM31)
-/* Defines for PHB: GPIOB.15 with pinCMx 32 on package pin 3 */
-#define Right_Encoder_PHB_PIN                                   (DL_GPIO_PIN_15)
-#define Right_Encoder_PHB_IOMUX                                  (IOMUX_PINCM32)
+#define Right_Encoder_PHA_IIDX                              (DL_GPIO_IIDX_DIO12)
+#define Right_Encoder_PHA_PIN                                   (DL_GPIO_PIN_12)
+#define Right_Encoder_PHA_IOMUX                                  (IOMUX_PINCM29)
+/* Defines for PHB: GPIOB.13 with pinCMx 30 on package pin 1 */
+#define Right_Encoder_PHB_PIN                                   (DL_GPIO_PIN_13)
+#define Right_Encoder_PHB_IOMUX                                  (IOMUX_PINCM30)
 
 /* clang-format on */
 
