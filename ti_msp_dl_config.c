@@ -146,7 +146,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_initPeripheralInputFunction(
         GPIO_UART_Debug_IOMUX_RX, GPIO_UART_Debug_IOMUX_RX_FUNC);
 
-    DL_GPIO_initDigitalOutput(Board_Led_PIN_0_IOMUX);
+    DL_GPIO_initDigitalOutput(GPIO_GRP_1_PIN_1_IOMUX);
 
     DL_GPIO_initDigitalOutput(Grayscale_ADDR_B_AD2_IOMUX);
 
@@ -208,12 +208,12 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		Right_Motor_Dir_AIN2_PIN |
 		Grayscale_ADDR_A_AD0_PIN |
 		Grayscale_ADDR_A_AD1_PIN);
-    DL_GPIO_clearPins(GPIOB, Board_Led_PIN_0_PIN |
+    DL_GPIO_clearPins(GPIOB, GPIO_GRP_1_PIN_1_PIN |
 		Led_Group_LED1_PIN |
 		Led_Group_LED2_PIN |
 		Led_Group_LED3_PIN |
 		Led_Group_LED4_PIN);
-    DL_GPIO_enableOutput(GPIOB, Board_Led_PIN_0_PIN |
+    DL_GPIO_enableOutput(GPIOB, GPIO_GRP_1_PIN_1_PIN |
 		Led_Group_LED1_PIN |
 		Led_Group_LED2_PIN |
 		Led_Group_LED3_PIN |
