@@ -18,28 +18,46 @@ static void Gray_Select_Channel(bsp_grayscale_t *gs, uint8_t ch)
     }
 }
 
-/* 滞回比较器 — 抗抖动判断单通道黑白
- * 改进: 25%滞回(中点±range/4), 比原12.5%更宽, 抗ADC波动能力强。
+/* 滞回比较器 — 抗抖动判断单通道黑白（自适应极性）
+ * 支持两种传感器极性:
+ *   正常极性: 黑线ADC低, 白地ADC高 (大多数传感器)
+ *   反向极性: 黑线ADC高, 白地ADC低 (部分传感器LED朝向不同)
+ * 通过比较 black/white 大小自动判断极性。
  * mid = (black + white) / 2
- * hyst = (white - black) / 4   (25%滞回)
- * ADC > mid+hyst → 白;  ADC < mid-hyst → 黑;  中间保持上一状态 */
+ * hyst = |white - black| / 4   (25%滞回)
+ * 正常极性: ADC > mid+hyst → 白;  ADC < mid-hyst → 黑
+ * 反向极性: ADC > mid+hyst → 黑;  ADC < mid-hyst → 白 */
 static void Gray_Hysteresis(bsp_grayscale_t *gs, uint8_t ch)
 {
-    uint16_t mid  = (gs->black[ch] + gs->white[ch]) / 2;
-    uint16_t hyst = (gs->white[ch] - gs->black[ch]) / 4;
-    uint16_t grayW = mid + hyst;
-    uint16_t grayB = mid - hyst;
+    uint16_t b = gs->black[ch];
+    uint16_t w = gs->white[ch];
+    uint16_t mid  = (b + w) / 2;
+    uint16_t hyst = (w > b) ? ((w - b) / 4) : ((b - w) / 4);
+    uint16_t high = mid + hyst;
+    uint16_t low  = mid - hyst;
 
-    if (gs->analog[ch] > grayW) {
-        gs->digital[ch] = 0;        /* 白色 */
-    } else if (gs->analog[ch] < grayB) {
-        gs->digital[ch] = 1;        /* 黑色 */
+    if (w >= b) {
+        /* 正常极性: 黑线ADC低, 白地ADC高 */
+        if (gs->analog[ch] > high) {
+            gs->digital[ch] = 0;    /* 白色 */
+        } else if (gs->analog[ch] < low) {
+            gs->digital[ch] = 1;    /* 黑色 */
+        }
+    } else {
+        /* 反向极性: 黑线ADC高, 白地ADC低 */
+        if (gs->analog[ch] > high) {
+            gs->digital[ch] = 1;    /* 黑色 */
+        } else if (gs->analog[ch] < low) {
+            gs->digital[ch] = 0;    /* 白色 */
+        }
     }
-    /* grayB ≤ analog ≤ grayW → 保持上一状态（惯性抗抖动） */
+    /* low ≤ analog ≤ high → 保持上一状态（惯性抗抖动） */
 }
 
-/* 归一化：将 ADC 值映射到 0(白)~1(黑)
- * 未校准时用简单线性映射; 校准后用白/黑基准值映射 */
+/* 归一化：将 ADC 值映射到 0(白)~1(黑)（自适应极性）
+ * 未校准时用简单线性映射; 校准后用白/黑基准值映射
+ * 正常极性: black<white, ADC越高越白
+ * 反向极性: black>white, ADC越低越白 */
 static void Gray_Normalize(bsp_grayscale_t *gs, uint8_t ch)
 {
     if (!gs->calibrated) {
@@ -50,15 +68,24 @@ static void Gray_Normalize(bsp_grayscale_t *gs, uint8_t ch)
 
     uint16_t w = gs->white[ch];
     uint16_t b = gs->black[ch];
-    uint16_t range = w - b;
-    if (range < 1) range = 1;  /* 防止除零 */
+    int32_t range = (int32_t)w - (int32_t)b;
+    if (range < 0) range = -range;  /* 反向极性取绝对值 */
+    if (range < 1) range = 1;       /* 防止除零 */
 
-    int32_t val = (int32_t)gs->analog[ch] - b;
-    if (val < 0) val = 0;
-    if (val > range) val = range;
-
-    /* norm=0 → 白（高ADC），norm=1 → 黑（低ADC） */
-    gs->norm[ch] = 1.0f - (float)val / (float)range;
+    int32_t val;
+    if (w >= b) {
+        /* 正常极性: norm=0 → 白(高ADC), norm=1 → 黑(低ADC) */
+        val = (int32_t)gs->analog[ch] - b;
+        if (val < 0) val = 0;
+        if (val > range) val = range;
+        gs->norm[ch] = 1.0f - (float)val / (float)range;
+    } else {
+        /* 反向极性: norm=0 → 白(低ADC), norm=1 → 黑(高ADC) */
+        val = (int32_t)b - (int32_t)gs->analog[ch];
+        if (val < 0) val = 0;
+        if (val > range) val = range;
+        gs->norm[ch] = 1.0f - (float)val / (float)range;
+    }
 }
 
 /* 统计黑色通道数 */
@@ -116,10 +143,12 @@ void Bsp_Grayscale_Update(bsp_grayscale_t *gs)
     gs->analog[gs->current_ch] = gs->ADC_Read();
 
     /* ①.5 动态自适应校准：运行时持续跟踪每通道 min/max
-     * 只做极值跟踪(无遗忘): black只降不升, white只升不降。
-     * 这样初始扩展的范围不会被缩小, 车跑起来经过黑线时
-     * black会更新为真实黑线值, white保持初始白地基准。
-     * 避免遗忘机制导致范围快速缩小、滞回失效。 */
+     * black 跟踪最小值, white 跟踪最大值(双向极性自适应)。
+     * Track_Init 已设置 white=开机ADC, black=white-500(初始猜测)。
+     * 车跑动后:
+     *   正常极性: black降到真实黑线ADC(更低), white保持或略升
+     *   反向极性: black保持(已是低值), white升到真实黑线ADC(更高)
+     * 滞回比较器/归一化通过 black/white 大小自适应极性。 */
     if (gs->calibrated) {
         uint8_t ch = gs->current_ch;
         if (gs->analog[ch] < gs->black[ch]) gs->black[ch] = gs->analog[ch];
@@ -129,14 +158,11 @@ void Bsp_Grayscale_Update(bsp_grayscale_t *gs)
     /* ② 归一化（0=白, 1=黑） */
     Gray_Normalize(gs, gs->current_ch);
 
-    /* ③ 滞回比较（需校准后才生效） */
-    if (gs->calibrated) {
-        Gray_Hysteresis(gs, gs->current_ch);
-    } else {
-        /* 未校准时用归一化阈值判断 */
-        gs->digital[gs->current_ch] =
-            (gs->norm[gs->current_ch] > 0.5f) ? 1 : 0;
-    }
+    /* ③ 黑白判断: 直接用归一化阈值(norm>0.5=黑)
+     * 不使用滞回比较器: 传感器极性混乱时滞回反而导致DIG卡死/乱跳。
+     * 归一化已自适应极性(正常/反向), norm>0.5表示ADC更接近黑线端。
+     * 动态跟踪的min/max保证norm反映当前ADC在历史范围内的相对位置。 */
+    gs->digital[gs->current_ch] = (gs->norm[gs->current_ch] > 0.5f) ? 1 : 0;
 
     /* ④ 切换到下一个通道 */
     gs->current_ch = (gs->current_ch + 1) & 0x07;

@@ -362,47 +362,36 @@ void Track_Init(void)
     Mpu_Calibrate();
     App_Motor_Init();
 
-    /* ====== 灰度自动校准（免手动K3/K4）— 每通道独立 + 动态自适应 ======
-     * 改进: 每通道独立取 min/max(非全局), 配合 Update 中的动态遗忘跟踪,
-     *       无论开机位置如何, 车跑起来后校准值会自动收敛。
-     * 初始: 扫描5轮取每通道 min/max, 范围太窄时扩展默认范围。
-     * 运行: Update 中 black缓慢上升/white缓慢下降 + 跟踪新极值 */
-    {
-        uint16_t ch_black[8], ch_white[8];
+    /* ====== 灰度自动校准 — 假设开机在白地 + 双向极性 + 动态跟踪 ======
+     * 传感器硬件现状: 8通道极性不一致(部分黑线ADC高, 部分黑线ADC低)。
+     * 方案: 假设开机时车在白地(用户应把车放白地启动),
+     *   当前ADC作为white基准, black设为white±500(双向扩展, 不知极性)。
+     *   车跑动经过黑线时, 动态跟踪更新black为真实黑线ADC。
+     *   手动校准(K3白/K4黑)会直接覆盖, 优先级最高。
+     * 注意: 若开机时部分通道在黑线上(如S5/S6), 这些通道的white会偏高,
+     *   车跑动经过白地时white会被动态跟踪更新为真实白地ADC。 */
+    elog_i("TRACK", "Gray auto-cal (assume on white, bi-directional):");
+    /* 扫描2轮让ADC稳定 */
+    for (uint8_t round = 0; round < 2; round++) {
         for (uint8_t i = 0; i < 8; i++) {
-            ch_black[i] = 0xFFFF;
-            ch_white[i] = 0;
+            Grayscale_Update();
+            Bsp_Delay_ms(3);
         }
-        /* 扫描5轮, 每通道独立取 min/max */
-        for (uint8_t round = 0; round < 5; round++) {
-            for (uint8_t i = 0; i < 8; i++) {
-                Grayscale_Update();
-                Bsp_Delay_ms(3);
-            }
-            for (uint8_t i = 0; i < 8; i++) {
-                if (Grayscale_Sensor.analog[i] < ch_black[i]) ch_black[i] = Grayscale_Sensor.analog[i];
-                if (Grayscale_Sensor.analog[i] > ch_white[i]) ch_white[i] = Grayscale_Sensor.analog[i];
-            }
-        }
-        /* white=真实白地ADC(不扩展), black=white-300(初始猜测)
-         * 动态跟踪后 black 会更新为真实黑线值(更低), range自动扩大。
-         * 初始 range=300, 25%滞回 hyst=75:
-         *   grayW = white - 75 → 白地ADC波动±40不会误判 ✓
-         *   grayB = white - 225 → 黑线ADC明显更低时判黑 ✓
-         * 关键: white保持真实白地值(不扩展), 白地ADC能翻越grayW判白 */
-        elog_i("TRACK", "Gray per-ch cal:");
-        for (uint8_t i = 0; i < 8; i++) {
-            uint16_t w = ch_white[i];
-            uint16_t b = (w > 300) ? w - 300 : 0;
-            Grayscale_Sensor.black[i] = b;
-            Grayscale_Sensor.white[i] = w;
-            /* 清零初始DIG, 让滞回比较器从"白"开始 */
-            Grayscale_Sensor.digital[i] = 0;
-            elog_i("TRACK", "  S%d: black=%u white=%u (range=%u)",
-                   i, b, w, (uint16_t)(w - b));
-        }
-        Grayscale_Sensor.calibrated = 1;
     }
+    for (uint8_t i = 0; i < 8; i++) {
+        uint16_t adc = Grayscale_Sensor.analog[i];
+        /* white=当前ADC(假设白地), black双向扩展500(不知极性) */
+        uint16_t b_low  = (adc > 500) ? adc - 500 : 0;
+        uint16_t b_high = (adc < 3595) ? adc + 500 : 4095;
+        /* 用 b_low 作为 black 初始值(正常极性情况),
+         * 动态跟踪会自动修正为真实黑线值(可能更高=反向极性) */
+        Grayscale_Sensor.black[i] = b_low;
+        Grayscale_Sensor.white[i] = adc;
+        Grayscale_Sensor.digital[i] = 0;
+        elog_i("TRACK", "  S%d: ADC=%u white=%u black=%u",
+               i, adc, adc, b_low);
+    }
+    Grayscale_Sensor.calibrated = 1;
 
     /* 启用速度PID闭环（编码器反馈修正PWM） */
     App_Motor_Enable_Speed_PID(true);
