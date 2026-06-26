@@ -362,17 +362,19 @@ void Track_Init(void)
     Mpu_Calibrate();
     App_Motor_Init();
 
-    /* ====== 灰度自动校准 — 假设开机在白地 + 双向极性 + 动态跟踪 ======
-     * 传感器硬件现状: 8通道极性不一致(部分黑线ADC高, 部分黑线ADC低)。
-     * 方案: 假设开机时车在白地(用户应把车放白地启动),
-     *   当前ADC作为white基准, black设为white±500(双向扩展, 不知极性)。
-     *   车跑动经过黑线时, 动态跟踪更新black为真实黑线ADC。
-     *   手动校准(K3白/K4黑)会直接覆盖, 优先级最高。
-     * 注意: 若开机时部分通道在黑线上(如S5/S6), 这些通道的white会偏高,
-     *   车跑动经过白地时white会被动态跟踪更新为真实白地ADC。 */
-    elog_i("TRACK", "Gray auto-cal (assume on white, bi-directional):");
-    /* 扫描2轮让ADC稳定 */
-    for (uint8_t round = 0; round < 2; round++) {
+    /* ====== 灰度校准策略: 自动校准白色(一次) + 手动校准黑色 + 动态跟踪 ======
+     * 传感器硬件现状: 8通道极性不一致(部分反向), 但开机在白地时,
+     *   每通道的"白地ADC"是确定的, 可以自动校准。
+     * 方案:
+     *   1. 开机时车放白地 → 自动校准每通道 white (只一次)
+     *   2. black 初始化为 white±500 (双向扩展, 不知极性)
+     *   3. 车跑动后动态跟踪只更新 black (遇到黑线时收敛)
+     *   4. 手动 K4 可校准黑色 (覆盖动态跟踪值)
+     * white 保持开机值不更新, 保证白地基准准确。
+     * 滞回比较器/归一化通过 black/white 大小自适应极性。 */
+    elog_i("TRACK", "Gray auto-cal WHITE (place car on white surface):");
+    /* 扫描3轮让ADC稳定 + 取每通道当前ADC作为white */
+    for (uint8_t round = 0; round < 3; round++) {
         for (uint8_t i = 0; i < 8; i++) {
             Grayscale_Update();
             Bsp_Delay_ms(3);
@@ -380,16 +382,13 @@ void Track_Init(void)
     }
     for (uint8_t i = 0; i < 8; i++) {
         uint16_t adc = Grayscale_Sensor.analog[i];
-        /* white=当前ADC(假设白地), black双向扩展500(不知极性) */
-        uint16_t b_low  = (adc > 500) ? adc - 500 : 0;
-        uint16_t b_high = (adc < 3595) ? adc + 500 : 4095;
-        /* 用 b_low 作为 black 初始值(正常极性情况),
-         * 动态跟踪会自动修正为真实黑线值(可能更高=反向极性) */
-        Grayscale_Sensor.black[i] = b_low;
         Grayscale_Sensor.white[i] = adc;
+        /* black 初始化为 white-500 (正常极性猜测),
+         * 动态跟踪/手动校准会修正为真实黑线值 */
+        Grayscale_Sensor.black[i] = (adc > 500) ? adc - 500 : 0;
         Grayscale_Sensor.digital[i] = 0;
         elog_i("TRACK", "  S%d: ADC=%u white=%u black=%u",
-               i, adc, adc, b_low);
+               i, adc, adc, Grayscale_Sensor.black[i]);
     }
     Grayscale_Sensor.calibrated = 1;
 

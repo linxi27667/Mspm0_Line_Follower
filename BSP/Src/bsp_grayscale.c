@@ -142,27 +142,30 @@ void Bsp_Grayscale_Update(bsp_grayscale_t *gs)
     /* ① 读取当前通道ADC值（上一次选通的通道，现已稳定） */
     gs->analog[gs->current_ch] = gs->ADC_Read();
 
-    /* ①.5 动态自适应校准：运行时持续跟踪每通道 min/max
-     * black 跟踪最小值, white 跟踪最大值(双向极性自适应)。
-     * Track_Init 已设置 white=开机ADC, black=white-500(初始猜测)。
-     * 车跑动后:
-     *   正常极性: black降到真实黑线ADC(更低), white保持或略升
-     *   反向极性: black保持(已是低值), white升到真实黑线ADC(更高)
-     * 滞回比较器/归一化通过 black/white 大小自适应极性。 */
+    /* ①.5 动态跟踪: 只更新 black, 不更新 white (保持开机白基准)
+     * white 由开机自动校准确定(车放白地), 后续不更新。
+     * black 由动态跟踪更新: 正常极性通道遇到黑线时 black 降低,
+     *   反向极性通道遇到黑线时 ADC 升高超过 white, 此时 black>white,
+     *   归一化/滞回会自动识别为反向极性。
+     * 手动 K4 校准黑色会直接覆盖 black, 优先级高于动态跟踪。
+     * 注意: 动态跟踪可能把 black 更新为白地ADC波动值(比初始猜测高),
+     *   但只要 black < white, 滞回区间仍在, 不会误判。 */
     if (gs->calibrated) {
         uint8_t ch = gs->current_ch;
+        /* black 跟踪最小值 (正常极性: 黑线ADC低)
+         * 反向极性通道 black 保持初始猜测值, 等 K4 手动校准 */
         if (gs->analog[ch] < gs->black[ch]) gs->black[ch] = gs->analog[ch];
-        if (gs->analog[ch] > gs->white[ch]) gs->white[ch] = gs->analog[ch];
     }
 
     /* ② 归一化（0=白, 1=黑） */
     Gray_Normalize(gs, gs->current_ch);
 
-    /* ③ 黑白判断: 直接用归一化阈值(norm>0.5=黑)
-     * 不使用滞回比较器: 传感器极性混乱时滞回反而导致DIG卡死/乱跳。
-     * 归一化已自适应极性(正常/反向), norm>0.5表示ADC更接近黑线端。
-     * 动态跟踪的min/max保证norm反映当前ADC在历史范围内的相对位置。 */
-    gs->digital[gs->current_ch] = (gs->norm[gs->current_ch] > 0.5f) ? 1 : 0;
+    /* ③ 黑白判断: 滞回比较器(自适应极性) */
+    if (gs->calibrated) {
+        Gray_Hysteresis(gs, gs->current_ch);
+    } else {
+        gs->digital[gs->current_ch] = 0;  /* 未校准: 强制白 */
+    }
 
     /* ④ 切换到下一个通道 */
     gs->current_ch = (gs->current_ch + 1) & 0x07;
