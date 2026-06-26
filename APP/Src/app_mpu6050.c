@@ -5,7 +5,7 @@
  */
 #include "app_mpu6050.h"
 #include "bsp_common.h"
-#include "my_easylog.h"
+#include <elog.h>
 
 /* ================================================================
  *  I2C 总线包装函数（APP层绑定硬件，BSP层通过函数指针调用）
@@ -115,30 +115,38 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
         return 1;
     }
 
-    /* 第2步: 读数据 */
-    /* 先清空 RX FIFO 中可能残留的数据 */
+    /* 第2步: 读数据 — MSPM0 I2C RX FIFO仅4字节，必须边传输边读取 */
     DL_I2C_flushControllerRXFIFO(i2c);
 
     DL_I2C_startControllerTransfer(i2c, dev_addr,
         DL_I2C_CONTROLLER_DIRECTION_RX, len);
 
-    /* 等待读完成（带超时） */
+    /* 边传输边从RX FIFO取数据，防止FIFO溢出丢字节 */
+    uint16_t received = 0;
+    timeout = I2C_TIMEOUT_LOOP;
+    while (received < len) {
+        uint32_t avail = DL_I2C_getControllerRXFIFOCounter(i2c);
+        while (avail > 0 && received < len) {
+            data[received++] = DL_I2C_receiveControllerData(i2c);
+            avail--;
+        }
+        if (--timeout == 0) return 2;
+    }
+
+    /* 等待RX_DONE并清除 */
     timeout = I2C_TIMEOUT_LOOP;
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_RX_DONE))) {
-        if (--timeout == 0) return 2;
+        if (--timeout == 0) break;
     }
-    DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_RX_DONE);
+    DL_I2C_clearInterruptStatus(i2c,
+        DL_I2C_INTERRUPT_CONTROLLER_RX_DONE |
+        DL_I2C_INTERRUPT_CONTROLLER_NACK);
 
     /* 检查NACK（设备不应答） */
     if (DL_I2C_getRawInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_NACK)) {
         DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_NACK);
         return 1;
-    }
-
-    /* 从RX FIFO读取数据 */
-    for (uint16_t i = 0; i < len; i++) {
-        data[i] = DL_I2C_receiveControllerData(i2c);
     }
 
     return 0;
@@ -211,10 +219,10 @@ void App_Mpu_Init(void)
     uint8_t ret = Bsp_MPU6050_Init_Device(&Mpu_Sensor);
 
     if (ret == 0 && Mpu_Sensor.gyro_ok) {
-        elog_i("[MPU]", "Init OK (gyro ready)");
+        elog_i("MPU", "Init OK (gyro ready)");
     } else {
         /* 失败也不阻塞主流程：gyro_ok=false 时航向角积分自动跳过 */
-        elog_w("[MPU]", "Init FAIL ret=%d gyro_ok=%d (continuing without gyro)",
+        elog_w("MPU", "Init FAIL ret=%d gyro_ok=%d (continuing without gyro)",
                ret, Mpu_Sensor.gyro_ok ? 1 : 0);
     }
 }

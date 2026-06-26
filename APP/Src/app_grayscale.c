@@ -1,16 +1,48 @@
 /**
  * @file    app_grayscale.c
  * @brief   八路灰度传感器硬件绑定实现（MSPM0G3507）
+ * @note    ADC 读取改进:
+ *          - HW_Gray_Init 中确保 PA27 为模拟输入（PINCM=0）
+ *          - 补充 DL_ADC12_initSingleSample 配置 CTL1/CTL2 (SysConfig 生成代码缺失)
+ *          - MANUAL 电源模式 (SDK 示例: 保持 ADC 上电, 非自动掉电)
+ *          - 每次读取后重新 enableConversions (ENC 位可能被硬件清除)
  */
 #include "app_grayscale.h"
 #include "app_common.h"
 #include "ti_msp_dl_config.h"
+#include <elog.h>
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
 static void HW_Gray_Init(void)
 {
-    /* GPIO和ADC由SysConfig配置，此处预留 */
+    /* 1. PA27 = IOMUX_PINCM60, 清除数字功能让 ADC 模拟输入生效 */
+    IOMUX->SECCFG.PINCM[IOMUX_PINCM60] = 0;
+
+    /* 2. 关键修复: SysConfig 生成代码缺少 DL_ADC12_initSingleSample 调用,
+     *    导致 CTL1.SAMPMODE=0(手动采样), SC 位无法触发自动采样.
+     *    参考SDK adc12_single_conversion 示例配置. */
+    DL_ADC12_initSingleSample(GRAYSCALE_ADC_INST,
+        DL_ADC12_REPEAT_MODE_DISABLED,          /* 单次转换, 不重复 */
+        DL_ADC12_SAMPLING_SOURCE_AUTO,          /* 自动采样 (SC位触发) */
+        DL_ADC12_TRIG_SRC_SOFTWARE,             /* 软件触发 */
+        DL_ADC12_SAMP_CONV_RES_12_BIT,          /* 12位分辨率 */
+        DL_ADC12_SAMP_CONV_DATA_FORMAT_UNSIGNED /* 无符号格式 */
+    );
+
+    /* 3. MANUAL 电源模式 — SDK示例注释: "Disable automatic power down mode
+     *    to get non-zero ADC result". MANUAL=保持上电, AUTO=转换间掉电 */
+    DL_ADC12_setPowerDownMode(GRAYSCALE_ADC_INST, DL_ADC12_POWER_DOWN_MODE_MANUAL);
+
+    /* 4. 使能转换 (ENC=1) */
+    DL_ADC12_enableConversions(GRAYSCALE_ADC_INST);
+
+    /* 5. 等待 ADC 稳定 */
+    Bsp_Delay_ms(10);
+
+    elog_i("GRAY", "Init: PA27 PINCM60=0x%08lX PWRDN=MANUAL ENC=%d",
+           (unsigned long)IOMUX->SECCFG.PINCM[IOMUX_PINCM60],
+           DL_ADC12_isConversionsEnabled(GRAYSCALE_ADC_INST) ? 1 : 0);
 }
 
 static void HW_Gray_Gpio_Write(void *port, uint32_t pin, uint8_t level)
@@ -19,17 +51,39 @@ static void HW_Gray_Gpio_Write(void *port, uint32_t pin, uint8_t level)
     GPIO_WritePin((GPIO_Regs *)port, pin, level);
 }
 
+/* ADC 读取 — 参考 SDK ADCMSPM0.c 轮询方式 + adc12_single_conversion 示例
+ * 关键: 每次读取后必须重新 enableConversions, 因为 ENC 位可能被硬件清除 */
 static uint16_t HW_Gray_ADC_Read(void)
 {
-    /* 启动ADC软件转换 */
-    DL_ADC12_startConversion(GRAY_ADC_INST);
-    /* 等待转换完成 — 轮询SC位（转换开始时置位，完成时清零），加超时保护防止卡死 */
-    uint32_t timeout = 100000u;
-    while (DL_ADC12_isConversionStarted(GRAY_ADC_INST)) {
-        if (--timeout == 0) break;
+    /* 清除之前可能残留的中断标志 */
+    DL_ADC12_clearInterruptStatus(GRAYSCALE_ADC_INST,
+        DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
+
+    /* 启动软件转换 (设置 SC 位, 触发自动采样+转换) */
+    DL_ADC12_startConversion(GRAYSCALE_ADC_INST);
+
+    /* 等待 MEM0 结果就绪 (raw 标志, 不依赖中断使能), 加超时保护 */
+    uint32_t timeout = 50000u;
+    while ((DL_ADC12_getRawInterruptStatus(GRAYSCALE_ADC_INST,
+                DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED) &
+            DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED) == 0) {
+        if (--timeout == 0) {
+            elog_w("GRAY", "ADC timeout");
+            break;
+        }
     }
+
     /* 读取结果（12位，0~4095） */
-    return DL_ADC12_getMemResult(GRAY_ADC_INST, DL_ADC12_MEM_IDX_0);
+    uint16_t result = DL_ADC12_getMemResult(GRAYSCALE_ADC_INST, DL_ADC12_MEM_IDX_0);
+
+    /* 清除中断标志, 为下次读取做准备 */
+    DL_ADC12_clearInterruptStatus(GRAYSCALE_ADC_INST,
+        DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
+
+    /* 重新使能转换 (SDK示例: ENC位可能被硬件清除) */
+    DL_ADC12_enableConversions(GRAYSCALE_ADC_INST);
+
+    return result;
 }
 
 static uint32_t HW_Gray_GetTick(void)

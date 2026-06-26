@@ -39,3 +39,17 @@ reset_script.jlink
 # OS files
 Thumbs.db
 .DS_Store
+
+# Debug temp files
+-CommandFile
+-LogFile
+.trae/
+Event.dot
+README.html
+jlink_rtt_*.txt
+jlink_rtt_*.err
+rtt_run*.err
+keil/EventRecorderStub.scvd
+keil/JLinkSettings.ini
+keil/*.uvguix.*
+docs/pinout_mapping.md

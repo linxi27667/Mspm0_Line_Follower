@@ -5,6 +5,7 @@
  *          I2C操作通过函数指针调用，不依赖具体总线实现
  */
 #include "bsp_mpu6050.h"
+#include <elog.h>
 #include <stddef.h>
 #include <math.h>
 
@@ -18,10 +19,15 @@ uint8_t Bsp_MPU6050_Init_Device(bsp_mpu_t *mpu)
     mpu->gyro_z_offset = 0;
     mpu->heading       = 0;
 
-    /* 检查 WHO_AM_I */
+    /* 检查 WHO_AM_I — 接受 MPU6050(0x68)/MPU9250(0x71)/MPU6500(0x70) */
     uint8_t check_id = 0;
-    mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_WHO_AM_I_REG, &check_id, 1);
-    if (check_id != 0x68 && check_id != 0x71) return 1;
+    uint8_t ret = mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_WHO_AM_I_REG, &check_id, 1);
+    if (check_id != 0x68 && check_id != 0x70 && check_id != 0x71) {
+        elog_e("MPU", "WHO_AM_I fail: ret=%d id=0x%02X addr=0x%02X",
+               ret, check_id, mpu->dev_addr);
+        return 1;
+    }
+    elog_i("MPU", "WHO_AM_I OK: id=0x%02X addr=0x%02X", check_id, mpu->dev_addr);
 
     /* 唤醒 */
     uint8_t w = 0x00;

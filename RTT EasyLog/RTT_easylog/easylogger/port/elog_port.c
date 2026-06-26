@@ -28,11 +28,10 @@
  
 #include <elog.h>
 
-
-#include "main.h"
-#include "ti_msp_dl_config.h"
+#include "bsp_common.h"
 #include "SEGGER_RTT.h"
-#include "core_cm0plus.h" 
+#include <cmsis_compiler.h>
+#include <stdio.h>
 
 /**
  * EasyLogger port initialize
@@ -73,13 +72,11 @@ void elog_port_output(const char *log, size_t size) {
  * output lock
  */
 void elog_port_output_lock(void) {
-    /* 暂时禁用中断锁，防止芯片锁死导致无法烧录 */
-    // __disable_irq();
+    __disable_irq();
 }
 
 void elog_port_output_unlock(void) {
-    /* 暂时禁用中断锁，防止芯片锁死导致无法烧录 */
-    // __enable_irq();
+    __enable_irq();
 }
 
 /**
@@ -88,9 +85,9 @@ void elog_port_output_unlock(void) {
  * @return current time
  */
 const char *elog_port_get_time(void) {
-    
-    /* add your code here */
-    return "";
+    static char cur_system_time[16] = { 0 };
+    snprintf(cur_system_time, sizeof(cur_system_time), "%lu", (unsigned long)systick_ms);
+    return cur_system_time;
 }
 
 /**

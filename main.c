@@ -1,48 +1,113 @@
 /**
  * @file    main.c
- * @brief   MSPM0G3507 裸机调度入口 — 四层架构调度层
- * @note    所有中断处理函数 + 时标轮询 + 组合逻辑集中于此
- *          UART RX: DMA CH0 + IDLE/Timeout 帧检测 + 字节FIFO + 帧长队列（多帧缓冲）
- *          UART TX: DMA CH1 零拷贝（DMA 直接读 TX FIFO）+ 完成中断自动链接
+ * @brief   MSPM0G3507 主程序（参考 f407zet6 架构：模块化初始化 + elog + 调试开关）
+ * @note    架构:
+ *            System_Init()  — RTT/SysConfig/SysTick/elog/外设模块统一初始化
+ *            SelfTest 阶段  — 由 SELFTEST_MODE 宏控制，上电自检各设备
+ *            Track 阶段     — 循迹主循环
+ *          调试:
+ *            SELFTEST_MODE=1 启动后跑一遍自检并打印诊断
+ *            SELFTEST_MODE=0 跳过自检直接进入循迹
  */
 #include "ti_msp_dl_config.h"
-#include "my_easylog.h"
+#include <elog.h>
+#include "SEGGER_RTT.h"
 #include "bsp_uart.h"
 #include "app_all.h"
 #include "track.h"
 #include <stdio.h>
 
-/* ================= 全局时标 ================= */
+/* ================= 调试开关 ================= */
+/* SELFTEST_MODE=1: 上电后自动跑一次自检（电机/编码器/MPU/灰度） */
+/* SELFTEST_MODE=0: 跳过自检，直接进入循迹模式 */
+#ifndef SELFTEST_MODE
+#define SELFTEST_MODE  0
+#endif
 
+/* ================= 全局时标 ================= */
 extern volatile uint32_t systick_ms;  /* 定义在 bsp_common.c */
 
 /* ================= 中断处理函数（全部集中于此） ================= */
 
-/* SysTick 1ms 中断 */
 void SysTick_Handler(void)
 {
     systick_ms++;
 }
 
-/* UART0 中断 — IDLE/Timeout 帧检测（DMA 已自动接收数据到 s_rx_dma_buf）
- * 流程：停 DMA → 读已收字节数 → 排空硬件 FIFO 残余 → 推入软件 FIFO + 重启 DMA */
+/* ================= HardFault 诊断 ================= */
+/* Cortex-M0+ 仅有 SHCSR, 没有 CFSR/HFSR/DFSR */
+__attribute__((naked)) void HardFault_Handler(void)
+{
+    __asm volatile(
+        "mov r0, sp\n"
+        "ldr r1, =HardFault_Diag\n"
+        "bx r1\n"
+    );
+}
+
+void HardFault_Diag(uint32_t *sp)
+{
+    uint32_t r0  = sp[0];
+    uint32_t r1  = sp[1];
+    uint32_t r2  = sp[2];
+    uint32_t r3  = sp[3];
+    uint32_t r12 = sp[4];
+    uint32_t lr  = sp[5];
+    uint32_t pc  = sp[6];
+    uint32_t xpsr = sp[7];
+
+    SEGGER_RTT_Write(0, "*** HARDFAULT ***\r\n", 20);
+    elog_e("FAULT", "PC=0x%08lX LR=0x%08lX XPSR=0x%08lX",
+           (unsigned long)pc, (unsigned long)lr, (unsigned long)xpsr);
+    elog_e("FAULT", "R0=0x%08lX R1=0x%08lX R2=0x%08lX R3=0x%08lX R12=0x%08lX",
+           (unsigned long)r0, (unsigned long)r1, (unsigned long)r2,
+           (unsigned long)r3, (unsigned long)r12);
+    elog_e("FAULT", "SHCSR=0x%04lX", (unsigned long)(SCB->SHCSR & 0xFFFF));
+
+    while (1) { /* 死循环等待调试器 */ }
+}
+
+/* ================= GPIO 输入回读使能 ================= */
+/* SysConfig 的 DL_GPIO_initDigitalOutput 不启用 INE (bit18),
+ * 导致 GPIO_ReadPin(读DIN) 始终返回0。此处对所有输出引脚 OR 上 INE。 */
+static void Enable_GPIO_InputReadback(void)
+{
+    const uint32_t INE_BIT = IOMUX_PINCM_INENA_ENABLE;
+
+    /* 灰度 AD0/AD1/AD2 */
+    IOMUX->SECCFG.PINCM[Grayscale_ADDR_A_AD0_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Grayscale_ADDR_A_AD1_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Grayscale_ADDR_B_AD2_IOMUX] |= INE_BIT;
+
+    /* 电机方向引脚 */
+    IOMUX->SECCFG.PINCM[Monitor_Dir_Monitor_AIN1_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Monitor_Dir_Monitor_AIN2_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Right_Motor_Dir_AIN1_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Right_Motor_Dir_AIN2_IOMUX] |= INE_BIT;
+
+    /* 右编码器 PHA/PHB (PB12/PB13) — 确保 INE 使能, ISR 中读 DIN 判断方向 */
+    IOMUX->SECCFG.PINCM[Right_Encoder_PHA_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Right_Encoder_PHB_IOMUX] |= INE_BIT;
+
+    /* LED 引脚 */
+    IOMUX->SECCFG.PINCM[Led_Group_LED1_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Led_Group_LED2_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Led_Group_LED3_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Led_Group_LED4_IOMUX] |= INE_BIT;
+}
+
+/* ================= 外设中断 ISR ================= */
+
 extern uint8_t s_rx_dma_buf[];
 
 void UART0_IRQHandler(void)
 {
     uint32_t irq = DL_UART_getPendingInterrupt(UART0);
-
     switch (irq) {
-        case DL_UART_IIDX_RX_TIMEOUT_ERROR:
-        {
-            /* 1. 停止 DMA（冻结传输计数） */
+        case DL_UART_IIDX_RX_TIMEOUT_ERROR: {
             DL_DMA_disableChannel(DMA, DMA_CH0_RX);
-
-            /* 2. 计算 DMA 已接收字节数 */
             uint16_t rx_len = BSP_UART_RX_BUF_SIZE -
                               DL_DMA_getTransferSize(DMA, DMA_CH0_RX);
-
-            /* 3. 清空 UART 硬件 FIFO 残余数据（追加到 DMA 缓冲尾部） */
             while (!DL_UART_isRXFIFOEmpty(UART0)) {
                 if (rx_len < BSP_UART_RX_BUF_SIZE) {
                     s_rx_dma_buf[rx_len++] = (uint8_t)DL_UART_receiveData(UART0);
@@ -50,38 +115,26 @@ void UART0_IRQHandler(void)
                     (void)DL_UART_receiveData(UART0);
                 }
             }
-
-            /* 4. 推入软件 FIFO + 记录帧长 + 自动重启 DMA RX */
             Uart_RX_IRQHandler(rx_len);
             break;
         }
-
-        default:
-            break;
+        default: break;
     }
 }
 
-/* DMA 中断 — TX DMA 完成通知（自动链接下一块 / 停止触发） */
 void DMA_IRQHandler(void)
 {
     switch (DL_DMA_getPendingInterrupt(DMA)) {
         case DL_DMA_EVENT_IIDX_DMACH1:
-            /* TX DMA 完成一块 → 推进 FIFO tail + 链接下一块 */
             Uart_Tx_DMA_Done_IRQHandler();
             break;
-
-        default:
-            break;
+        default: break;
     }
 }
 
 /* GPIO GROUP1 中断 — 右编码器PHA双沿触发 */
 void GROUP1_IRQHandler(void)
 {
-    /* 检查PB14(PHA)是否产生中断
-     * 注意: DL_GPIO_getPendingInterrupt 返回 IIDX 枚举(非位掩码)，
-     *       与 RIGHT_ENC_PHA_PIN(位掩码)按位与恒为0，导致右编码器中断
-     *       永不触发。必须用 getEnabledInterruptStatus 按位掩码判断。 */
     if (DL_GPIO_getEnabledInterruptStatus(RIGHT_ENC_PHA_PORT,
                                           RIGHT_ENC_PHA_PIN)) {
         DL_GPIO_clearInterruptStatus(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN);
@@ -89,104 +142,384 @@ void GROUP1_IRQHandler(void)
     }
 }
 
-/* ================= 组合逻辑函数（main 上方定义） ================= */
-
+/* =================================================================
+ * 系统初始化 — 参考 f407zet6 main.c 的初始化顺序
+ * ================================================================= */
 static void System_Init(void)
 {
-    /* ① RTT 最早初始化，确保后续日志都能输出 */
+    /* 1. RTT 优先（最早的日志通道） */
     SEGGER_RTT_Init();
-    SEGGER_RTT_Write(0, "\r\n===== MSPM0G3507 SmartCar Boot =====\r\n", 38);
 
-    /* ② 硬件外设初始化（GPIO/UART/DMA/ADC/I2C/Timer 全部由 SysConfig 生成） */
+    /* 2. SysConfig 生成的外设初始化 */
     SYSCFG_DL_init();
 
-    /* ③ 日志系统初始化（设置默认级别与颜色） */
-    my_log_init();
-
-    /* ④ 启动 1ms SysTick 中断（必须在任何 Bsp_Delay_ms 调用前完成） */
+    /* 3. SysTick 1ms */
     SysTick_Config(CPUCLK_FREQ / 1000);
 
-    /* ⑤ 非循迹模块初始化 */
+    /* 4. elog 日志框架 */
+    elog_init();
+    elog_set_fmt(ELOG_LVL_ASSERT, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
+    elog_set_fmt(ELOG_LVL_ERROR,  ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
+    elog_set_fmt(ELOG_LVL_WARN,   ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
+    elog_set_fmt(ELOG_LVL_INFO,   ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
+    elog_set_fmt(ELOG_LVL_DEBUG,  ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME | ELOG_FMT_LINE);
+    elog_start();
+
+    /* 5. 启用 GPIO 输入回读（诊断用） */
+    Enable_GPIO_InputReadback();
+
+    /* 6. 应用层模块初始化（顺序参考 f407zet6: Motor/Safety/Key/Encoder） */
     App_Led_Init();
     App_Key_Init();
     App_Uart_Init();
 
-    /* ⑥ 循迹任务初始化 */
-    Track_Init();
-
-    elog_i("[SYS]", "System initialized - ready");
+    elog_i("SYS", "System initialized - CPU=%luHz", (unsigned long)CPUCLK_FREQ);
 }
 
-/* ================= 主函数 ================= */
+/* =================================================================
+ * 自检模块（SELFTEST_MODE=1 时执行）
+ * ================================================================= */
+#if SELFTEST_MODE
 
+static void Diag_PINCM(void)
+{
+    elog_i("IOMUX", "=== PINCM Dump (expect 0x00040081 with INE) ===");
+    elog_i("IOMUX", "PA26(AD0, PINCM59)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Grayscale_ADDR_A_AD0_IOMUX]);
+    elog_i("IOMUX", "PA24(AD1, PINCM54)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Grayscale_ADDR_A_AD1_IOMUX]);
+    elog_i("IOMUX", "PB24(AD2, PINCM52)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Grayscale_ADDR_B_AD2_IOMUX]);
+    elog_i("IOMUX", "PA22(LDir1, PINCM47)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Monitor_Dir_Monitor_AIN1_IOMUX]);
+    elog_i("IOMUX", "PA15(LDir2, PINCM37)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Monitor_Dir_Monitor_AIN2_IOMUX]);
+    elog_i("IOMUX", "PB0(RDir1, PINCM12)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Right_Motor_Dir_AIN1_IOMUX]);
+    elog_i("IOMUX", "PB11(RDir2, PINCM28)=0x%08lX",
+           (unsigned long)IOMUX->SECCFG.PINCM[Right_Motor_Dir_AIN2_IOMUX]);
+    elog_i("IOMUX", "PB4(LED1, PINCM17)=0x%08lX [ref]",
+           (unsigned long)IOMUX->SECCFG.PINCM[Led_Group_LED1_IOMUX]);
+
+    /* PWM 引脚 PINCM (应为外设功能) */
+    elog_i("IOMUX", "PA17(LPWM, PINCM39)=0x%08lX [expect PF=TIMG7]",
+           (unsigned long)IOMUX->SECCFG.PINCM[IOMUX_PINCM39]);
+    elog_i("IOMUX", "PB10(RPWM, PINCM27)=0x%08lX [expect PF=TIMG6]",
+           (unsigned long)IOMUX->SECCFG.PINCM[IOMUX_PINCM27]);
+
+    /* GPIO 寄存器 */
+    elog_i("GPIO", "A: DOE=0x%08lX DOUT=0x%08lX DIN=0x%08lX",
+           (unsigned long)GPIOA->DOE31_0, (unsigned long)GPIOA->DOUT31_0,
+           (unsigned long)GPIOA->DIN31_0);
+    elog_i("GPIO", "B: DOE=0x%08lX DOUT=0x%08lX DIN=0x%08lX",
+           (unsigned long)GPIOB->DOE31_0, (unsigned long)GPIOB->DOUT31_0,
+           (unsigned long)GPIOB->DIN31_0);
+
+    /* PA27 ADC 引脚状态 (PA27 = IOMUX_PINCM60) */
+    elog_i("IOMUX", "PA27(ADC, PINCM60)=0x%08lX [expect 0x00 analog]",
+           (unsigned long)IOMUX->SECCFG.PINCM[IOMUX_PINCM60]);
+}
+
+static void SelfTest_MPU6050(void)
+{
+    elog_i("TEST", "==== MPU6050 Test ====");
+    App_Mpu_Init();
+    Bsp_Delay_ms(100);
+
+    if (Mpu_Sensor.gyro_ok) {
+        Mpu_Read_Data();
+        elog_i("TEST", "MPU OK: ax=%.2f ay=%.2f az=%.2f",
+               Mpu_Sensor.accel_x, Mpu_Sensor.accel_y, Mpu_Sensor.accel_z);
+        elog_i("TEST", "MPU OK: gx=%.2f gy=%.2f gz=%.2f",
+               Mpu_Sensor.gyro_x, Mpu_Sensor.gyro_y, Mpu_Sensor.gyro_z);
+        elog_i("TEST", "MPU OK: temp=%.1fC", Mpu_Sensor.temp);
+    } else {
+        elog_e("TEST", "MPU FAIL: gyro_ok=0");
+    }
+    elog_i("TEST", "==== MPU6050 Done ====");
+}
+
+static void SelfTest_Motor_Encoder(void)
+{
+    elog_i("TEST", "==== Motor+Encoder Test ====");
+    App_Motor_Init();
+    Bsp_Delay_ms(50);
+
+    /* 引脚说明 */
+    elog_i("MOT", "Left:  PWM=TIMG7_CH0(PA17) DIR1=PA22 DIR2=PA15 Enc=TIMG8(PB21/PB22)");
+    elog_i("MOT", "Right: PWM=TIMG6_CH0(PB10) DIR1=PB0  DIR2=PB11 Enc=GPIO(PB12/PB13)");
+
+    /* PWM 定时器运行状态 + 寄存器诊断 */
+    uint32_t t7_1 = DL_Timer_getTimerCount(TIMG7);
+    uint32_t t6_1 = DL_Timer_getTimerCount(TIMG6);
+    Bsp_Delay_ms(10);
+    uint32_t t7_2 = DL_Timer_getTimerCount(TIMG7);
+    uint32_t t6_2 = DL_Timer_getTimerCount(TIMG6);
+    elog_i("MOT", "TIMG7 cnt: %lu->%lu (%s) LOAD=%lu",
+           (unsigned long)t7_1, (unsigned long)t7_2,
+           (t7_2 != t7_1) ? "RUNNING" : "STOPPED",
+           (unsigned long)DL_Timer_getLoadValue(TIMG7));
+    elog_i("MOT", "TIMG6 cnt: %lu->%lu (%s) LOAD=%lu",
+           (unsigned long)t6_1, (unsigned long)t6_2,
+           (t6_2 != t6_1) ? "RUNNING" : "STOPPED",
+           (unsigned long)DL_Timer_getLoadValue(TIMG6));
+
+    /* 编码器定时器诊断 */
+    elog_i("MOT", "TIMG8(Enc) LOAD=%lu cnt=%lu",
+           (unsigned long)DL_Timer_getLoadValue(MOTOR_LEFT_ENC_TIMER),
+           (unsigned long)DL_Timer_getTimerCount(MOTOR_LEFT_ENC_TIMER));
+
+    /* 同步编码器基准 (调用 Update_Status 让 last_count = 当前值, 首次返回0) */
+    Bsp_Motor_Update_Status(&Motor_Left);
+    Bsp_Motor_Update_Status(&Motor_Right);
+    Motor_Left.encoder_speed  = 0;
+    Motor_Right.encoder_speed = 0;
+
+    /* ---- 正转测试: PWM=50, 每200ms采样一次, 共2秒 ----
+     * 使用 Bsp_Motor_Update_Status 获取正确符号的 delta:
+     *   左编码器(QEI 16位): int16_t cast 处理短间隔回绕
+     *   右编码器(GPIO 32位): int32_t 无回绕 */
+    elog_i("TEST", "Forward PWM=50 for 2s (sampled every 200ms)...");
+    Bsp_Motor_Set_Speed(&Motor_Left, 50);
+    Bsp_Motor_Set_Speed(&Motor_Right, 50);
+
+    uint32_t cc7 = DL_TimerG_getCaptureCompareValue(TIMG7, DL_TIMER_CC_0_INDEX);
+    uint32_t cc6 = DL_TimerG_getCaptureCompareValue(TIMG6, DL_TIMER_CC_0_INDEX);
+    uint8_t ld1 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR1_PIN)  ? 1 : 0;
+    uint8_t ld2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN)  ? 1 : 0;
+    uint8_t rd1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1 : 0;
+    uint8_t rd2 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1 : 0;
+    elog_i("MOT", "Fwd: CC7=%lu CC6=%lu (LOAD=99)", (unsigned long)cc7, (unsigned long)cc6);
+    elog_i("MOT", "Fwd: LDir DOUT=[%d,%d] RDir DOUT=[%d,%d]", ld1, ld2, rd1, rd2);
+
+    int32_t left_fwd = 0, right_fwd = 0;
+    for (int i = 0; i < 10; i++) {
+        Bsp_Delay_ms(200);
+        Bsp_Motor_Update_Status(&Motor_Left);
+        Bsp_Motor_Update_Status(&Motor_Right);
+        left_fwd  += Motor_Left.encoder_speed;
+        right_fwd += Motor_Right.encoder_speed;
+    }
+    Bsp_Motor_Set_Speed(&Motor_Left, 0);
+    Bsp_Motor_Set_Speed(&Motor_Right, 0);
+    Bsp_Delay_ms(300);
+
+    elog_i("TEST", "Forward: LeftEnc=%ld RightEnc=%ld", (long)left_fwd, (long)right_fwd);
+
+    if (left_fwd > 10 && right_fwd > 10) {
+        elog_i("TEST", "Motor+Enc OK: both wheels rotated forward");
+    } else if (left_fwd > 10 || right_fwd > 10) {
+        elog_w("TEST", "Partial: L=%ld R=%ld (check wiring)", (long)left_fwd, (long)right_fwd);
+    } else {
+        elog_e("TEST", "Both FAIL - check: 1)Motor driver EN/STBY pin 2)Motor power supply 3)Wiring");
+    }
+
+    /* ---- 反转测试: PWM=-50, 每200ms采样一次, 共2秒 ---- */
+    elog_i("TEST", "Backward PWM=-50 for 2s (sampled every 200ms)...");
+    Bsp_Motor_Set_Speed(&Motor_Left, -50);
+    Bsp_Motor_Set_Speed(&Motor_Right, -50);
+
+    uint8_t ld1r = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR1_PIN)  ? 1 : 0;
+    uint8_t ld2r = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN)  ? 1 : 0;
+    uint8_t rd1r = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1 : 0;
+    uint8_t rd2r = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1 : 0;
+    elog_i("MOT", "Bwd: LDir DOUT=[%d,%d] RDir DOUT=[%d,%d]", ld1r, ld2r, rd1r, rd2r);
+
+    int32_t left_bwd = 0, right_bwd = 0;
+    for (int i = 0; i < 10; i++) {
+        Bsp_Delay_ms(200);
+        Bsp_Motor_Update_Status(&Motor_Left);
+        Bsp_Motor_Update_Status(&Motor_Right);
+        left_bwd  += Motor_Left.encoder_speed;
+        right_bwd += Motor_Right.encoder_speed;
+    }
+    Bsp_Motor_Set_Speed(&Motor_Left, 0);
+    Bsp_Motor_Set_Speed(&Motor_Right, 0);
+
+    elog_i("TEST", "Backward: LeftEnc=%ld RightEnc=%ld", (long)left_bwd, (long)right_bwd);
+
+    /* 方向验证: 正转应>0, 反转应<0 */
+    if (left_fwd > 10 && left_bwd < -10) {
+        elog_i("TEST", "Left enc direction OK (fwd=%ld bwd=%ld)", (long)left_fwd, (long)left_bwd);
+    } else {
+        elog_w("TEST", "Left enc direction ISSUE (fwd=%ld bwd=%ld)", (long)left_fwd, (long)left_bwd);
+    }
+    if (right_fwd > 10 && right_bwd < -10) {
+        elog_i("TEST", "Right enc direction OK (fwd=%ld bwd=%ld)", (long)right_fwd, (long)right_bwd);
+    } else {
+        elog_w("TEST", "Right enc direction ISSUE (fwd=%ld bwd=%ld)", (long)right_fwd, (long)right_bwd);
+    }
+    elog_i("TEST", "==== Motor+Encoder Done ====");
+}
+
+static void SelfTest_Grayscale(void)
+{
+    elog_i("TEST", "==== Grayscale Test ====");
+    elog_i("GRAY", "AD0=PA26 AD1=PA24 AD2=PB24 ADC=PA27(CH0)");
+
+    App_Grayscale_Init();
+    Bsp_Delay_ms(50);
+
+    /* 逐通道测试: 切换 AD0/AD1/AD2, 读取 ADC */
+    for (uint8_t ch = 0; ch < 8; ch++) {
+        uint8_t ad0 = ch & 0x01;
+        uint8_t ad1 = (ch >> 1) & 0x01;
+        uint8_t ad2 = (ch >> 2) & 0x01;
+        GPIO_WritePin(GRAY_AD0_PORT, GRAY_AD0_PIN, ad0);
+        GPIO_WritePin(GRAY_AD1_PORT, GRAY_AD1_PIN, ad1);
+        GPIO_WritePin(GRAY_AD2_PORT, GRAY_AD2_PIN, ad2);
+        Bsp_Delay_ms(10);
+        Grayscale_Sensor.ADC_Read();  /* 丢弃第一次（建立时间） */
+        Bsp_Delay_ms(5);
+        uint16_t v = Grayscale_Sensor.ADC_Read();
+        uint8_t rd0 = (GPIOA->DOUT31_0 & GRAY_AD0_PIN) ? 1 : 0;
+        uint8_t rd1 = (GPIOA->DOUT31_0 & GRAY_AD1_PIN) ? 1 : 0;
+        uint8_t rd2 = (GPIOB->DOUT31_0 & GRAY_AD2_PIN) ? 1 : 0;
+        elog_i("GRAY", "CH%d AD=[%d%d%d] DOUT=[%d%d%d] adc=%u",
+               ch, ad2, ad1, ad0, rd2, rd1, rd0, v);
+    }
+
+    /* BSP 框架扫描一轮 */
+    for (uint8_t i = 0; i < 8; i++) {
+        Grayscale_Update();
+        Bsp_Delay_ms(10);
+    }
+    elog_i("TEST", "Gray BC=%d analog=[%u,%u,%u,%u,%u,%u,%u,%u]",
+           Grayscale_Sensor.black_count,
+           Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
+           Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
+           Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
+           Grayscale_Sensor.analog[6], Grayscale_Sensor.analog[7]);
+    elog_i("TEST", "==== Grayscale Done ====");
+}
+
+static void SelfTest_KeyLed(void)
+{
+    elog_i("TEST", "==== Key+LED Test ====");
+    for (uint8_t i = 0; i < 4; i++) {
+        Led_On(i);
+        Bsp_Delay_ms(200);
+        Led_Off(i);
+    }
+    elog_i("TEST", "==== Key+LED Done ====");
+}
+
+/* 自检主入口 */
+static void Run_SelfTest(void)
+{
+    elog_i("SYS", "########## SelfTest Start ##########");
+
+    Diag_PINCM();
+    Bsp_Delay_ms(100);
+
+    SelfTest_MPU6050();
+    Bsp_Delay_ms(200);
+
+    SelfTest_Grayscale();
+    Bsp_Delay_ms(200);
+
+    SelfTest_KeyLed();
+    Bsp_Delay_ms(200);
+
+    SelfTest_Motor_Encoder();
+    Bsp_Delay_ms(200);
+
+    elog_i("SYS", "########## SelfTest Complete ##########");
+}
+
+#endif /* SELFTEST_MODE */
+
+/* =================================================================
+ * 主函数
+ * ================================================================= */
 int main(void)
 {
     System_Init();
 
-    elog_i("[SYS]", "Waiting for keys (K1=Start K2=Stop K3=WhiteCal K4=BlackCal)");
+    /* 启动延时: 给 RTT Logger 连接时间 */
+    elog_i("SYS", "Boot delay 3s - connect RTT logger now");
+    Bsp_Delay_ms(3000);
 
-    /* 循迹小车: 设置3圈，基础速度40 */
+#if SELFTEST_MODE
+    Run_SelfTest();
+    elog_i("SYS", "Switching to tracking mode...");
+    Bsp_Delay_ms(500);
+#endif
+
+    /* ====== 循迹模式 ====== */
+    Track_Init();
     Track_Set_Circles(3);
     Track_Set_Speed(40);
 
-    /* 时标调度变量 */
-    uint32_t last_5ms = 0, last_10ms = 0, last_500ms = 0, last_100ms = 0;
-    /* 状态变化检测：避免静止状态下重复打印相同状态 */
-    uint8_t  last_state = 0xFF;
-    uint8_t  last_circle = 0xFF;
-    uint8_t  last_bc = 0xFF;
+    elog_i("SYS", "Ready. K1=Start K2=Stop K3=WhiteCal K4=BlackCal");
+
+    uint32_t last_5ms = 0, last_10ms = 0, last_100ms = 0, last_500ms = 0, last_1000ms = 0;
+    uint8_t  last_state = 0xFF, last_circle = 0xFF, last_bc = 0xFF;
 
     while (1)
     {
         uint32_t now = systick_ms;
 
-        /* ===================== 循迹任务（自包含，全由 Track_Update 调度） ===================== */
         Track_Update();
 
-        /* ---- 5ms: 速度PID更新（独立于循迹状态机，保证 IDLE/FINISHED 时也能更新）
-         * 修复: 原代码速度PID只在 Track_Update 末尾调用，受 5ms 节流+8ms 数据同步
-         * 双重约束，且 FINISHED/IDLE 状态下完全不执行 → 电机保持最后PWM。
-         * 独立调用确保 target=0 时能自然减速到停。 */
         if ((now - last_5ms) >= 5) {
             last_5ms = now;
             App_Motor_Speed_PID_Update();
         }
 
-        /* ---- 10ms: 按键扫描（无阻塞状态机） ---- */
         if ((now - last_10ms) >= 10) {
             last_10ms = now;
             Key_Scan_Task();
         }
 
-        /* ---- 500ms: 传感器状态日志（降低频率，避免刷屏） ----
-         * 仅在状态/圈数/黑点数变化时打印，或在循迹运行中周期打印 */
         if ((now - last_500ms) >= 500) {
             last_500ms = now;
             uint8_t cur_state  = (uint8_t)Track.state;
             uint8_t cur_circle = (uint8_t)Track.current_circle;
             uint8_t cur_bc     = Grayscale_Sensor.black_count;
 
-            bool state_changed = (cur_state != last_state) ||
-                                 (cur_circle != last_circle) ||
-                                 (cur_bc != last_bc);
+            bool changed = (cur_state != last_state) ||
+                           (cur_circle != last_circle) ||
+                           (cur_bc != last_bc);
 
-            /* 状态变化时必打印；运行中即使无变化也周期打印
-             * 修复: FINISHED 状态不再持续打印，避免浪费 RTT 带宽 */
-            if (state_changed ||
+            if (changed ||
                 (cur_state != TRACK_STATE_IDLE &&
                  cur_state != TRACK_STATE_FINISHED)) {
-                elog_i("[CAR]", "St:%d Cir:%d Err:%d L:%d R:%d BC:%d",
+                /* 诊断: 打印实际PWM(current_pwm)和编码器速度(encoder_speed)
+                 * L/R=目标速度, LPwm/RPwm=实际PWM, LEnc/REnc=编码器速度 */
+                elog_i("CAR", "St:%d Cir:%d Err:%d L:%d R:%d BC:%d | LPwm:%ld RPwm:%ld LEnc:%ld REnc:%ld",
                        Track.state, Track.current_circle,
                        (int)(Track.error * 1000),
-                       Track.left_speed, Track.right_speed,
-                       cur_bc);
+                       Track.left_speed, Track.right_speed, cur_bc,
+                       (long)Motor_Left.current_pwm, (long)Motor_Right.current_pwm,
+                       (long)Motor_Left.encoder_speed, (long)Motor_Right.encoder_speed);
                 last_state  = cur_state;
                 last_circle = cur_circle;
                 last_bc     = cur_bc;
             }
         }
 
-        /* ---- 100ms: 按键事件处理 ---- */
+        /* ====== 灰度传感器诊断（每1秒打印8通道ADC原始值+数字值+校准基准） ======
+         * 用于定位 BC=5~6 异常高的原因 */
+        if ((now - last_1000ms) >= 1000) {
+            last_1000ms = now;
+            elog_i("GRAY", "ADC: %d %d %d %d %d %d %d %d",
+                   Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
+                   Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
+                   Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
+                   Grayscale_Sensor.analog[6], Grayscale_Sensor.analog[7]);
+            elog_i("GRAY", "DIG: %d %d %d %d %d %d %d %d | BC=%d",
+                   Grayscale_Sensor.digital[0], Grayscale_Sensor.digital[1],
+                   Grayscale_Sensor.digital[2], Grayscale_Sensor.digital[3],
+                   Grayscale_Sensor.digital[4], Grayscale_Sensor.digital[5],
+                   Grayscale_Sensor.digital[6], Grayscale_Sensor.digital[7],
+                   Grayscale_Sensor.black_count);
+            elog_i("GRAY", "CAL: black=%d white=%d | gW=%d gB=%d",
+                   Grayscale_Sensor.black[0], Grayscale_Sensor.white[0],
+                   (int)((Grayscale_Sensor.black[0] + 2*Grayscale_Sensor.white[0]) / 3),
+                   (int)((2*Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 3));
+        }
+
         if ((now - last_100ms) >= 100) {
             last_100ms = now;
             bsp_key_event_t evt;
@@ -194,40 +527,22 @@ int main(void)
                 evt = Key_GetEvent(i);
                 if (evt == BSP_KEY_EVENT_PUSH) {
                     Led_Toggle(i);
-                    elog_i("[KEY]", "K%d pressed", (int)i);
-                    /* KEY1: 启动循迹 */
-                    if (i == 0) {
-                        Track_Start();
-                        elog_i("[CTRL]", "Tracking started");
-                    }
-                    /* KEY2: 停止 */
-                    if (i == 1) {
-                        Track_Stop();
-                        elog_i("[CTRL]", "Tracking stopped");
-                    }
-                    /* KEY3: 白纸校准 */
-                    if (i == 2) {
-                        Track_Calibrate_White();
-                        elog_i("[SENSOR]", "White calibrated");
-                    }
-                    /* KEY4: 黑纸校准 */
-                    if (i == 3) {
-                        Track_Calibrate_Black();
-                        elog_i("[SENSOR]", "Black calibrated");
-                    }
+                    elog_i("KEY", "K%d pressed", (int)i);
+                    if (i == 0) { Track_Start(); elog_i("CTRL", "Tracking started"); }
+                    if (i == 1) { Track_Stop();  elog_i("CTRL", "Tracking stopped"); }
+                    if (i == 2) { Track_Calibrate_White(); elog_i("SENSOR", "White calibrated"); }
+                    if (i == 3) { Track_Calibrate_Black(); elog_i("SENSOR", "Black calibrated"); }
                 }
             }
         }
 
-        /* ---- UART 帧处理（事件驱动，非周期，多帧一次排空） ---- */
         {
-            /* 修复: 缓冲区 +1 留给 '\0'，避免 len==BSP_UART_RX_BUF_SIZE 时越界 */
             uint8_t frame[BSP_UART_RX_BUF_SIZE + 1];
             uint16_t len = 0;
             while (Uart_Get_Frame(frame, &len)) {
                 if (len >= BSP_UART_RX_BUF_SIZE) len = BSP_UART_RX_BUF_SIZE - 1;
                 frame[len] = '\0';
-                elog_i("[COMM]", "RX(%u): %s", (unsigned)len, (char*)frame);
+                elog_i("COMM", "RX(%u): %s", (unsigned)len, (char*)frame);
             }
         }
     }

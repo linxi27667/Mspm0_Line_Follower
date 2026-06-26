@@ -8,7 +8,7 @@
 #include "app_encoder_motor.h"
 #include "app_common.h"
 #include "app_pid.h"
-#include "my_easylog.h"
+#include <elog.h>
 
 /* ================= 右编码器中断计数 ================= */
 volatile int32_t g_right_enc_count = 0;
@@ -55,10 +55,8 @@ static void HW_Pwm_Write(void *timer, uint32_t channel, uint32_t duty)
 }
 
 /* 左电机编码器读取 — 硬件QEI
- * 修复: 原代码 delta = last - current 与右编码器(current - last)符号相反，
- * 若两电机对称安装导致正转时计数方向一致，则左右速度符号相反，
- * PID 对一侧持续推高 PWM 至限幅。统一为 current - last。
- * 注: 若实测发现左电机方向反，可在此处取反 delta。 */
+ * 实测: 正转时 QEI 计数递减 (delta<0), 反转时递增 (delta>0)。
+ * 取反 delta 使正转=正数, 反转=负数, 与右编码器方向一致。 */
 static int32_t HW_Enc_Read_Left(void *enc_timer)
 {
     static uint32_t last_count = 0;
@@ -74,7 +72,7 @@ static int32_t HW_Enc_Read_Left(void *enc_timer)
 
     int16_t delta = (int16_t)(current_count - last_count);
     last_count = current_count;
-    return (int32_t)delta;
+    return -(int32_t)delta;  /* 取反: QEI 方向与电机正转相反 */
 }
 
 /* 右电机编码器读取 — GPIO中断计数差值
@@ -132,12 +130,13 @@ bsp_motor_t Motor_Right = {
 
 void Right_Encoder_IRQHandler(void)
 {
-    /* 读取PHA和PHB当前电平，判断旋转方向 */
-    uint8_t pha = DL_GPIO_readPins(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN) ? 1 : 0;
-    uint8_t phb = DL_GPIO_readPins(RIGHT_ENC_PHB_PORT, RIGHT_ENC_PHB_PIN) ? 1 : 0;
+    /* 原子读取 PHA+PHB (单次 DIN 寄存器读取), 避免两次 readPins 间编码器
+     * 位置变化导致方向误判。实测: 分两次读取时反转方向计数异常。 */
+    uint32_t din = RIGHT_ENC_PHA_PORT->DIN31_0;
+    uint8_t pha = (din & RIGHT_ENC_PHA_PIN) ? 1 : 0;
+    uint8_t phb = (din & RIGHT_ENC_PHB_PIN) ? 1 : 0;
 
-    /* 修复注释: PHA与PHB异相=正转(递增)，同相=反转(递减)
-     * 双沿解码: PHA上升沿+PHB=0 → 异相 → 正转，正确 */
+    /* PHA与PHB异相=正转(递增)，同相=反转(递减) */
     if (pha ^ phb) {
         g_right_enc_count++;
     } else {

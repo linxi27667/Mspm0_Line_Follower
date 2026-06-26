@@ -9,7 +9,7 @@
  */
 #include "track.h"
 #include "bsp_common.h"
-#include "my_easylog.h"
+#include <elog.h>
 
 /* ============================================================
  * 常量
@@ -98,7 +98,7 @@ static void Track_Detect_Pattern(void)
             Track.state = TRACK_STATE_START_LINE;
             Track.state_timer = 0;
             Track.start_line_armed = false;  /* 需等黑线消失后重新武装 */
-            elog_i("[TRACK]", "LINE_FOLLOW -> START_LINE (bc=%d)",
+            elog_i("TRACK", "LINE_FOLLOW -> START_LINE (bc=%d)",
                    Grayscale_Sensor.black_count);
         }
         return;
@@ -123,7 +123,7 @@ static void Track_Detect_Pattern(void)
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
             Track.state = TRACK_STATE_CROSS;
             Track.state_timer = 0;
-            elog_i("[TRACK]", "LINE_FOLLOW -> CROSS (bc=%d)",
+            elog_i("TRACK", "LINE_FOLLOW -> CROSS (bc=%d)",
                    Grayscale_Sensor.black_count);
             return;
         }
@@ -142,7 +142,7 @@ static void Track_Detect_Pattern(void)
                 Track.state = TRACK_STATE_RIGHT_ANGLE;
                 Track.state_timer = 0;
                 Track.right_angle_confirm = 0;
-                elog_i("[TRACK]", "LINE_FOLLOW -> RIGHT_ANGLE (err=%d target=%d)",
+                elog_i("TRACK", "LINE_FOLLOW -> RIGHT_ANGLE (err=%d target=%d)",
                        (int)Track.error, (int)Track.right_angle_target);
             }
         }
@@ -161,7 +161,7 @@ static void Track_Detect_Pattern(void)
                 Track.state = TRACK_STATE_LINE_LOST;
                 Track.line_lost_count = 0;
                 Pid_Reset(&Track.gyro_pid);  /* 进入丢线时复位 gyro_pid 防积分突跳 */
-                elog_w("[TRACK]", "LINE_FOLLOW -> LINE_LOST (hdg=%d)",
+                elog_w("TRACK", "LINE_FOLLOW -> LINE_LOST (hdg=%d)",
                        (int)Mpu_Sensor.heading);
             }
         }
@@ -200,10 +200,10 @@ static void Track_Handle_StartLine(void)
         if (Track.current_circle >= Track.target_circles) {
             Track.state = TRACK_STATE_FINISHED;
             Track_Motor_Stop_Immediate();   /* 立即停车(安全) */
-            elog_i("[TRACK]", "FINISHED! circles=%d/%d", Track.current_circle, Track.target_circles);
+            elog_i("TRACK", "FINISHED! circles=%d/%d", Track.current_circle, Track.target_circles);
         } else {
             Track.state = TRACK_STATE_LINE_FOLLOW;
-            elog_i("[TRACK]", "Circle %d/%d completed", Track.current_circle, Track.target_circles);
+            elog_i("TRACK", "Circle %d/%d completed", Track.current_circle, Track.target_circles);
         }
         return;
     }
@@ -245,7 +245,7 @@ static void Track_Handle_LineLost(void)
         Track.state = TRACK_STATE_LINE_FOLLOW;
         Pid_Reset(&Track.line_pid);
         Track.line_lost_confirm = 0;    /* 修复: 复位确认计数，避免立即重入 LINE_LOST */
-        elog_i("[TRACK]", "LINE_LOST -> LINE_FOLLOW (recovered, bc=%d)",
+        elog_i("TRACK", "LINE_LOST -> LINE_FOLLOW (recovered, bc=%d)",
                Grayscale_Sensor.black_count);
     }
 }
@@ -362,6 +362,48 @@ void Track_Init(void)
     Mpu_Calibrate();
     App_Motor_Init();
 
+    /* ====== 灰度自动校准（免手动K3/K4）— 每通道独立 + 动态自适应 ======
+     * 改进: 每通道独立取 min/max(非全局), 配合 Update 中的动态遗忘跟踪,
+     *       无论开机位置如何, 车跑起来后校准值会自动收敛。
+     * 初始: 扫描5轮取每通道 min/max, 范围太窄时扩展默认范围。
+     * 运行: Update 中 black缓慢上升/white缓慢下降 + 跟踪新极值 */
+    {
+        uint16_t ch_black[8], ch_white[8];
+        for (uint8_t i = 0; i < 8; i++) {
+            ch_black[i] = 0xFFFF;
+            ch_white[i] = 0;
+        }
+        /* 扫描5轮, 每通道独立取 min/max */
+        for (uint8_t round = 0; round < 5; round++) {
+            for (uint8_t i = 0; i < 8; i++) {
+                Grayscale_Update();
+                Bsp_Delay_ms(3);
+            }
+            for (uint8_t i = 0; i < 8; i++) {
+                if (Grayscale_Sensor.analog[i] < ch_black[i]) ch_black[i] = Grayscale_Sensor.analog[i];
+                if (Grayscale_Sensor.analog[i] > ch_white[i]) ch_white[i] = Grayscale_Sensor.analog[i];
+            }
+        }
+        /* white=真实白地ADC(不扩展), black=white-300(初始猜测)
+         * 动态跟踪后 black 会更新为真实黑线值(更低), range自动扩大。
+         * 初始 range=300, 25%滞回 hyst=75:
+         *   grayW = white - 75 → 白地ADC波动±40不会误判 ✓
+         *   grayB = white - 225 → 黑线ADC明显更低时判黑 ✓
+         * 关键: white保持真实白地值(不扩展), 白地ADC能翻越grayW判白 */
+        elog_i("TRACK", "Gray per-ch cal:");
+        for (uint8_t i = 0; i < 8; i++) {
+            uint16_t w = ch_white[i];
+            uint16_t b = (w > 300) ? w - 300 : 0;
+            Grayscale_Sensor.black[i] = b;
+            Grayscale_Sensor.white[i] = w;
+            /* 清零初始DIG, 让滞回比较器从"白"开始 */
+            Grayscale_Sensor.digital[i] = 0;
+            elog_i("TRACK", "  S%d: black=%u white=%u (range=%u)",
+                   i, b, w, (uint16_t)(w - b));
+        }
+        Grayscale_Sensor.calibrated = 1;
+    }
+
     /* 启用速度PID闭环（编码器反馈修正PWM） */
     App_Motor_Enable_Speed_PID(true);
 }
@@ -449,7 +491,7 @@ void Track_Start(void)
     Track.start_line_armed = true;
     Pid_Reset(&Track.line_pid);
     Pid_Reset(&Track.gyro_pid);
-    elog_i("[TRACK]", "Tracking started (circles=%d speed=%d)",
+    elog_i("TRACK", "Tracking started (circles=%d speed=%d)",
            Track.target_circles, Track.base_speed);
 }
 
@@ -468,7 +510,7 @@ void Track_Stop(void)
         Bsp_Motor_Write_Pwm(&Motor_Left, 0);
         Bsp_Motor_Write_Pwm(&Motor_Right, 0);
     }
-    elog_i("[TRACK]", "Tracking stopped (state=FINISHED)");
+    elog_i("TRACK", "Tracking stopped (state=FINISHED)");
 }
 
 void Track_Set_Circles(uint8_t n)

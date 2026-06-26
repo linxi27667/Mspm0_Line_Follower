@@ -19,13 +19,16 @@ static void Gray_Select_Channel(bsp_grayscale_t *gs, uint8_t ch)
 }
 
 /* 滞回比较器 — 抗抖动判断单通道黑白
- * GrayW = (black + 2*white) / 3  灰白阈值（偏白侧）
- * GrayB = (2*black + white) / 3  灰黑阈值（偏黑侧）
- * ADC > GrayW → 白;  ADC < GrayB → 黑;  中间区域保持上一状态 */
+ * 改进: 25%滞回(中点±range/4), 比原12.5%更宽, 抗ADC波动能力强。
+ * mid = (black + white) / 2
+ * hyst = (white - black) / 4   (25%滞回)
+ * ADC > mid+hyst → 白;  ADC < mid-hyst → 黑;  中间保持上一状态 */
 static void Gray_Hysteresis(bsp_grayscale_t *gs, uint8_t ch)
 {
-    uint16_t grayW = (gs->black[ch] + 2 * gs->white[ch]) / 3;
-    uint16_t grayB = (2 * gs->black[ch] + gs->white[ch]) / 3;
+    uint16_t mid  = (gs->black[ch] + gs->white[ch]) / 2;
+    uint16_t hyst = (gs->white[ch] - gs->black[ch]) / 4;
+    uint16_t grayW = mid + hyst;
+    uint16_t grayB = mid - hyst;
 
     if (gs->analog[ch] > grayW) {
         gs->digital[ch] = 0;        /* 白色 */
@@ -111,6 +114,17 @@ void Bsp_Grayscale_Update(bsp_grayscale_t *gs)
 
     /* ① 读取当前通道ADC值（上一次选通的通道，现已稳定） */
     gs->analog[gs->current_ch] = gs->ADC_Read();
+
+    /* ①.5 动态自适应校准：运行时持续跟踪每通道 min/max
+     * 只做极值跟踪(无遗忘): black只降不升, white只升不降。
+     * 这样初始扩展的范围不会被缩小, 车跑起来经过黑线时
+     * black会更新为真实黑线值, white保持初始白地基准。
+     * 避免遗忘机制导致范围快速缩小、滞回失效。 */
+    if (gs->calibrated) {
+        uint8_t ch = gs->current_ch;
+        if (gs->analog[ch] < gs->black[ch]) gs->black[ch] = gs->analog[ch];
+        if (gs->analog[ch] > gs->white[ch]) gs->white[ch] = gs->analog[ch];
+    }
 
     /* ② 归一化（0=白, 1=黑） */
     Gray_Normalize(gs, gs->current_ch);
