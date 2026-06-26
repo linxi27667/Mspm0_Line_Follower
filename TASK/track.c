@@ -218,7 +218,9 @@ static void Track_Handle_StartLine(void)
     Track.turn_output = 0;
 }
 
-/* 丢线处理：用陀螺仪维持航向 */
+/* 丢线处理：用陀螺仪维持航向
+ * 国一方案参考: 丢线时锁定航向角直行,用编码器脉冲数判断是否到达下一段
+ * 我们方案: 陀螺仪PID维持航向 + last_error方向修正 + 超时停车 */
 static void Track_Handle_LineLost(void)
 {
     Track.line_lost_count++;
@@ -230,13 +232,17 @@ static void Track_Handle_LineLost(void)
                                         Track.target_heading,
                                         Mpu_Sensor.heading);
     } else {
-        Track.turn_output = Track.last_error * TRACK_LINE_LOST_GAIN;
+        /* 无陀螺仪时: 用上次误差方向修正,逐渐衰减(避免一直转向一侧) */
+        float decay = 1.0f - (float)Track.line_lost_count / TRACK_LINE_LOST_TIMEOUT;
+        if (decay < 0.3f) decay = 0.3f;  /* 最低保留30%修正 */
+        Track.turn_output = Track.last_error * TRACK_LINE_LOST_GAIN * decay;
     }
 
     /* 丢线超时停车 */
     if (Track.line_lost_count > TRACK_LINE_LOST_TIMEOUT) {
         Track.state = TRACK_STATE_FINISHED;
         Track_Motor_Stop_Immediate();   /* 立即停车(安全) */
+        elog_w("TRACK", "LINE_LOST timeout -> FINISHED");
         return;
     }
 
@@ -422,6 +428,25 @@ void Track_Update(void)
     /* ④ 读取陀螺仪数据并更新航向（APP层API） */
     if (Track.use_gyro) {
         Mpu_Update_Heading(dt);
+    }
+
+    /* ④.5 传感器健康度检测(国一方案共识: 安全停车优先于冲出赛道)
+     * 检测条件: 8路ADC全部低于基准一半(传感器抬起/悬空/被遮挡)
+     * 处理: 立即停车,避免全黑误判导致error=0直行冲出赛道 */
+    uint8_t abnormal_count = 0;
+    for (uint8_t i = 0; i < BSP_GRAY_CHANNEL_NUM; i++) {
+        uint16_t min_base = (Grayscale_Sensor.white[i] < Grayscale_Sensor.black[i])
+                          ? Grayscale_Sensor.white[i] : Grayscale_Sensor.black[i];
+        if (Grayscale_Sensor.analog[i] < (uint16_t)(min_base / 2)) {
+            abnormal_count++;
+        }
+    }
+    if (abnormal_count >= 6 && Track.state == TRACK_STATE_LINE_FOLLOW) {
+        /* 6路以上ADC异常,传感器抬起,立即停车 */
+        elog_w("TRACK", "SENSOR ABNORMAL (abnormal=%d) -> FINISHED", abnormal_count);
+        Track.state = TRACK_STATE_FINISHED;
+        Track_Motor_Stop_Immediate();
+        return;
     }
 
     /* ⑤ 计算偏差 */

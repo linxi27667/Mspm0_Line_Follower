@@ -14,6 +14,16 @@
  * ====== 用户调参区 (所有可调参数集中于此,方便手动调试) ======
  * 说明: 此处定义优先于 track.h / app_encoder_motor.h 中的默认值
  *       修改后重新编译烧录即可生效
+ *
+ * ====== 国一/省一方案学习总结(2024电赛H题) ======
+ * 1. 陀螺仪: 国一方案都用JY61P/HWT101数字陀螺仪(直接输出角度,无零漂)
+ *    我们用MPU6050需积分,瞬时加速度大会漂移,需开机静止校准+PID稳定
+ * 2. 状态机+航向锁定: 每段路锁定目标航向角,陀螺仪PID走直线
+ * 3. 循迹时也保持速度闭环: 灰度只输出差速,速度环保证车速稳定
+ * 4. 位置前馈: 编码器累计脉冲数判断到达点(我们用圈数+超时)
+ * 5. 速度环只用P就够: 省一方案验证P环足够,KI=0避免积分饱和
+ * 6. 差速范围: 省一方案离散差速最大±28,我们OLIMIT=30起步
+ * 7. 丢线处理: 锁定航向角直行+编码器测距判断,超时停车
  * ================================================================== */
 
 /* ---------- 1. 循迹线PID (主循迹,输入灰度误差,输出转向量) ----------
@@ -22,24 +32,28 @@
  *   2. 车甩出弯道→KP太大,减小
  *   3. 车左右震荡→加KD(从0.5开始),KD约为KP的1/5~1/3
  *   4. 直线有静差→加KI(从0.1开始),但通常循迹KI=0
- *   5. 转向量过大→减小OLIMIT */
-#define USER_LINE_PID_KP           8.0f    /* 比例增益(建议2~15) */
-#define USER_LINE_PID_KI           0.0f    /* 积分增益(循迹通常为0) */
-#define USER_LINE_PID_KD           1.5f    /* 微分增益(建议KP的1/5~1/3) */
+ *   5. 转向量过大→减小OLIMIT
+ * 参考省一方案: 离散差速最大±28,我们用连续PID,OLIMIT建议30起步
+ * 参考wandao方案: KP=5 KI=0 KD=3(注意KD=KP*0.6,偏大抑制震荡)
+ * 综合建议: KP=5 KD=1(KD=KP/5) 起步,实测调整 */
+#define USER_LINE_PID_KP           5.0f    /* 比例增益(多方案共识:5.0是稳健起点) */
+#define USER_LINE_PID_KI           0.0f    /* 积分增益(循迹通常为0,国一方案验证) */
+#define USER_LINE_PID_KD           1.0f    /* 微分增益(KP/5,抑制震荡) */
 #define USER_LINE_PID_ILIMIT       50.0f   /* 积分限幅 */
-#define USER_LINE_PID_OLIMIT       40.0f   /* 输出限幅(转向量最大值) */
+#define USER_LINE_PID_OLIMIT       30.0f   /* 输出限幅(省一参考:差速最大±28) */
 #define USER_LINE_PID_DERIV_ALPHA  0.6f    /* 不完全微分系数(0~1,越大滤波越弱) */
 
 /* ---------- 2. 陀螺仪PID (丢线/直角弯时用,输入航向角偏差) ----------
  * 调参方法:
  *   1. 直角弯转不过去→加大KP
  *   2. 转过头→加KD或减小KP
- *   3. 丢线时车跑偏→加大KP */
+ *   3. 丢线时车跑偏→加大KP
+ * 注意: MPU6050有零漂,省一方案用JY61P免校准,我们需开机静止校准 */
 #define USER_GYRO_PID_KP           3.0f    /* 比例增益 */
 #define USER_GYRO_PID_KI           0.0f    /* 积分增益 */
 #define USER_GYRO_PID_KD           0.5f    /* 微分增益 */
 #define USER_GYRO_PID_ILIMIT       30.0f   /* 积分限幅 */
-#define USER_GYRO_PID_OLIMIT       40.0f   /* 输出限幅 */
+#define USER_GYRO_PID_OLIMIT       30.0f   /* 输出限幅(与线PID一致) */
 
 /* ---------- 3. 速度PID (电机闭环,输入目标速度,反馈编码器,输出PWM) ----------
  * 调参方法:
@@ -48,12 +62,14 @@
  *   3. 车速震荡→加KD或减小KP
  *   4. 速度跟不上→加大OLIMIT或减小INTEGRAL_SEP
  * 速度比例尺(SPEED_SCALE): 需实车校准
- *   方法: 设PWM=50,测encoder_speed,SPEED_SCALE = encoder_speed / 50 */
-#define USER_MOTOR_SPEED_PID_KP    0.8f    /* 速度PID比例增益 */
-#define USER_MOTOR_SPEED_PID_KI    0.2f    /* 速度PID积分增益 */
+ *   方法: 设PWM=50,测encoder_speed,SPEED_SCALE = encoder_speed / 50
+ *   省一方案: CurrentA = encoder/3, 即 scale=3
+ * 速度环只用P就够(省一方案验证),KI=0避免积分饱和 */
+#define USER_MOTOR_SPEED_PID_KP    2.0f    /* 速度PID比例增益(省一参考:加大到2.0) */
+#define USER_MOTOR_SPEED_PID_KI    0.0f    /* 速度PID积分增益(省一验证:P环足够) */
 #define USER_MOTOR_SPEED_PID_KD    0.0f    /* 速度PID微分增益 */
 #define USER_MOTOR_SPEED_PID_ILIMIT 30.0f  /* 速度PID积分限幅 */
-#define USER_MOTOR_SPEED_PID_OLIMIT 30.0f  /* 速度PID输出限幅(前馈+修正≤100) */
+#define USER_MOTOR_SPEED_PID_OLIMIT 40.0f  /* 速度PID输出限幅(前馈+修正≤100) */
 #define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f /* 积分分离阈值(误差>此值不累加I) */
 #define USER_MOTOR_SPEED_SCALE     1.0f    /* 编码器速度→速度单位比例尺(需实车校准) */
 
@@ -62,10 +78,11 @@
  *   1. 车速太快冲出弯道→减小BASE_SPEED或SPEED_STRAIGHT
  *   2. 直道不够快→加大SPEED_STRAIGHT
  *   3. 弯道转不过→减小SPEED_CURVE或加大MOTOR_INNER_MIN
- *   4. 急转时内侧轮停转→减小MOTOR_INNER_MIN(最低15) */
-#define USER_TRACK_BASE_SPEED      40      /* 基础速度(启动时) */
-#define USER_TRACK_SPEED_STRAIGHT  60      /* 直道速度 */
-#define USER_TRACK_SPEED_CURVE     35      /* 弯道速度 */
+ *   4. 急转时内侧轮停转→减小MOTOR_INNER_MIN(最低15)
+ * 省一方案: 单圈15秒,说明速度中等,我们用40起步 */
+#define USER_TRACK_BASE_SPEED      40      /* 基础速度(启动时,省一参考值) */
+#define USER_TRACK_SPEED_STRAIGHT  50      /* 直道速度(降低,先求稳) */
+#define USER_TRACK_SPEED_CURVE     30      /* 弯道速度(降低,先求稳) */
 #define USER_TRACK_SPEED_RAMP_STEP 2       /* 速度渐变步进(避免突变抖动) */
 #define USER_TRACK_MOTOR_INNER_MIN 15      /* 内侧电机最低速度(防急转停转) */
 #define USER_TRACK_CIRCLES         1       /* 目标圈数 */
