@@ -1,0 +1,186 @@
+# AI 远程调参上位机
+
+PC 端上位机，对接 MSPM0 循迹小车固件（ESP-01S WiFi 透传），实现 AI 远程闭环调参。
+
+## 架构
+
+```
+┌─────────────┐   UART1+DMA    ┌──────────┐   TCP/JSON    ┌─────────────┐
+│  MSPM0G3507 │ ──────────────>│ ESP-01S  │ ────────────> │   上位机    │
+│  循迹小车   │   100Hz 遥测   │  (AT透传)│  <──────────  │  Flask+WS   │
+│  (track.c)  │ <─────────────│          │   set/cmd     │             │
+└─────────────┘   set/cmd      └──────────┘               └──────┬──────┘
+                                                                     │
+                                                          ┌──────────┴──────────┐
+                                                          │  浏览器 (Chart.js)  │
+                                                          │  + LocalRuleEngine  │
+                                                          │  + GLM API (可选)   │
+                                                          └─────────────────────┘
+```
+
+## 文件清单
+
+| 文件 | 作用 |
+|------|------|
+| `protocol.py` | 协议常量与 JSON 解析/组包（PARAMS/clamp/parse_telemetry/build_set/build_cmd） |
+| `tcp_server.py` | TCP server 线程（监听 8888，单连接，按行解析遥测） |
+| `tuning_engine.py` | 调参引擎（LocalRuleEngine 6 条规则 + GlmEngine GLM-4-Flash） |
+| `config.py` | 配置类（端口/窗口/AI 分析帧数等） |
+| `app.py` | Flask + SocketIO 主程序 |
+| `templates/index.html` | Web 界面（深色主题，4 个 Chart.js 图表 + 参数面板） |
+| `static/app.js` | 前端逻辑（SocketIO 客户端 + 图表更新 + 参数收发） |
+| `static/style.css` | 深色主题样式 |
+| `simulator.py` | 小车端模拟器（无实车验证用，100Hz 遥测 + 接收参数/指令） |
+| `requirements.txt` | Python 依赖 |
+
+## 快速开始
+
+### 1. 安装依赖
+
+```powershell
+cd host
+pip install -r requirements.txt
+```
+
+### 2. 无实车验证（模拟器模式）
+
+```powershell
+# 终端 1：启动上位机
+python app.py
+
+# 终端 2：启动模拟器（模拟小车 100Hz 遥测）
+python simulator.py
+```
+
+浏览器打开 http://localhost:5000 即可看到实时波形。
+
+### 3. 实车联调
+
+1. 修改固件 `APP/Inc/app_esp01s_cfg.h`：填 WiFi SSID/PASS、上位机 IP（PC 局域网 IP）、端口 8888
+2. 烧录固件，ESP-01S 上电后会自动连接上位机
+3. 上位机日志显示 `小车连接: x.x.x.x:xxxxx` 即联调成功
+
+## 协议规范
+
+### 下行（PC → 小车）
+
+**参数设置**（字段可选，缺省字段不改）：
+```json
+{"set":{"KP":2.5,"KI":0.0,"KD":1.0,"GDAMP":0.15,"VBASE":40,"VSTR":50,"VCUR":30,"RATHR":2.5}}
+```
+
+**控制指令**：
+```json
+{"cmd":"start"}      // 启动循迹
+{"cmd":"stop"}       // 停止
+{"cmd":"whitecal"}   // 白色校准
+{"cmd":"blackcal"}   // 黑色校准
+{"cmd":"reconnect"}  // 重连 WiFi
+```
+
+### 上行（小车 → PC，100Hz，以 `\n` 结尾）
+
+```json
+{"t":"tele","adc":[v0,v1,v2,v3,v4,v5,v6,v7],"gz":0.12,"el":1024,"er":980,"le":0.3,"po":45,"st":"LF","kp":5.0,"kd":1.0}
+```
+
+| 字段 | 含义 | 范围 |
+|------|------|------|
+| `adc` | 8 路灰度原始 ADC | 0~4095 |
+| `gz` | 陀螺仪 Z 轴角速度 | deg/s |
+| `el`/`er` | 左/右编码器速度 | pulse/5ms |
+| `le` | 循迹误差 | -3.5~+3.5 |
+| `po` | PID 转向输出 | -100~+100 |
+| `st` | 状态缩写 | ID/LF/RA/LL/SL/CR/FN |
+| `kp`/`kd` | 当前 PID 参数 | 用于确认参数已生效 |
+
+### 参数钳位范围（与固件 track.c setter 一致）
+
+| 参数 | 范围 | 默认 | 说明 |
+|------|------|------|------|
+| `KP` | 0~50 | 5.0 | 循迹比例增益 |
+| `KI` | 0~5 | 0.0 | 循迹积分增益 |
+| `KD` | 0~20 | 1.0 | 循迹微分增益 |
+| `GDAMP` | 0~1 | 0.15 | 陀螺仪阻尼系数 |
+| `VBASE` | 0~100 | 40 | 基础速度 |
+| `VSTR` | 0~100 | 50 | 直道速度 |
+| `VCUR` | 0~100 | 30 | 弯道速度 |
+| `RATHR` | 0.5~10 | 2.5 | 直角弯检测阈值 |
+
+## AI 调参
+
+### 本地规则引擎（默认，离线可用）
+
+6 条规则基于遥测历史分析：
+
+| 触发条件 | 建议 | 置信度 |
+|----------|------|--------|
+| 误差震荡明显（≥30% 帧变号） | KD +50% | 0.7 |
+| 误差偏大（平均 |error| > 1.5） | KP +20% | 0.7 |
+| 陀螺仪抖动（|gz| > 2 deg/s） | GDAMP +0.05 | 0.6 |
+| 弯道频繁丢线（LL 状态 > 5%） | VCUR -5 | 0.6 |
+| 直角弯频繁（RA 状态 > 10%） | RATHR +0.3 | 0.6 |
+| 正常 | 无建议 | 0.5 |
+
+### GLM 引擎（配置 API key 后启用）
+
+创建 `host_config.json`：
+```json
+{
+  "GLM_API_KEY": "your_glm_api_key",
+  "GLM_MODEL": "glm-4-flash"
+}
+```
+
+上位机启动时会自动切换到 GlmEngine。
+
+### 调参流程（半自动）
+
+1. 浏览器观察波形，确认小车运行状态
+2. 点击「AI 分析」按钮，引擎分析最近 100 帧遥测
+3. AI 返回建议参数 + 原因 + 置信度
+4. 人工审核后点击「采纳建议」（参数填入面板，不自动下发）
+5. 调整后点击「应用参数」下发到小车
+
+## 配置
+
+`host_config.json`（可选，覆盖默认值）：
+
+```json
+{
+  "TCP_PORT": 8888,
+  "WEB_PORT": 5000,
+  "GLM_API_KEY": "",
+  "GLM_MODEL": "glm-4-flash",
+  "TELEMETRY_WINDOW": 500,
+  "AI_ANALYZE_FRAMES": 100,
+  "CHART_POINTS": 200
+}
+```
+
+## 硬件注意事项（ESP-01S）
+
+- **独立供电**：ESP-01S 必须用独立 AMS1117-3.3（500mA+），不能接 MCU 板载 LDO，否则发送瞬间压降导致 MCU 复位
+- **去耦电容**：ESP-01S VCC 与 GND 之间并联 10μF 钽电容 + 0.1μF 陶瓷电容
+- **UART 接线**：MSPM0 PA8 (TX) → ESP-01S RXD，PA9 (RX) → ESP-01S TXD，共地
+- **天线朝向**：ESP-01S PCB 天线朝上，避免金属遮挡
+
+## 故障排查
+
+| 现象 | 排查 |
+|------|------|
+| 上位机无连接 | 检查 ESP-01S 是否连上 WiFi、上位机 IP 是否正确、防火墙是否放行 8888 |
+| 连接但不显示波形 | 检查浏览器控制台 SocketIO 是否连接、`st` 字段是否合法 |
+| 参数下发无效 | 检查固件 `App_Tuning_OnRx` 是否被调用、setter 是否钳位 |
+| AI 分析返回空 | 检查遥测历史是否为空（至少需要 1 帧） |
+| 模拟器连接被拒 | 确认上位机已启动（`python app.py`），TCP 8888 监听中 |
+
+## 验证状态
+
+- ✅ 协议层单元测试（parse_telemetry/build_set/build_cmd/clamp）
+- ✅ TCP 遥测接收（100Hz，按 `\n` 分割）
+- ✅ SocketIO 状态查询（frame_count/client_connected/engine）
+- ✅ LocalRuleEngine 震荡规则触发（建议 KD +50%）
+- ✅ 参数下发端到端（上位机 → TCP → 模拟器接收）
+- ✅ 控制指令下发（start/stop/whitecal/blackcal/reconnect）
+- ✅ 浏览器实时波形（4 个 Chart.js 图表）

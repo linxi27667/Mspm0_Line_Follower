@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP-01S 日志与循迹调参上位机</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.3/socket.io.min.js"></script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand-block">
+            <span class="brand-kicker">TRACK CAR HOST</span>
+            <h1>ESP-01S 日志与循迹调参上位机</h1>
+        </div>
+        <div id="status-bar" class="status-strip">
+            <span id="car-status" class="status-pill status-disconnected">小车: 未连接</span>
+            <span id="engine-info" class="status-pill">引擎: -</span>
+            <span id="frame-counter" class="status-pill">帧: 0</span>
+            <span id="tcp-info" class="status-pill">TCP: {{ config.TCP_PORT }}</span>
+        </div>
+    </header>
+
+    <main class="console-layout">
+        <section class="telemetry-column">
+            <section class="panel chart-panel">
+                <div class="panel-title">
+                    <h2>实时遥测</h2>
+                    <span id="track-state" class="panel-meta">状态: -</span>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-box">
+                        <h3>灰度 ADC（8 路）</h3>
+                        <canvas id="chart-adc"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>误差 le / 转向 po</h3>
+                        <canvas id="chart-error"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>陀螺仪 gz</h3>
+                        <canvas id="chart-gyro"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>编码器 el / er</h3>
+                        <canvas id="chart-encoder"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel tuning-panel">
+                <div class="panel-title">
+                    <h2>参数与指令</h2>
+                    <span class="panel-meta">改完参数后手动下发</span>
+                </div>
+                <div class="control-grid">
+                    <div id="param-list" class="param-list">
+                        {% for name, info in params.items() %}
+                        <div class="param-row" data-name="{{ name }}">
+                            <label title="{{ info.desc }}">
+                                <span class="param-name">{{ name }}</span>
+                                <span class="param-desc">{{ info.desc }}</span>
+                            </label>
+                            <input type="range" class="param-slider"
+                                   min="{{ info.min }}" max="{{ info.max }}"
+                                   step="{{ info.step }}"
+                                   value="{{ current[name] }}"
+                                   data-name="{{ name }}">
+                            <input type="number" class="param-input"
+                                   min="{{ info.min }}" max="{{ info.max }}"
+                                   step="{{ info.step }}"
+                                   value="{{ current[name] }}"
+                                   data-name="{{ name }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="command-stack">
+                        <div class="button-grid">
+                            <button id="btn-apply" class="btn-primary">应用参数</button>
+                            <button id="btn-start" class="btn-success">启动</button>
+                            <button id="btn-stop" class="btn-danger">停止</button>
+                            <button id="btn-whitecal">白校准</button>
+                            <button id="btn-blackcal">黑校准</button>
+                            <button id="btn-reconnect">重连</button>
+                        </div>
+
+                        <div class="preset-group">
+                            <span class="preset-label">预设</span>
+                            <button class="btn-preset" data-preset="conservative">稳健</button>
+                            <button class="btn-preset" data-preset="balanced">平衡</button>
+                            <button class="btn-preset" data-preset="aggressive">激进</button>
+                        </div>
+
+                        <div class="ai-card">
+                            <div class="ai-card-head">
+                                <h3>AI 调参</h3>
+                                <button id="btn-analyze" class="btn-primary">分析</button>
+                            </div>
+                            <div id="ai-result" class="ai-result">
+                                <p class="placeholder">等待遥测数据</p>
+                            </div>
+                            <button id="btn-adopt" class="btn-secondary" disabled>采纳建议</button>
+                        </div>
+
+                        <div class="auto-tuning-section">
+                            <h3>自动调参闭环</h3>
+                            <div class="auto-tuning-controls">
+                                <label>间隔(s)<input type="number" id="auto-interval" value="5" min="2" max="60" step="1"></label>
+                                <label>轮数<input type="number" id="auto-rounds" value="10" min="1" max="50" step="1"></label>
+                            </div>
+                            <div class="button-grid two">
+                                <button id="btn-auto-start" class="btn-success">自动调参</button>
+                                <button id="btn-auto-stop" class="btn-danger" disabled>停止</button>
+                            </div>
+                            <div id="auto-status" class="auto-status">
+                                <span class="placeholder">未启动</span>
+                            </div>
+                            <div id="auto-rounds-log" class="auto-rounds-log"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section class="log-column">
+            <section class="panel esp-log-panel">
+                <div class="panel-title">
+                    <h2>ESP-01S 日志</h2>
+                    <span id="car-log-count" class="panel-meta">0 行</span>
+                </div>
+                <div class="log-toolbar">
+                    <input id="car-log-filter" type="search" placeholder="筛选 ESP 日志">
+                    <label><input id="car-log-autoscroll" type="checkbox" checked> 自动滚动</label>
+                    <button id="btn-car-log-pause">暂停</button>
+                    <button id="btn-car-log-clear">清空</button>
+                    <button id="btn-car-log-export">导出</button>
+                </div>
+                <div id="car-log-box" class="log-box esp-log-box"></div>
+            </section>
+
+            <section class="panel host-log-panel">
+                <div class="panel-title">
+                    <h2>上位机日志</h2>
+                    <span class="panel-meta">连接 / 指令 / AI</span>
+                </div>
+                <div id="log-box" class="log-box host-log-box"></div>
+            </section>
+        </section>
+    </main>
+
+    <script id="config-data" type="application/json">{{ config | tojson | safe }}</script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

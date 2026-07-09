@@ -193,11 +193,21 @@ void Bsp_UART_Tx_OnDMAComplete(bsp_uart_t *uart)
  * ============================================================ */
 void Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
 {
+    Bsp_UART_Rx_PushBytes(uart, data, len);
+
+    if (uart && uart->RestartRx) uart->RestartRx();
+}
+
+void Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+{
     if (uart == NULL) {
-        goto restart;
+        return;
     }
     if (len == 0) {
-        goto restart;
+        return;
+    }
+    if (data == NULL) {
+        return;
     }
 
     /* ---- 推入字节 FIFO ---- */
@@ -229,9 +239,13 @@ void Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
             uart->rx_frame_head = fnext;
         }
     }
+}
 
-restart:
-    if (uart && uart->RestartRx) uart->RestartRx();
+void Bsp_UART_PumpRx(bsp_uart_t *uart)
+{
+    if (uart != NULL && uart->PumpRx != NULL) {
+        uart->PumpRx();
+    }
 }
 
 /* ============================================================

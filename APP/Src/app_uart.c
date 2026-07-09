@@ -37,6 +37,11 @@ static void HW_UART_Init(void)
     DL_DMA_setDestAddr(DMA, DMA_CH0_RX, (uint32_t)s_rx_dma_buf);
     DL_DMA_setTransferSize(DMA, DMA_CH0_RX, BSP_UART_RX_BUF_SIZE);
     DL_DMA_enableChannel(DMA, DMA_CH0_RX);
+
+    NVIC_SetPriority(UART_Debug_INST_INT_IRQN, 5);
+    NVIC_EnableIRQ(UART_Debug_INST_INT_IRQN);
+    NVIC_SetPriority(DMA_INT_IRQn, 4);
+    NVIC_EnableIRQ(DMA_INT_IRQn);
 }
 
 /* ---- 重启 DMA RX（帧捕获后调用） ---- */

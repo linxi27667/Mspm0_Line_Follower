@@ -70,7 +70,7 @@
             <nStopU2X>0</nStopU2X>
           </BeforeCompile>
           <BeforeMake>
-            <RunUserProg1>1</RunUserProg1>
+            <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
             <UserProg1Name>cmd.exe /C "E:\MCU\MSPM0\m0_sdk\mspm0_sdk_1_30_00_03\tools\keil\syscfg.bat '$P' TI_moban.syscfg"</UserProg1Name>
             <UserProg2Name></UserProg2Name>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>__MSPM0G3507__</Define>
               <Undefine></Undefine>
-              <IncludePath>E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source/third_party/CMSIS/Core/Include;E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source;..\BSP\Inc;..\BSP\Src;..\APP\Inc;..\APP\Src;..\TASK;..\RTT EasyLog\RTT_easylog\easylogger\inc;..\RTT EasyLog\RTT_easylog\easylogger\plugins;..\RTT EasyLog\RTT_easylog\easylogger\port;..\RTT EasyLog\RTT_easylog\easylogger\src;..\RTT EasyLog\RTT_easylog\RTT;..\RTT EasyLog\RTT_easylog\easylogger\plugins\file;..\RTT EasyLog\RTT_easylog\easylogger\plugins\flash;..\..\TI_moban</IncludePath>
+              <IncludePath>E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source/third_party/CMSIS/Core/Include;E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source;..\BSP\Inc;..\BSP\Src;..\APP\Inc;..\APP\Src;..\TASK;..\RTT EasyLog\RTT_easylog\easylogger\inc;..\RTT EasyLog\RTT_easylog\easylogger\plugins;..\RTT EasyLog\RTT_easylog\easylogger\port;..\RTT EasyLog\RTT_easylog\easylogger\src;..\RTT EasyLog\RTT_easylog\RTT;..\RTT EasyLog\RTT_easylog\easylogger\plugins\file;..\RTT EasyLog\RTT_easylog\easylogger\plugins\flash;..</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -509,6 +509,31 @@
               <FileType>5</FileType>
               <FilePath>..\APP\Inc\app_common.h</FilePath>
             </File>
+            <File>
+              <FileName>app_esp01s.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_esp01s.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_esp01s.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_esp01s.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_esp01s_cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_esp01s_cfg.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_tuning.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_tuning.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_tuning.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_tuning.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -608,6 +633,16 @@
               <FileName>bsp_mpu6050.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BSP\Inc\bsp_mpu6050.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_esp_at.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_esp_at.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_esp_at.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_esp_at.h</FilePath>
             </File>
           </Files>
         </Group>

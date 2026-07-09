@@ -44,6 +44,9 @@ Thumbs.db
 -CommandFile
 -LogFile
 .trae/
+host/.host_build_tmp/
+host/__pycache__/
+host/*.log
 Event.dot
 README.html
 jlink_rtt_*.txt

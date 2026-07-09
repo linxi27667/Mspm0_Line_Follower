@@ -1,0 +1,140 @@
+/**
+ * @file    user_tuning.h
+ * @brief   Global user tuning defaults shared by all compilation units.
+ */
+#ifndef USER_TUNING_H
+#define USER_TUNING_H
+
+#ifndef USER_LINE_PID_KP
+#define USER_LINE_PID_KP           5.0f
+#endif
+#ifndef USER_LINE_PID_KI
+#define USER_LINE_PID_KI           0.0f
+#endif
+#ifndef USER_LINE_PID_KD
+#define USER_LINE_PID_KD           1.0f
+#endif
+#ifndef USER_LINE_PID_ILIMIT
+#define USER_LINE_PID_ILIMIT       50.0f
+#endif
+#ifndef USER_LINE_PID_OLIMIT
+#define USER_LINE_PID_OLIMIT       30.0f
+#endif
+#ifndef USER_LINE_PID_DERIV_ALPHA
+#define USER_LINE_PID_DERIV_ALPHA  0.6f
+#endif
+#ifndef USER_LINE_FOLLOW_GYRO_DAMP
+#define USER_LINE_FOLLOW_GYRO_DAMP 0.15f
+#endif
+
+#ifndef USER_GYRO_PID_KP
+#define USER_GYRO_PID_KP           3.0f
+#endif
+#ifndef USER_GYRO_PID_KI
+#define USER_GYRO_PID_KI           0.0f
+#endif
+#ifndef USER_GYRO_PID_KD
+#define USER_GYRO_PID_KD           0.5f
+#endif
+#ifndef USER_GYRO_PID_ILIMIT
+#define USER_GYRO_PID_ILIMIT       30.0f
+#endif
+#ifndef USER_GYRO_PID_OLIMIT
+#define USER_GYRO_PID_OLIMIT       30.0f
+#endif
+
+#ifndef USER_MOTOR_SPEED_PID_KP
+#define USER_MOTOR_SPEED_PID_KP    2.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_KI
+#define USER_MOTOR_SPEED_PID_KI    0.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_KD
+#define USER_MOTOR_SPEED_PID_KD    0.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_ILIMIT
+#define USER_MOTOR_SPEED_PID_ILIMIT 30.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_OLIMIT
+#define USER_MOTOR_SPEED_PID_OLIMIT 40.0f
+#endif
+#ifndef USER_MOTOR_SPEED_PID_INTEGRAL_SEP
+#define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f
+#endif
+#ifndef USER_MOTOR_SPEED_SCALE_LEFT
+#define USER_MOTOR_SPEED_SCALE_LEFT   1.0f
+#endif
+#ifndef USER_MOTOR_SPEED_SCALE_RIGHT
+#define USER_MOTOR_SPEED_SCALE_RIGHT  2.0f
+#endif
+
+#ifndef USER_TRACK_BASE_SPEED
+#define USER_TRACK_BASE_SPEED      40
+#endif
+#ifndef USER_TRACK_SPEED_STRAIGHT
+#define USER_TRACK_SPEED_STRAIGHT  50
+#endif
+#ifndef USER_TRACK_SPEED_CURVE
+#define USER_TRACK_SPEED_CURVE     26
+#endif
+#ifndef USER_TRACK_SPEED_RAMP_STEP
+#define USER_TRACK_SPEED_RAMP_STEP 2
+#endif
+#ifndef USER_TRACK_MOTOR_INNER_MIN
+#define USER_TRACK_MOTOR_INNER_MIN 15
+#endif
+#ifndef USER_TRACK_CIRCLES
+#define USER_TRACK_CIRCLES         1
+#endif
+#ifndef USER_TRACK_CURVE_ERROR_MAX
+#define USER_TRACK_CURVE_ERROR_MAX 2.5f
+#endif
+
+#ifndef USER_LINE_LOST_TIMEOUT
+#define USER_LINE_LOST_TIMEOUT     500
+#endif
+#ifndef USER_LINE_LOST_GAIN
+#define USER_LINE_LOST_GAIN        2.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_THRESHOLD
+#define USER_RIGHT_ANGLE_THRESHOLD 2.5f
+#endif
+#ifndef USER_RIGHT_ANGLE_CONFIRM_FRAMES
+#define USER_RIGHT_ANGLE_CONFIRM_FRAMES 3
+#endif
+#ifndef USER_RIGHT_ANGLE_TIMEOUT
+#define USER_RIGHT_ANGLE_TIMEOUT   1000
+#endif
+#ifndef USER_RIGHT_ANGLE_DONE_ERR
+#define USER_RIGHT_ANGLE_DONE_ERR  5.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_ERROR_INTEGRAL
+#define USER_RIGHT_ANGLE_ERROR_INTEGRAL  8.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_GYRO_RATE
+#define USER_RIGHT_ANGLE_GYRO_RATE       80.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_TARGET_ANGLE
+#define USER_RIGHT_ANGLE_TARGET_ANGLE    88.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_MIN_EXIT_ANGLE
+#define USER_RIGHT_ANGLE_MIN_EXIT_ANGLE  55.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_EXIT_CENTER_MIN
+#define USER_RIGHT_ANGLE_EXIT_CENTER_MIN 2
+#endif
+#ifndef USER_RIGHT_ANGLE_EXIT_BLACK_MIN
+#define USER_RIGHT_ANGLE_EXIT_BLACK_MIN  1
+#endif
+#ifndef USER_RIGHT_ANGLE_EXIT_BLACK_MAX
+#define USER_RIGHT_ANGLE_EXIT_BLACK_MAX  5
+#endif
+
+#ifndef USER_START_LINE_MIN_BLACK
+#define USER_START_LINE_MIN_BLACK  6
+#endif
+#ifndef USER_CROSS_MIN_BLACK
+#define USER_CROSS_MIN_BLACK       4
+#endif
+
+#endif /* USER_TUNING_H */

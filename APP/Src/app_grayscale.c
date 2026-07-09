@@ -11,6 +11,7 @@
 #include "app_common.h"
 #include "ti_msp_dl_config.h"
 #include <elog.h>
+#include <stdbool.h>
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
@@ -55,6 +56,9 @@ static void HW_Gray_Gpio_Write(void *port, uint32_t pin, uint8_t level)
  * 关键: 每次读取后必须重新 enableConversions, 因为 ENC 位可能被硬件清除 */
 static uint16_t HW_Gray_ADC_Read(void)
 {
+    static uint16_t s_last_adc_result = 0;
+    static uint32_t s_last_timeout_log = 0;
+
     /* 清除之前可能残留的中断标志 */
     DL_ADC12_clearInterruptStatus(GRAYSCALE_ADC_INST,
         DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
@@ -63,18 +67,33 @@ static uint16_t HW_Gray_ADC_Read(void)
     DL_ADC12_startConversion(GRAYSCALE_ADC_INST);
 
     /* 等待 MEM0 结果就绪 (raw 标志, 不依赖中断使能), 加超时保护 */
-    uint32_t timeout = 50000u;
+    uint32_t start = Bsp_GetTick();
+    bool timeout = false;
     while ((DL_ADC12_getRawInterruptStatus(GRAYSCALE_ADC_INST,
                 DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED) &
             DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED) == 0) {
-        if (--timeout == 0) {
-            elog_w("GRAY", "ADC timeout");
+        if ((Bsp_GetTick() - start) >= 2u) {
+            timeout = true;
             break;
         }
     }
 
+    if (timeout) {
+        DL_ADC12_stopConversion(GRAYSCALE_ADC_INST);
+        DL_ADC12_clearInterruptStatus(GRAYSCALE_ADC_INST,
+            DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
+        DL_ADC12_disableConversions(GRAYSCALE_ADC_INST);
+        DL_ADC12_enableConversions(GRAYSCALE_ADC_INST);
+        if ((Bsp_GetTick() - s_last_timeout_log) >= 500u) {
+            s_last_timeout_log = Bsp_GetTick();
+            elog_w("GRAY", "ADC timeout, reuse last=%u", s_last_adc_result);
+        }
+        return s_last_adc_result;
+    }
+
     /* 读取结果（12位，0~4095） */
     uint16_t result = DL_ADC12_getMemResult(GRAYSCALE_ADC_INST, DL_ADC12_MEM_IDX_0);
+    s_last_adc_result = result;
 
     /* 清除中断标志, 为下次读取做准备 */
     DL_ADC12_clearInterruptStatus(GRAYSCALE_ADC_INST,

@@ -150,6 +150,21 @@ extern "C" {
 #define UART_Debug_BAUD_RATE                                            (115200)
 #define UART_Debug_IBRD_32_MHZ_115200_BAUD                                  (17)
 #define UART_Debug_FBRD_32_MHZ_115200_BAUD                                  (23)
+/* Defines for UART_ESP01S */
+#define UART_ESP01S_INST                                                   UART1
+#define UART_ESP01S_INST_IRQHandler                             UART1_IRQHandler
+#define UART_ESP01S_INST_INT_IRQN                                 UART1_INT_IRQn
+#define GPIO_UART_ESP01S_RX_PORT                                           GPIOA
+#define GPIO_UART_ESP01S_TX_PORT                                           GPIOA
+#define GPIO_UART_ESP01S_RX_PIN                                    DL_GPIO_PIN_9
+#define GPIO_UART_ESP01S_TX_PIN                                    DL_GPIO_PIN_8
+#define GPIO_UART_ESP01S_IOMUX_RX                                (IOMUX_PINCM20)
+#define GPIO_UART_ESP01S_IOMUX_TX                                (IOMUX_PINCM19)
+#define GPIO_UART_ESP01S_IOMUX_RX_FUNC                 IOMUX_PINCM20_PF_UART1_RX
+#define GPIO_UART_ESP01S_IOMUX_TX_FUNC                 IOMUX_PINCM19_PF_UART1_TX
+#define UART_ESP01S_BAUD_RATE                                           (115200)
+#define UART_ESP01S_IBRD_32_MHZ_115200_BAUD                                 (17)
+#define UART_ESP01S_FBRD_32_MHZ_115200_BAUD                                 (23)
 
 
 
@@ -174,6 +189,14 @@ extern "C" {
 /* Defines for DMA_CH1 */
 #define DMA_CH1_CHAN_ID                                                      (1)
 #define UART_Debug_INST_DMA_TRIGGER_1                        (DMA_UART0_TX_TRIG)
+
+/* Defines for DMA_CH2 */
+#define DMA_CH2_CHAN_ID                                                      (2)
+#define UART_ESP01S_INST_DMA_TRIGGER_0                       (DMA_UART1_RX_TRIG)
+
+/* Defines for DMA_CH3 */
+#define DMA_CH3_CHAN_ID                                                      (3)
+#define UART_ESP01S_INST_DMA_TRIGGER_1                       (DMA_UART1_TX_TRIG)
 
 
 
@@ -274,6 +297,7 @@ void SYSCFG_DL_Right_Motor_Timer_init(void);
 void SYSCFG_DL_Encoder_Timer_init(void);
 void SYSCFG_DL_MPU6050_I2C_init(void);
 void SYSCFG_DL_UART_Debug_init(void);
+void SYSCFG_DL_UART_ESP01S_init(void);
 void SYSCFG_DL_GRAYSCALE_ADC_init(void);
 void SYSCFG_DL_DMA_init(void);
 

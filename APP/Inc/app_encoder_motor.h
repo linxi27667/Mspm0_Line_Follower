@@ -7,6 +7,7 @@
 
 #include "bsp_encoder_motor.h"
 #include "ti_msp_dl_config.h"
+#include "user_tuning.h"
 
 /* ============ 左电机硬件配置 ============ */
 #define MOTOR_LEFT_PWM_TIMER        TIMG7
@@ -41,9 +42,9 @@
  *   计算式: actual_speed = encoder_speed / speed_scale
  *   校准方法: 设 PWM=50, 测 encoder_speed, scale = encoder_speed / 50
  *   注意: 未校准时 scale=1.0, encoder_speed 被直接当作速度单位,
- *         闭环性能不可靠。需实车标定后调用 App_Motor_Set_Speed_Scale()。
+ *         闭环性能不可靠。需实车标定后调用 App_Motor_Calibrate_Scale()。
  *   左编码器(QEI 4x)与右编码器(GPIO 2x)分辨率不同,
- *         若发现左右轮增益不一致, 需分别为左右设置不同 scale。
+ *         必须分别为左右设置不同 scale (典型 scale_right ≈ 2 * scale_left)。
  *
  * integral_sep: 积分分离阈值, 误差超过此值时不累加积分
  *   作用: 启动/急停时避免积分饱和导致超调
@@ -66,8 +67,23 @@
 #ifndef USER_MOTOR_SPEED_PID_INTEGRAL_SEP
 #define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f
 #endif
-#ifndef USER_MOTOR_SPEED_SCALE
-#define USER_MOTOR_SPEED_SCALE     1.0f
+
+/* 左右独立速度比例尺 (国一方案: 左右编码器分辨率不同必须分别标定)
+ * 若只定义了 USER_MOTOR_SPEED_SCALE (兼容旧配置), 左右都用该值 */
+#ifdef USER_MOTOR_SPEED_SCALE
+#ifndef USER_MOTOR_SPEED_SCALE_LEFT
+#define USER_MOTOR_SPEED_SCALE_LEFT   USER_MOTOR_SPEED_SCALE
+#endif
+#ifndef USER_MOTOR_SPEED_SCALE_RIGHT
+#define USER_MOTOR_SPEED_SCALE_RIGHT  USER_MOTOR_SPEED_SCALE
+#endif
+#else
+#ifndef USER_MOTOR_SPEED_SCALE_LEFT
+#define USER_MOTOR_SPEED_SCALE_LEFT   1.0f
+#endif
+#ifndef USER_MOTOR_SPEED_SCALE_RIGHT
+#define USER_MOTOR_SPEED_SCALE_RIGHT  1.0f
+#endif
 #endif
 
 #define MOTOR_SPEED_PID_KP          USER_MOTOR_SPEED_PID_KP
@@ -76,7 +92,8 @@
 #define MOTOR_SPEED_PID_ILIMIT      USER_MOTOR_SPEED_PID_ILIMIT
 #define MOTOR_SPEED_PID_OLIMIT      USER_MOTOR_SPEED_PID_OLIMIT
 #define MOTOR_SPEED_PID_INTEGRAL_SEP USER_MOTOR_SPEED_PID_INTEGRAL_SEP
-#define MOTOR_SPEED_SCALE_DEFAULT   USER_MOTOR_SPEED_SCALE
+#define MOTOR_SPEED_SCALE_LEFT_DEFAULT   USER_MOTOR_SPEED_SCALE_LEFT
+#define MOTOR_SPEED_SCALE_RIGHT_DEFAULT  USER_MOTOR_SPEED_SCALE_RIGHT
 
 /* ============ 业务接口声明 ============ */
 extern bsp_motor_t Motor_Left;
@@ -94,7 +111,19 @@ void Motor_Stop(void);
 void Motor_Update_Status(void);
 void App_Motor_Speed_PID_Update(void);
 void App_Motor_Enable_Speed_PID(bool enable);
+
+/* 速度比例尺设置 (国一方案: 左右编码器分辨率不同必须分别标定)
+ * - App_Motor_Set_Speed_Scale: 同时设置左右 (兼容旧调用)
+ * - App_Motor_Set_Speed_Scale_Left/Right: 左右独立设置 */
 void App_Motor_Set_Speed_Scale(float scale);
+void App_Motor_Set_Speed_Scale_Left(float scale);
+void App_Motor_Set_Speed_Scale_Right(float scale);
+
+/* 速度比例尺自动标定 (国一方案核心: 速度环可信的前提)
+ * 使用方法: 悬空车轮 → 调用此函数 → 自动以 PWM=50 跑1秒测编码器速度
+ *          → 计算 scale = encoder_speed/50 → 写入左右独立 scale → RTT 打印结果
+ * 标定后把打印的 Scale 值写入 main.c 的 USER_MOTOR_SPEED_SCALE_LEFT/RIGHT */
+void App_Motor_Calibrate_Scale(void);
 
 /* 右编码器GPIO中断回调（在main.c的GROUP1 ISR中调用） */
 void Right_Encoder_IRQHandler(void);

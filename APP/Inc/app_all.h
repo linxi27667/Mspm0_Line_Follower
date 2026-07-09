@@ -14,5 +14,7 @@
 #include "app_mpu6050.h"
 #include "app_uart.h"
 #include "app_pid.h"
+#include "app_esp01s.h"
+#include "app_tuning.h"
 
 #endif /* APP_ALL_H */

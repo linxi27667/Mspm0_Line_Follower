@@ -25,6 +25,8 @@ typedef struct {
     void (*StartTxChunk)(const uint8_t *src, uint16_t len);  /* 启动一段 DMA TX */
     void (*StopTx)(void);                                     /* 停止 UART TX DMA 触发 */
     void (*RestartRx)(void);                                  /* 帧捕获后重启 DMA RX */
+    void (*PumpRx)(void);                                     /* 可选：轮询搬运 DMA 增量 RX */
+    void (*SendCmdBlocking)(const uint8_t *data, uint16_t len); /* 可选：AT命令轮询发送 */
 
     /* ---- RX 字节 FIFO（ISR 写 / 主循环读） ---- */
     uint8_t           *rx_fifo_buf;
@@ -70,6 +72,10 @@ void     Bsp_UART_Tx_OnDMAComplete(bsp_uart_t *uart);
 
 /* RX —— 帧到达回调（在 UART ISR 中调用，自动推入 FIFO + 重启 DMA） */
 void     Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+/* RX —— 推入字节流，不重启硬件接收（供轮询 DMA 增量搬运） */
+void     Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+/* RX —— 调用可选硬件轮询钩子 */
+void     Bsp_UART_PumpRx(bsp_uart_t *uart);
 /* RX —— 弹出一帧（返回 false 表示无完整帧） */
 bool     Bsp_UART_Get_Frame(bsp_uart_t *uart, uint8_t *out_buf, uint16_t *out_len);
 /* RX —— 查询可读字节数 */

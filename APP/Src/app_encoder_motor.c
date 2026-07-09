@@ -17,7 +17,9 @@ static int32_t   s_right_enc_last  = 0;
 /* ================= 速度PID ================= */
 static bsp_pid_t s_left_speed_pid;
 static bsp_pid_t s_right_speed_pid;
-static float     s_speed_scale = MOTOR_SPEED_SCALE_DEFAULT;
+/* 国一方案: 左右编码器分辨率不同 (左 QEI 4x / 右 GPIO 2x), 必须分别标定 scale */
+static float     s_speed_scale_left  = MOTOR_SPEED_SCALE_LEFT_DEFAULT;
+static float     s_speed_scale_right = MOTOR_SPEED_SCALE_RIGHT_DEFAULT;
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
@@ -151,8 +153,9 @@ void Right_Encoder_IRQHandler(void)
  * @note    前馈: target_speed 直接作为基础PWM
  *          PID修正: 根据编码器反馈修正PWM，消除左右电机机械差异
  *          最终PWM = target_speed + PID_correction
+ *          scale: 左右独立的速度比例尺 (国一方案: 编码器分辨率不同)
  */
-static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid)
+static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid, float scale)
 {
     if (motor == NULL || pid == NULL) return;
     if (!motor->use_speed_pid) return;
@@ -160,10 +163,10 @@ static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid)
     /* 读取编码器速度 */
     Bsp_Motor_Update_Status(motor);
 
-    /* 编码器速度转换为0-100速度单位 */
+    /* 编码器速度转换为0-100速度单位 (左右独立 scale) */
     float actual_speed = 0;
-    if (s_speed_scale > 0.001f) {
-        actual_speed = (float)motor->encoder_speed / s_speed_scale;
+    if (scale > 0.001f) {
+        actual_speed = (float)motor->encoder_speed / scale;
     }
 
     /* PID计算修正量: setpoint=target_speed, feedback=actual_speed */
@@ -182,8 +185,8 @@ static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid)
 
 void App_Motor_Speed_PID_Update(void)
 {
-    Speed_PID_Update_Single(&Motor_Left,  &s_left_speed_pid);
-    Speed_PID_Update_Single(&Motor_Right, &s_right_speed_pid);
+    Speed_PID_Update_Single(&Motor_Left,  &s_left_speed_pid,  s_speed_scale_left);
+    Speed_PID_Update_Single(&Motor_Right, &s_right_speed_pid, s_speed_scale_right);
 }
 
 void App_Motor_Enable_Speed_PID(bool enable)
@@ -211,9 +214,84 @@ void App_Motor_Enable_Speed_PID(bool enable)
 
 void App_Motor_Set_Speed_Scale(float scale)
 {
+    /* 兼容旧调用: 同时设置左右 scale */
     if (scale > 0.001f) {
-        s_speed_scale = scale;
+        s_speed_scale_left  = scale;
+        s_speed_scale_right = scale;
     }
+}
+
+void App_Motor_Set_Speed_Scale_Left(float scale)
+{
+    if (scale > 0.001f) {
+        s_speed_scale_left = scale;
+    }
+}
+
+void App_Motor_Set_Speed_Scale_Right(float scale)
+{
+    if (scale > 0.001f) {
+        s_speed_scale_right = scale;
+    }
+}
+
+/* 速度比例尺自动标定 (国一方案核心)
+ * 流程: 切开环 → PWM=50 跑1秒 → 测左右 encoder_speed → scale=enc/50 → RTT打印
+ * 使用前必须悬空车轮! */
+#define MOTOR_CALIB_PWM         50
+#define MOTOR_CALIB_SETTLE_MS   200     /* 加速稳定时间 */
+#define MOTOR_CALIB_SAMPLE_MS   5       /* 采样周期(与速度PID一致) */
+#define MOTOR_CALIB_SAMPLES     200     /* 200*5ms=1s */
+void App_Motor_Calibrate_Scale(void)
+{
+    elog_i("CALIB", "==== Speed Scale Calibration ====");
+    elog_i("CALIB", "Lift wheels! Running PWM=%d for %dms...",
+           MOTOR_CALIB_PWM, MOTOR_CALIB_SAMPLES * MOTOR_CALIB_SAMPLE_MS);
+
+    /* 切开环, 直写 PWM (避免闭环干扰测量) */
+    App_Motor_Enable_Speed_PID(false);
+    Bsp_Motor_Set_Speed(&Motor_Left,  MOTOR_CALIB_PWM);
+    Bsp_Motor_Set_Speed(&Motor_Right, MOTOR_CALIB_PWM);
+
+    /* 加速稳定 */
+    Bsp_Delay_ms(MOTOR_CALIB_SETTLE_MS);
+
+    /* 同步编码器基准, 丢弃首次读取 */
+    Bsp_Motor_Update_Status(&Motor_Left);
+    Bsp_Motor_Update_Status(&Motor_Right);
+    Motor_Left.encoder_speed  = 0;
+    Motor_Right.encoder_speed = 0;
+
+    /* 采样 1 秒 */
+    int32_t left_sum = 0, right_sum = 0;
+    for (uint16_t i = 0; i < MOTOR_CALIB_SAMPLES; i++) {
+        Bsp_Motor_Update_Status(&Motor_Left);
+        Bsp_Motor_Update_Status(&Motor_Right);
+        left_sum  += Motor_Left.encoder_speed;
+        right_sum += Motor_Right.encoder_speed;
+        Bsp_Delay_ms(MOTOR_CALIB_SAMPLE_MS);
+    }
+
+    /* 停车 */
+    Bsp_Motor_Set_Speed(&Motor_Left,  0);
+    Bsp_Motor_Set_Speed(&Motor_Right, 0);
+    Bsp_Delay_ms(100);
+
+    /* 计算平均 encoder_speed 和 scale */
+    float left_avg  = (float)left_sum  / MOTOR_CALIB_SAMPLES;
+    float right_avg = (float)right_sum / MOTOR_CALIB_SAMPLES;
+
+    if (left_avg  > 1.0f) s_speed_scale_left  = left_avg  / (float)MOTOR_CALIB_PWM;
+    if (right_avg > 1.0f) s_speed_scale_right = right_avg / (float)MOTOR_CALIB_PWM;
+
+    elog_i("CALIB", "LeftEncAvg:%ld RightEncAvg:%ld", (long)left_avg, (long)right_avg);
+    elog_i("CALIB", "Scale Left:%ld/1000 Right:%ld/1000",
+           (long)(s_speed_scale_left  * 1000),
+           (long)(s_speed_scale_right * 1000));
+    elog_i("CALIB", "Write to main.c:");
+    elog_i("CALIB", "  #define USER_MOTOR_SPEED_SCALE_LEFT   %d/1000", (long)(s_speed_scale_left  * 1000));
+    elog_i("CALIB", "  #define USER_MOTOR_SPEED_SCALE_RIGHT  %d/1000", (long)(s_speed_scale_right * 1000));
+    elog_i("CALIB", "==== Calibration Done ====");
 }
 
 /* ================= 5. 对外业务切入点 ================= */

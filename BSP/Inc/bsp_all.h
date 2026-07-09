@@ -16,5 +16,6 @@
 #include "bsp_sw_i2c.h"
 #include "bsp_mpu6050.h"
 #include "bsp_grayscale.h"
+#include "bsp_esp_at.h"
 
 #endif /* __BSP_ALL_H__ */

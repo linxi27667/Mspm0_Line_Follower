@@ -23,9 +23,10 @@
 #define BSP_MPU_GYRO_SENS        16.4f
 
 /* --- 零偏校准默认参数 --- */
-#define BSP_MPU_CALIB_SAMPLES    500     /* 校准采样次数 */
+#define BSP_MPU_CALIB_SAMPLES    200     /* 校准采样次数: 200*10ms=2s */
+#define BSP_MPU_CALIB_INTERVAL_MS 10     /* 校准采样间隔 */
 #define BSP_MPU_CALIB_MAX_STD    5.0f    /* 标准差阈值(超过则校准失败) */
-#define BSP_MPU_GYRO_DEADZONE    0.3f    /* 死区(±deg/s)，抑制静态漂移 */
+#define BSP_MPU_GYRO_DEADZONE    0.05f   /* 积分死区(±deg/s)，遥测仍保留减偏置结果 */
 
 /* --- MPU6050 对象 --- */
 typedef struct {

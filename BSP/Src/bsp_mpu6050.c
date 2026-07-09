@@ -83,24 +83,33 @@ void Bsp_MPU6050_Read_Data(bsp_mpu_t *mpu)
 void Bsp_MPU6050_Calibrate(bsp_mpu_t *mpu)
 {
     if (mpu == NULL || mpu->I2C_Read_Reg == NULL || !mpu->gyro_ok) {
-        mpu->calibrated = false;
+        if (mpu != NULL) mpu->calibrated = false;
+        elog_w("MPU", "gyro bias calibration skipped: gyro not ready");
         return;
     }
 
     float sum = 0, sum_sq = 0;
     float samples[BSP_MPU_CALIB_SAMPLES];
 
+    elog_i("MPU", "gyro bias calibration start: keep car still, samples=%d interval=%dms",
+           BSP_MPU_CALIB_SAMPLES, BSP_MPU_CALIB_INTERVAL_MS);
+
     /* 采集 N 个样本 */
     for (uint16_t i = 0; i < BSP_MPU_CALIB_SAMPLES; i++) {
         uint8_t raw[14];
         if (mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_ACCEL_XOUT_H_REG, raw, 14) != 0) {
             mpu->calibrated = false;
+            elog_w("MPU", "gyro bias calibration failed: i2c read at sample %d", i);
             return;
         }
         int16_t gz = (int16_t)((raw[12] << 8) | raw[13]);
         samples[i] = (float)gz / BSP_MPU_GYRO_SENS;
         sum += samples[i];
-        if (mpu->Delay_ms) mpu->Delay_ms(1);
+        if (((i + 1) % 50u) == 0u) {
+            elog_i("MPU", "gyro bias calibration progress: %d/%d",
+                   i + 1, BSP_MPU_CALIB_SAMPLES);
+        }
+        if (mpu->Delay_ms) mpu->Delay_ms(BSP_MPU_CALIB_INTERVAL_MS);
     }
 
     /* 计算均值 */
@@ -116,11 +125,15 @@ void Bsp_MPU6050_Calibrate(bsp_mpu_t *mpu)
     /* 标准差过大说明校准期间有运动，放弃校准 */
     if (std_dev > BSP_MPU_CALIB_MAX_STD) {
         mpu->calibrated = false;
+        elog_w("MPU", "gyro bias calibration failed: std=%.3f deg/s > %.3f",
+               (double)std_dev, (double)BSP_MPU_CALIB_MAX_STD);
         return;
     }
 
     mpu->gyro_z_offset = mean;
     mpu->calibrated = true;
+    elog_i("MPU", "gyro bias calibrated: bias=%.3f deg/s std=%.3f deg/s",
+           (double)mpu->gyro_z_offset, (double)std_dev);
 }
 
 /* ================= 4. 航向角更新 ================= */
@@ -136,12 +149,13 @@ void Bsp_MPU6050_Update_Heading(bsp_mpu_t *mpu, float dt)
         mpu->gyro_z -= mpu->gyro_z_offset;
     }
 
-    /* 死区：极小角速度视为零（抑制静态漂移） */
-    if (mpu->gyro_z > -BSP_MPU_GYRO_DEADZONE &&
-        mpu->gyro_z <  BSP_MPU_GYRO_DEADZONE) {
-        mpu->gyro_z = 0;
+    /* 积分死区只作用于航向角，gyro_z 保持减偏置后的值供遥测验证 baseline */
+    float gyro_for_heading = mpu->gyro_z;
+    if (gyro_for_heading > -BSP_MPU_GYRO_DEADZONE &&
+        gyro_for_heading <  BSP_MPU_GYRO_DEADZONE) {
+        gyro_for_heading = 0;
     }
 
     /* 积分得到航向角 */
-    mpu->heading += mpu->gyro_z * dt;
+    mpu->heading += gyro_for_heading * dt;
 }

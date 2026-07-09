@@ -14,6 +14,8 @@
  * ====== 用户调参区 (所有可调参数集中于此,方便手动调试) ======
  * 说明: 此处定义优先于 track.h / app_encoder_motor.h 中的默认值
  *       修改后重新编译烧录即可生效
+ *       注意: track.c/app_encoder_motor.c 是独立编译单元, 参数需同步到
+ *       APP/Inc/user_tuning.h 才能真正作用于循迹/电机代码。
  *
  * ====== 国一/省一方案学习总结(2024电赛H题) ======
  * 1. 陀螺仪: 国一方案都用JY61P/HWT101数字陀螺仪(直接输出角度,无零漂)
@@ -42,6 +44,10 @@
 #define USER_LINE_PID_ILIMIT       50.0f   /* 积分限幅 */
 #define USER_LINE_PID_OLIMIT       30.0f   /* 输出限幅(省一参考:差速最大±28) */
 #define USER_LINE_PID_DERIV_ALPHA  0.6f    /* 不完全微分系数(0~1,越大滤波越弱) */
+/* 国一方案核心: LINE_FOLLOW 陀螺仪角速度阻尼 (直行稳/弯道灵)
+ * 公式: turn_output = line_pid - GYRO_DAMP * gyro_z
+ * 调参: 直道抖动→加大(0.15→0.3), 弯道跟踪迟钝→减小(0.15→0.08) */
+#define USER_LINE_FOLLOW_GYRO_DAMP 0.15f   /* 陀螺仪阻尼系数(0=禁用,0.15起步) */
 
 /* ---------- 2. 陀螺仪PID (丢线/直角弯时用,输入航向角偏差) ----------
  * 调参方法:
@@ -61,9 +67,10 @@
  *   2. 接轮子后车不动→加大KP
  *   3. 车速震荡→加KD或减小KP
  *   4. 速度跟不上→加大OLIMIT或减小INTEGRAL_SEP
- * 速度比例尺(SPEED_SCALE): 需实车校准
- *   方法: 设PWM=50,测encoder_speed,SPEED_SCALE = encoder_speed / 50
- *   省一方案: CurrentA = encoder/3, 即 scale=3
+ * 速度比例尺(SPEED_SCALE): 国一方案必须左右分别标定!
+ *   方法1(自动): 悬空车轮, K3长按触发 App_Motor_Calibrate_Scale(), RTT打印scale值
+ *   方法2(手动): 设PWM=50,测encoder_speed, scale = encoder_speed / 50
+ *   注意: 左编码器QEI 4x / 右编码器GPIO 2x, scale_right ≈ 2 * scale_left
  * 速度环只用P就够(省一方案验证),KI=0避免积分饱和 */
 #define USER_MOTOR_SPEED_PID_KP    2.0f    /* 速度PID比例增益(省一参考:加大到2.0) */
 #define USER_MOTOR_SPEED_PID_KI    0.0f    /* 速度PID积分增益(省一验证:P环足够) */
@@ -71,7 +78,8 @@
 #define USER_MOTOR_SPEED_PID_ILIMIT 30.0f  /* 速度PID积分限幅 */
 #define USER_MOTOR_SPEED_PID_OLIMIT 40.0f  /* 速度PID输出限幅(前馈+修正≤100) */
 #define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f /* 积分分离阈值(误差>此值不累加I) */
-#define USER_MOTOR_SPEED_SCALE     1.0f    /* 编码器速度→速度单位比例尺(需实车校准) */
+#define USER_MOTOR_SPEED_SCALE_LEFT   1.0f  /* 左轮速度比例尺(实车标定,左QEI 4x) */
+#define USER_MOTOR_SPEED_SCALE_RIGHT  2.0f  /* 右轮速度比例尺(右GPIO 2x,典型=2*LEFT) */
 
 /* ---------- 4. 循迹策略参数 ----------
  * 调参方法:
@@ -82,22 +90,34 @@
  * 省一方案: 单圈15秒,说明速度中等,我们用40起步 */
 #define USER_TRACK_BASE_SPEED      40      /* 基础速度(启动时,省一参考值) */
 #define USER_TRACK_SPEED_STRAIGHT  50      /* 直道速度(降低,先求稳) */
-#define USER_TRACK_SPEED_CURVE     30      /* 弯道速度(降低,先求稳) */
+#define USER_TRACK_SPEED_CURVE     26      /* 弯道/直角速度(先求稳,后续每次+3) */
 #define USER_TRACK_SPEED_RAMP_STEP 2       /* 速度渐变步进(避免突变抖动) */
 #define USER_TRACK_MOTOR_INNER_MIN 15      /* 内侧电机最低速度(防急转停转) */
 #define USER_TRACK_CIRCLES         1       /* 目标圈数 */
+/* 国一方案: 连续曲率变速 (替代二档跳变)
+ * |error|=0→SPEED_STRAIGHT, |error|>=此值→SPEED_CURVE, 中间线性插值 */
+#define USER_TRACK_CURVE_ERROR_MAX 2.5f    /* 误差达此值时降到弯道速度 */
 
 /* ---------- 5. 丢线/直角弯参数 ----------
  * 调参方法:
  *   1. 丢线后车立即停车→加大LINE_LOST_TIMEOUT
- *   2. 直角弯检测不到→减小RIGHT_ANGLE_THRESHOLD
- *   3. 普通弯道被误判为直角弯→加大RIGHT_ANGLE_THRESHOLD或CONFIRM_FRAMES */
+ *   2. 直角弯检测不到→减小RIGHT_ANGLE_THRESHOLD或GYRO_RATE或ERROR_INTEGRAL
+ *   3. 普通弯道被误判为直角弯→加大RIGHT_ANGLE_THRESHOLD或CONFIRM_FRAMES
+ * 国一方案: 直角弯多条件触发 (任一满足即检测)
+ *   cond_outer: S0/S7黑+大误差 | cond_accum: 误差累积 | cond_rate: 角速度超限 */
 #define USER_LINE_LOST_TIMEOUT     500     /* 丢线超时停车(ms) */
 #define USER_LINE_LOST_GAIN        2.0f    /* 丢线时转向增益(无陀螺仪时用) */
-#define USER_RIGHT_ANGLE_THRESHOLD 2.5f    /* 直角弯检测误差阈值 */
+#define USER_RIGHT_ANGLE_THRESHOLD 2.5f    /* 直角弯检测误差阈值(cond_outer) */
 #define USER_RIGHT_ANGLE_CONFIRM_FRAMES 3  /* 直角弯连续确认帧数 */
 #define USER_RIGHT_ANGLE_TIMEOUT   1000    /* 直角弯超时(ms) */
 #define USER_RIGHT_ANGLE_DONE_ERR  5.0f    /* 直角弯完成角度误差(度) */
+#define USER_RIGHT_ANGLE_ERROR_INTEGRAL  8.0f  /* 误差累积阈值(cond_accum,连续大误差) */
+#define USER_RIGHT_ANGLE_GYRO_RATE       80.0f /* 角速度阈值(cond_rate,deg/s,急弯触发) */
+#define USER_RIGHT_ANGLE_TARGET_ANGLE    88.0f /* 目标转角(略小于90,靠灰度捕线修正) */
+#define USER_RIGHT_ANGLE_MIN_EXIT_ANGLE  55.0f /* 转过此角度后允许灰度捕线提前退出 */
+#define USER_RIGHT_ANGLE_EXIT_CENTER_MIN 2     /* 出弯捕线: S2~S5至少2路黑 */
+#define USER_RIGHT_ANGLE_EXIT_BLACK_MIN  1     /* 出弯捕线: 总黑通道下限 */
+#define USER_RIGHT_ANGLE_EXIT_BLACK_MAX  5     /* 出弯捕线: 避免起点线/大片黑误退出 */
 
 /* ---------- 6. 起点线/十字路口参数 ---------- */
 #define USER_START_LINE_MIN_BLACK  6       /* 起点线最少黑色通道数 */
@@ -112,8 +132,11 @@
 #include "SEGGER_RTT.h"
 #include "bsp_uart.h"
 #include "app_all.h"
+#include "app_esp01s_cfg.h"
 #include "track.h"
+#include "elog_port.h"           /* elog ESP 透传后端控制 */
 #include <stdio.h>
+#include <string.h>
 
 /* ================= 调试开关 ================= */
 /* SELFTEST_MODE=1: 上电后自动跑一次自检（电机/编码器/MPU/灰度） */
@@ -197,6 +220,7 @@ static void Enable_GPIO_InputReadback(void)
 /* ================= 外设中断 ISR ================= */
 
 extern uint8_t s_rx_dma_buf[];
+extern uint8_t g_esp_rx_dma_buf[];   /* ESP-01S UART1 DMA RX 暂存（app_esp01s.c 定义） */
 
 void UART0_IRQHandler(void)
 {
@@ -220,11 +244,37 @@ void UART0_IRQHandler(void)
     }
 }
 
+/* ESP-01S UART1 RX 超时中断 — 与 UART0 同模式，仅替换外设实例与 DMA 通道 */
+void UART1_IRQHandler(void)
+{
+    uint32_t irq = DL_UART_getPendingInterrupt(UART_ESP01S_INST);
+    switch (irq) {
+        case DL_UART_IIDX_RX_TIMEOUT_ERROR: {
+            DL_DMA_disableChannel(DMA, ESP01S_DMA_CH_RX);
+            uint16_t rx_len = ESP01S_DMA_RX_BUF_SIZE -
+                              DL_DMA_getTransferSize(DMA, ESP01S_DMA_CH_RX);
+            while (!DL_UART_isRXFIFOEmpty(UART_ESP01S_INST)) {
+                if (rx_len < ESP01S_DMA_RX_BUF_SIZE) {
+                    g_esp_rx_dma_buf[rx_len++] = (uint8_t)DL_UART_receiveData(UART_ESP01S_INST);
+                } else {
+                    (void)DL_UART_receiveData(UART_ESP01S_INST);
+                }
+            }
+            App_ESP01S_RX_IRQHandler(rx_len);
+            break;
+        }
+        default: break;
+    }
+}
+
 void DMA_IRQHandler(void)
 {
     switch (DL_DMA_getPendingInterrupt(DMA)) {
         case DL_DMA_EVENT_IIDX_DMACH1:
             Uart_Tx_DMA_Done_IRQHandler();
+            break;
+        case DL_DMA_EVENT_IIDX_DMACH3:
+            App_ESP01S_Tx_DMA_Done_IRQHandler();
             break;
         default: break;
     }
@@ -243,6 +293,53 @@ void GROUP1_IRQHandler(void)
 /* =================================================================
  * 系统初始化 — 参考 f407zet6 main.c 的初始化顺序
  * ================================================================= */
+
+/* ESP-01S 建连进度回调（RTT 打印） */
+static void on_esp_progress(uint8_t step, const char *msg)
+{
+    elog_i("esp", "step %d: %s", step, msg);
+}
+
+#if APP_UART1_DIAG_CONSOLE_ENABLE
+static void UART1_Diag_WriteByte(uint8_t data)
+{
+    while (DL_UART_Main_isTXFIFOFull(UART_ESP01S_INST)) {}
+    DL_UART_Main_transmitData(UART_ESP01S_INST, data);
+}
+
+static void UART1_Diag_WriteString(const char *s)
+{
+    if (s == NULL) return;
+    while (*s != '\0') {
+        if (*s == '\n') {
+            UART1_Diag_WriteByte('\r');
+        }
+        UART1_Diag_WriteByte((uint8_t)*s++);
+    }
+}
+
+static void UART1_Diag_PollEcho(void)
+{
+    static char rx_line[64];
+    static uint8_t rx_len = 0;
+
+    while (!DL_UART_Main_isRXFIFOEmpty(UART_ESP01S_INST)) {
+        char c = (char)DL_UART_Main_receiveData(UART_ESP01S_INST);
+        if (c == '\r' || c == '\n' || rx_len >= (sizeof(rx_line) - 1u)) {
+            if (rx_len > 0u) {
+                rx_line[rx_len] = '\0';
+                UART1_Diag_WriteString("\n[PA9 RX] ");
+                UART1_Diag_WriteString(rx_line);
+                UART1_Diag_WriteString("\n");
+                rx_len = 0;
+            }
+        } else {
+            rx_line[rx_len++] = c;
+        }
+    }
+}
+#endif
+
 static void System_Init(void)
 {
     /* 1. RTT 优先（最早的日志通道） */
@@ -270,6 +367,28 @@ static void System_Init(void)
     App_Led_Init();
     App_Key_Init();
     App_Uart_Init();
+
+#if APP_ESP01S_ENABLE
+    /* 7. ESP-01S WiFi 透传初始化（阻塞建连，失败不阻断主流程）
+     *    现场需先改 app_esp01s_cfg.h 的 WiFi SSID/PASS 和服务器 IP/PORT */
+    if (App_ESP01S_Init(on_esp_progress)) {
+        elog_port_esp_enable(true);   /* 启用 elog → ESP 透传，从此 elog 同时输出 RTT+ESP */
+        elog_i("SYS", "ESP-01S ready, AI tuning link up, elog dual-output enabled");
+    } else {
+        elog_w("SYS", "ESP-01S init failed, continue without AI tuning");
+    }
+    App_Tuning_Init();   /* 注册 JSON 接收回调 */
+#else
+    DL_UART_disableInterrupt(UART_ESP01S_INST,
+                             DL_UART_MAIN_INTERRUPT_RX_TIMEOUT_ERROR);
+    DL_UART_disableDMAReceiveEvent(UART_ESP01S_INST, DL_UART_DMA_INTERRUPT_RX);
+    DL_UART_disableDMATransmitEvent(UART_ESP01S_INST);
+    elog_port_esp_enable(false);
+    elog_i("SYS", "ESP-01S disabled; UART1 PA8/PA9 diagnostic console at 115200 8N1");
+#if APP_UART1_DIAG_CONSOLE_ENABLE
+    UART1_Diag_WriteString("\n[BOOT] UART1 PA8=TX PA9=RX diagnostic console 115200 8N1\n");
+#endif
+#endif
 
     elog_i("SYS", "System initialized - CPU=%luHz", (unsigned long)CPUCLK_FREQ);
 }
@@ -534,10 +653,6 @@ int main(void)
 {
     System_Init();
 
-    /* 启动延时: 给 RTT Logger 连接时间 */
-    elog_i("SYS", "Boot delay 3s - connect RTT logger now");
-    Bsp_Delay_ms(3000);
-
 #if SELFTEST_MODE
     Run_SelfTest();
     elog_i("SYS", "Switching to tracking mode...");
@@ -546,10 +661,10 @@ int main(void)
 
     /* ====== 循迹模式 ====== */
     Track_Init();
-    Track_Set_Circles(3);
+    Track_Set_Circles(USER_TRACK_CIRCLES);
     Track_Set_Speed(40);
 
-    elog_i("SYS", "Ready. K1=Start K2=Stop K3=WhiteCal K4=BlackCal");
+    elog_i("SYS", "Ready. K1=Start K2=Stop K3=WhiteCal(K3Long=ScaleCal) K4=BlackCal");
 
     uint32_t last_5ms = 0, last_10ms = 0, last_100ms = 0, last_500ms = 0, last_1000ms = 0;
     uint8_t  last_state = 0xFF, last_circle = 0xFF, last_bc = 0xFF;
@@ -592,9 +707,10 @@ int main(void)
                 uint8_t ld2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN)  ? 1 : 0;
                 uint8_t rd1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1 : 0;
                 uint8_t rd2 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1 : 0;
-                elog_i("CAR", "State:%d Circle:%d Error:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
+                elog_i("CAR", "State:%d Circle:%d Error:%ld GyroRate:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
                        Track.state, Track.current_circle,
                        (long)(Track.error * 1000),
+                       (long)Track.gyro_rate,
                        Track.left_speed, Track.right_speed, cur_bc);
                 elog_i("MOTOR", "LeftPwm:%ld RightPwm:%ld | LeftEnc:%ld RightEnc:%ld | LeftTotal:%ld RightTotal:%ld",
                        (long)Motor_Left.current_pwm, (long)Motor_Right.current_pwm,
@@ -636,13 +752,18 @@ int main(void)
             bsp_key_event_t evt;
             for (uint8_t i = 0; i < BSP_KEY_NUM; i++) {
                 evt = Key_GetEvent(i);
+                if (evt == BSP_KEY_EVENT_IDLE) continue;
+                Led_Toggle(i);
                 if (evt == BSP_KEY_EVENT_PUSH) {
-                    Led_Toggle(i);
                     elog_i("KEY", "K%d pressed", (int)i);
                     if (i == 0) { Track_Start(); elog_i("CTRL", "Tracking started"); }
                     if (i == 1) { Track_Stop();  elog_i("CTRL", "Tracking stopped"); }
                     if (i == 2) { Track_Calibrate_White(); elog_i("SENSOR", "White calibrated"); }
                     if (i == 3) { Track_Calibrate_Black(); elog_i("SENSOR", "Black calibrated"); }
+                } else if (evt == BSP_KEY_EVENT_LONGPUSH) {
+                    elog_i("KEY", "K%d long-pressed", (int)i);
+                    /* K3长按: 速度比例尺自动标定 (国一方案核心, 悬空车轮!) */
+                    if (i == 2) { App_Motor_Calibrate_Scale(); }
                 }
             }
         }
@@ -656,5 +777,15 @@ int main(void)
                 elog_i("COMM", "RX(%u): %s", (unsigned)len, (char*)frame);
             }
         }
+
+        /* ESP-01S 调试/遥测低优先级调度：
+         * 运行期发送只入队并由状态机分步推进，不能阻塞运动闭环。 */
+#if APP_ESP01S_ENABLE
+        App_ESP01S_Poll();
+        App_Tuning_Poll();
+        elog_port_esp_flush();
+#elif APP_UART1_DIAG_CONSOLE_ENABLE
+        UART1_Diag_PollEcho();
+#endif
     }
 }
