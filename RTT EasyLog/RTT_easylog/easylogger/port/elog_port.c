@@ -32,6 +32,7 @@
 #include "SEGGER_RTT.h"
 #include "app_esp01s.h"          /* ESP-01S 透传后端 */
 #include "app_esp01s_cfg.h"
+#include "app_tc1.h"
 #include "ti_msp_dl_config.h"
 #include <cmsis_compiler.h>
 #include <stdio.h>
@@ -120,18 +121,19 @@ static uint16_t elog_esp_readline(char *out, uint16_t max_len)
 static void elog_esp_send_line(const char *line, uint16_t len)
 {
     static char json_buf[512];
+    static uint8_t tc1_buf[TC1_MAX_FRAME_BYTES];
     /* JSON 封装：{"t":"log","msg":"..."}\n
      * msg 内 " 转义为 \"，\ 转义为 \\ */
     uint16_t pos = 0;
-    const char *prefix = "{\"t\":\"log\",\"msg\":\"";
-    const char *suffix = "\"}\n";
+    const char *prefix = "{\"v\":1,\"t\":\"log\",\"msg\":\"";
+    const char *suffix = "\"}";
     uint16_t prefix_len = (uint16_t)strlen(prefix);
     uint16_t suffix_len = (uint16_t)strlen(suffix);
 
     /* 检查容量（最坏情况：每个字符都需转义，×2 + prefix + suffix + NUL） */
-    if (prefix_len + len * 2 + suffix_len + 1 > sizeof(json_buf)) {
-        /* 行太长，截断 */
-        len = (uint16_t)((sizeof(json_buf) - prefix_len - suffix_len - 1) / 2);
+    if (prefix_len + len * 2 + suffix_len > TC1_MAX_JSON_BYTES) {
+        /* Keep the encoded JSON within the shared TC1 protocol limit. */
+        len = (uint16_t)((TC1_MAX_JSON_BYTES - prefix_len - suffix_len) / 2);
     }
 
     memcpy(json_buf, prefix, prefix_len);
@@ -164,7 +166,11 @@ static void elog_esp_send_line(const char *line, uint16_t len)
     memcpy(json_buf + pos, suffix, suffix_len);
     pos += suffix_len;
 
-    (void)App_ESP01S_SendJSON((uint8_t *)json_buf, pos);
+    uint16_t frame_len = App_TC1_EncodeFrame(json_buf, pos,
+                                             tc1_buf, sizeof(tc1_buf));
+    if (frame_len > 0) {
+        (void)App_ESP01S_SendJSON(tc1_buf, frame_len);
+    }
 }
 
 void elog_port_esp_flush(void)

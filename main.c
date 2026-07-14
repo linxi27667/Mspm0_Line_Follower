@@ -11,125 +11,19 @@
  */
 
 /* ==================================================================
- * ====== 用户调参区 (所有可调参数集中于此,方便手动调试) ======
- * 说明: 此处定义优先于 track.h / app_encoder_motor.h 中的默认值
- *       修改后重新编译烧录即可生效
- *       注意: track.c/app_encoder_motor.c 是独立编译单元, 参数需同步到
- *       APP/Inc/user_tuning.h 才能真正作用于循迹/电机代码。
+ * ====== 用户调参区 ======
+ * 所有可调参数的默认值唯一定义在 APP/Inc/user_tuning.h。
+ * 本文件不再重复定义，修改参数请编辑 user_tuning.h 后重新编译。
  *
- * ====== 国一/省一方案学习总结(2024电赛H题) ======
- * 1. 陀螺仪: 国一方案都用JY61P/HWT101数字陀螺仪(直接输出角度,无零漂)
- *    我们用MPU6050需积分,瞬时加速度大会漂移,需开机静止校准+PID稳定
- * 2. 状态机+航向锁定: 每段路锁定目标航向角,陀螺仪PID走直线
- * 3. 循迹时也保持速度闭环: 灰度只输出差速,速度环保证车速稳定
- * 4. 位置前馈: 编码器累计脉冲数判断到达点(我们用圈数+超时)
- * 5. 速度环只用P就够: 省一方案验证P环足够,KI=0避免积分饱和
- * 6. 差速范围: 省一方案离散差速最大±28,我们OLIMIT=30起步
- * 7. 丢线处理: 锁定航向角直行+编码器测距判断,超时停车
- * ================================================================== */
-
-/* ---------- 1. 循迹线PID (主循迹,输入灰度误差,输出转向量) ----------
- * 调参方法:
- *   1. 先只调KP: 从小值(2.0)开始,车能跟线但反应慢→加大KP
- *   2. 车甩出弯道→KP太大,减小
- *   3. 车左右震荡→加KD(从0.5开始),KD约为KP的1/5~1/3
- *   4. 直线有静差→加KI(从0.1开始),但通常循迹KI=0
- *   5. 转向量过大→减小OLIMIT
- * 参考省一方案: 离散差速最大±28,我们用连续PID,OLIMIT建议30起步
- * 参考wandao方案: KP=5 KI=0 KD=3(注意KD=KP*0.6,偏大抑制震荡)
- * 综合建议: KP=5 KD=1(KD=KP/5) 起步,实测调整 */
-#define USER_LINE_PID_KP           5.0f    /* 比例增益(多方案共识:5.0是稳健起点) */
-#define USER_LINE_PID_KI           0.0f    /* 积分增益(循迹通常为0,国一方案验证) */
-#define USER_LINE_PID_KD           1.0f    /* 微分增益(KP/5,抑制震荡) */
-#define USER_LINE_PID_ILIMIT       50.0f   /* 积分限幅 */
-#define USER_LINE_PID_OLIMIT       30.0f   /* 输出限幅(省一参考:差速最大±28) */
-#define USER_LINE_PID_DERIV_ALPHA  0.6f    /* 不完全微分系数(0~1,越大滤波越弱) */
-/* 国一方案核心: LINE_FOLLOW 陀螺仪角速度阻尼 (直行稳/弯道灵)
- * 公式: turn_output = line_pid - GYRO_DAMP * gyro_z
- * 调参: 直道抖动→加大(0.15→0.3), 弯道跟踪迟钝→减小(0.15→0.08) */
-#define USER_LINE_FOLLOW_GYRO_DAMP 0.15f   /* 陀螺仪阻尼系数(0=禁用,0.15起步) */
-
-/* ---------- 2. 陀螺仪PID (丢线/直角弯时用,输入航向角偏差) ----------
- * 调参方法:
- *   1. 直角弯转不过去→加大KP
- *   2. 转过头→加KD或减小KP
- *   3. 丢线时车跑偏→加大KP
- * 注意: MPU6050有零漂,省一方案用JY61P免校准,我们需开机静止校准 */
-#define USER_GYRO_PID_KP           3.0f    /* 比例增益 */
-#define USER_GYRO_PID_KI           0.0f    /* 积分增益 */
-#define USER_GYRO_PID_KD           0.5f    /* 微分增益 */
-#define USER_GYRO_PID_ILIMIT       30.0f   /* 积分限幅 */
-#define USER_GYRO_PID_OLIMIT       30.0f   /* 输出限幅(与线PID一致) */
-
-/* ---------- 3. 速度PID (电机闭环,输入目标速度,反馈编码器,输出PWM) ----------
- * 调参方法:
- *   1. 空转时PWM很高(如90)是正常的(编码器读数≈0,PID拼命加PWM)
- *   2. 接轮子后车不动→加大KP
- *   3. 车速震荡→加KD或减小KP
- *   4. 速度跟不上→加大OLIMIT或减小INTEGRAL_SEP
- * 速度比例尺(SPEED_SCALE): 国一方案必须左右分别标定!
- *   方法1(自动): 悬空车轮, K3长按触发 App_Motor_Calibrate_Scale(), RTT打印scale值
- *   方法2(手动): 设PWM=50,测encoder_speed, scale = encoder_speed / 50
- *   注意: 左编码器QEI 4x / 右编码器GPIO 2x, scale_right ≈ 2 * scale_left
- * 速度环只用P就够(省一方案验证),KI=0避免积分饱和 */
-#define USER_MOTOR_SPEED_PID_KP    2.0f    /* 速度PID比例增益(省一参考:加大到2.0) */
-#define USER_MOTOR_SPEED_PID_KI    0.0f    /* 速度PID积分增益(省一验证:P环足够) */
-#define USER_MOTOR_SPEED_PID_KD    0.0f    /* 速度PID微分增益 */
-#define USER_MOTOR_SPEED_PID_ILIMIT 30.0f  /* 速度PID积分限幅 */
-#define USER_MOTOR_SPEED_PID_OLIMIT 40.0f  /* 速度PID输出限幅(前馈+修正≤100) */
-#define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f /* 积分分离阈值(误差>此值不累加I) */
-#define USER_MOTOR_SPEED_SCALE_LEFT   1.0f  /* 左轮速度比例尺(实车标定,左QEI 4x) */
-#define USER_MOTOR_SPEED_SCALE_RIGHT  2.0f  /* 右轮速度比例尺(右GPIO 2x,典型=2*LEFT) */
-
-/* ---------- 4. 循迹策略参数 ----------
- * 调参方法:
- *   1. 车速太快冲出弯道→减小BASE_SPEED或SPEED_STRAIGHT
- *   2. 直道不够快→加大SPEED_STRAIGHT
- *   3. 弯道转不过→减小SPEED_CURVE或加大MOTOR_INNER_MIN
- *   4. 急转时内侧轮停转→减小MOTOR_INNER_MIN(最低15)
- * 省一方案: 单圈15秒,说明速度中等,我们用40起步 */
-#define USER_TRACK_BASE_SPEED      40      /* 基础速度(启动时,省一参考值) */
-#define USER_TRACK_SPEED_STRAIGHT  50      /* 直道速度(降低,先求稳) */
-#define USER_TRACK_SPEED_CURVE     26      /* 弯道/直角速度(先求稳,后续每次+3) */
-#define USER_TRACK_SPEED_RAMP_STEP 2       /* 速度渐变步进(避免突变抖动) */
-#define USER_TRACK_MOTOR_INNER_MIN 15      /* 内侧电机最低速度(防急转停转) */
-#define USER_TRACK_CIRCLES         1       /* 目标圈数 */
-/* 国一方案: 连续曲率变速 (替代二档跳变)
- * |error|=0→SPEED_STRAIGHT, |error|>=此值→SPEED_CURVE, 中间线性插值 */
-#define USER_TRACK_CURVE_ERROR_MAX 2.5f    /* 误差达此值时降到弯道速度 */
-
-/* ---------- 5. 丢线/直角弯参数 ----------
- * 调参方法:
- *   1. 丢线后车立即停车→加大LINE_LOST_TIMEOUT
- *   2. 直角弯检测不到→减小RIGHT_ANGLE_THRESHOLD或GYRO_RATE或ERROR_INTEGRAL
- *   3. 普通弯道被误判为直角弯→加大RIGHT_ANGLE_THRESHOLD或CONFIRM_FRAMES
- * 国一方案: 直角弯多条件触发 (任一满足即检测)
- *   cond_outer: S0/S7黑+大误差 | cond_accum: 误差累积 | cond_rate: 角速度超限 */
-#define USER_LINE_LOST_TIMEOUT     500     /* 丢线超时停车(ms) */
-#define USER_LINE_LOST_GAIN        2.0f    /* 丢线时转向增益(无陀螺仪时用) */
-#define USER_RIGHT_ANGLE_THRESHOLD 2.5f    /* 直角弯检测误差阈值(cond_outer) */
-#define USER_RIGHT_ANGLE_CONFIRM_FRAMES 3  /* 直角弯连续确认帧数 */
-#define USER_RIGHT_ANGLE_TIMEOUT   1000    /* 直角弯超时(ms) */
-#define USER_RIGHT_ANGLE_DONE_ERR  5.0f    /* 直角弯完成角度误差(度) */
-#define USER_RIGHT_ANGLE_ERROR_INTEGRAL  8.0f  /* 误差累积阈值(cond_accum,连续大误差) */
-#define USER_RIGHT_ANGLE_GYRO_RATE       80.0f /* 角速度阈值(cond_rate,deg/s,急弯触发) */
-#define USER_RIGHT_ANGLE_TARGET_ANGLE    88.0f /* 目标转角(略小于90,靠灰度捕线修正) */
-#define USER_RIGHT_ANGLE_MIN_EXIT_ANGLE  55.0f /* 转过此角度后允许灰度捕线提前退出 */
-#define USER_RIGHT_ANGLE_EXIT_CENTER_MIN 2     /* 出弯捕线: S2~S5至少2路黑 */
-#define USER_RIGHT_ANGLE_EXIT_BLACK_MIN  1     /* 出弯捕线: 总黑通道下限 */
-#define USER_RIGHT_ANGLE_EXIT_BLACK_MAX  5     /* 出弯捕线: 避免起点线/大片黑误退出 */
-
-/* ---------- 6. 起点线/十字路口参数 ---------- */
-#define USER_START_LINE_MIN_BLACK  6       /* 起点线最少黑色通道数 */
-#define USER_CROSS_MIN_BLACK       4       /* 十字路口中间黑色通道数 */
-
-/* ==================================================================
- * ====== 用户调参区结束 (以下不要修改) ======
+ * 远程可调参数（8 个: KP/KI/KD/GDAMP/VBASE/VSTR/VCUR/RATHR）的范围
+ * 同时由 host/param_schema.py 驱动，tests/test_param_schema.py 验证一致性。
+ * 最终比赛档值唯一落在 user_tuning.h，RACE 构建直接编译生效。
  * ================================================================== */
 
 #include "ti_msp_dl_config.h"
 #include <elog.h>
 #include "SEGGER_RTT.h"
+#include "app_log.h"
 #include "bsp_uart.h"
 #include "app_all.h"
 #include "app_esp01s_cfg.h"
@@ -141,10 +35,6 @@
 /* ================= 调试开关 ================= */
 /* SELFTEST_MODE=1: 上电后自动跑一次自检（电机/编码器/MPU/灰度） */
 /* SELFTEST_MODE=0: 跳过自检，直接进入循迹模式 */
-#ifndef SELFTEST_MODE
-#define SELFTEST_MODE  0
-#endif
-
 /* ================= 全局时标 ================= */
 extern volatile uint32_t systick_ms;  /* 定义在 bsp_common.c */
 
@@ -273,6 +163,9 @@ void DMA_IRQHandler(void)
         case DL_DMA_EVENT_IIDX_DMACH1:
             Uart_Tx_DMA_Done_IRQHandler();
             break;
+        case DL_DMA_EVENT_IIDX_DMACH2:
+            App_ESP01S_RX_DMA_Done_IRQHandler();
+            break;
         case DL_DMA_EVENT_IIDX_DMACH3:
             App_ESP01S_Tx_DMA_Done_IRQHandler();
             break;
@@ -297,7 +190,7 @@ void GROUP1_IRQHandler(void)
 /* ESP-01S 建连进度回调（RTT 打印） */
 static void on_esp_progress(uint8_t step, const char *msg)
 {
-    elog_i("esp", "step %d: %s", step, msg);
+    APP_ESP_LOG_I("esp", "step %d: %s", step, msg);
 }
 
 #if APP_UART1_DIAG_CONSOLE_ENABLE
@@ -340,6 +233,23 @@ static void UART1_Diag_PollEcho(void)
 }
 #endif
 
+static void Log_Build_Config(void)
+{
+    elog_i("CONFIG", "ESP01S=%s", APP_ESP01S_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "TUNING=%s", APP_TUNING_MODE ? "ON" : "OFF");
+    elog_i("CONFIG", "ROTATE=%s", APP_TUNING_ROTATE_LINK_TEST_MODE ? "LINK_TEST" : "REAL");
+    elog_i("CONFIG", "SELFTEST=%s", SELFTEST_MODE ? "ON_MOTOR_TEST" : "OFF");
+    elog_i("CONFIG", "LOG_ESP=%s", APP_LOG_ESP01S_ENABLE ? "ON" : "OFF_LINK_ACTIVE");
+    elog_i("CONFIG", "LOG_GRAY_ADC=%s", APP_LOG_GRAY_ADC_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_GRAY_STATE=%s", APP_LOG_GRAY_STATE_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_ROTATE=%s", APP_LOG_ROTATE_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_VEHICLE=%s", APP_LOG_VEHICLE_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_TRACK=%s", APP_LOG_TRACK_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_TUNING=%s", APP_LOG_TUNING_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_MPU=%s", APP_LOG_MPU_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_DIAG=%s", APP_LOG_DIAGNOSTIC_ENABLE ? "ON" : "OFF");
+}
+
 static void System_Init(void)
 {
     /* 1. RTT 优先（最早的日志通道） */
@@ -359,6 +269,7 @@ static void System_Init(void)
     elog_set_fmt(ELOG_LVL_INFO,   ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
     elog_set_fmt(ELOG_LVL_DEBUG,  ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME | ELOG_FMT_LINE);
     elog_start();
+    Log_Build_Config();
 
     /* 5. 启用 GPIO 输入回读（诊断用） */
     Enable_GPIO_InputReadback();
@@ -369,14 +280,11 @@ static void System_Init(void)
     App_Uart_Init();
 
 #if APP_ESP01S_ENABLE
-    /* 7. ESP-01S WiFi 透传初始化（阻塞建连，失败不阻断主流程）
+    /* 7. ESP-01S 非阻塞初始化（仅初始化 HW + 启动 BOOT 状态机）
+     *    WiFi/TCP 建连由主循环 App_ESP01S_Poll() 逐步推进，不阻塞主流程
      *    现场需先改 app_esp01s_cfg.h 的 WiFi SSID/PASS 和服务器 IP/PORT */
-    if (App_ESP01S_Init(on_esp_progress)) {
-        elog_port_esp_enable(true);   /* 启用 elog → ESP 透传，从此 elog 同时输出 RTT+ESP */
-        elog_i("SYS", "ESP-01S ready, AI tuning link up, elog dual-output enabled");
-    } else {
-        elog_w("SYS", "ESP-01S init failed, continue without AI tuning");
-    }
+    (void)App_ESP01S_Init(on_esp_progress);
+    elog_port_esp_enable(true);   /* 启用 elog → ESP 透传（未连线时日志自动丢弃） */
     App_Tuning_Init();   /* 注册 JSON 接收回调 */
 #else
     DL_UART_disableInterrupt(UART_ESP01S_INST,
@@ -396,7 +304,7 @@ static void System_Init(void)
 /* =================================================================
  * 自检模块（SELFTEST_MODE=1 时执行）
  * ================================================================= */
-#if SELFTEST_MODE
+#if SELFTEST_MODE && APP_LOG_DIAGNOSTIC_ENABLE
 
 static void Diag_PINCM(void)
 {
@@ -467,19 +375,19 @@ static void SelfTest_Motor_Encoder(void)
     elog_i("MOT", "Right: PWM=TIMG6_CH0(PB10) DIR1=PB0  DIR2=PB11 Enc=GPIO(PB12/PB13)");
 
     /* PWM 定时器运行状态 + 寄存器诊断 */
-    uint32_t t7_1 = DL_Timer_getTimerCount(TIMG7);
-    uint32_t t6_1 = DL_Timer_getTimerCount(TIMG6);
+    uint32_t t7_1 = DL_Timer_getTimerCount(MOTOR_LEFT_PWM_TIMER);
+    uint32_t t6_1 = DL_Timer_getTimerCount(MOTOR_RIGHT_PWM_TIMER);
     Bsp_Delay_ms(10);
-    uint32_t t7_2 = DL_Timer_getTimerCount(TIMG7);
-    uint32_t t6_2 = DL_Timer_getTimerCount(TIMG6);
+    uint32_t t7_2 = DL_Timer_getTimerCount(MOTOR_LEFT_PWM_TIMER);
+    uint32_t t6_2 = DL_Timer_getTimerCount(MOTOR_RIGHT_PWM_TIMER);
     elog_i("MOT", "TIMG7 cnt: %lu->%lu (%s) LOAD=%lu",
            (unsigned long)t7_1, (unsigned long)t7_2,
            (t7_2 != t7_1) ? "RUNNING" : "STOPPED",
-           (unsigned long)DL_Timer_getLoadValue(TIMG7));
+           (unsigned long)DL_Timer_getLoadValue(MOTOR_LEFT_PWM_TIMER));
     elog_i("MOT", "TIMG6 cnt: %lu->%lu (%s) LOAD=%lu",
            (unsigned long)t6_1, (unsigned long)t6_2,
            (t6_2 != t6_1) ? "RUNNING" : "STOPPED",
-           (unsigned long)DL_Timer_getLoadValue(TIMG6));
+           (unsigned long)DL_Timer_getLoadValue(MOTOR_RIGHT_PWM_TIMER));
 
     /* 编码器定时器诊断 */
     elog_i("MOT", "TIMG8(Enc) LOAD=%lu cnt=%lu",
@@ -500,8 +408,10 @@ static void SelfTest_Motor_Encoder(void)
     Bsp_Motor_Set_Speed(&Motor_Left, 50);
     Bsp_Motor_Set_Speed(&Motor_Right, 50);
 
-    uint32_t cc7 = DL_TimerG_getCaptureCompareValue(TIMG7, DL_TIMER_CC_0_INDEX);
-    uint32_t cc6 = DL_TimerG_getCaptureCompareValue(TIMG6, DL_TIMER_CC_0_INDEX);
+    uint32_t cc7 = DL_TimerG_getCaptureCompareValue(MOTOR_LEFT_PWM_TIMER,
+                                                      MOTOR_LEFT_PWM_CHANNEL);
+    uint32_t cc6 = DL_TimerG_getCaptureCompareValue(MOTOR_RIGHT_PWM_TIMER,
+                                                      MOTOR_RIGHT_PWM_CHANNEL);
     uint8_t ld1 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR1_PIN)  ? 1 : 0;
     uint8_t ld2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN)  ? 1 : 0;
     uint8_t rd1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1 : 0;
@@ -644,25 +554,276 @@ static void Run_SelfTest(void)
     elog_i("SYS", "########## SelfTest Complete ##########");
 }
 
-#endif /* SELFTEST_MODE */
+#endif /* SELFTEST_MODE && APP_LOG_DIAGNOSTIC_ENABLE */
 
 /* =================================================================
  * 主函数
  * ================================================================= */
+typedef struct {
+    uint32_t last_5ms;
+    uint32_t last_10ms;
+    uint32_t last_100ms;
+    uint32_t last_500ms;
+    uint32_t last_1000ms;
+    uint8_t last_state;
+    uint8_t last_circle;
+    uint8_t last_black_count;
+} main_runtime_t;
+
+static bool Main_PeriodElapsed(uint32_t now, uint32_t *last, uint32_t period_ms)
+{
+    if ((uint32_t)(now - *last) < period_ms) return false;
+    *last = now;
+    return true;
+}
+
+static bool Main_CalibrationAllowed(void)
+{
+    safety_state_t state = Safety_GetState();
+    return state == SAFETY_STATE_BOOT || state == SAFETY_STATE_CALIBRATING ||
+           state == SAFETY_STATE_READY;
+}
+
+static void Main_InitializeTracking(void)
+{
+    Safety_Init();
+    Track_Init();
+    Track_Set_Circles(USER_TRACK_CIRCLES);
+    Track_Set_Speed(40);
+
+    if (Grayscale_Sensor.calibrated && Grayscale_Sensor.black_calibrated) {
+        Safety_NotifyCalibrationComplete();
+        Safety_TransitionToReady();
+    } else {
+        elog_w("SYS", "Calibration incomplete: white=%d black=%d, press K4 to calibrate black",
+               Grayscale_Sensor.calibrated, Grayscale_Sensor.black_calibrated);
+    }
+    elog_i("SYS", "Ready. K1=Start K2=Stop K3=WhiteCal(K3Long=ScaleCal) K4=BlackCal");
+}
+
+static void Main_UpdateGrayscale(uint32_t now)
+{
+    Grayscale_Update();
+    if (Grayscale_Sensor.data_ready) Safety_NotifyGrayscaleFrame(now);
+}
+
+static void Main_RunControl(uint32_t now, main_runtime_t *runtime)
+{
+    if (!Main_PeriodElapsed(now, &runtime->last_5ms, 5u)) return;
+    if (Safety_ControlTick()) {
+        Track_Update();
+        App_Motor_Speed_PID_Update();
+    } else if (Safety_GetState() == SAFETY_STATE_FAULT &&
+               (Track_Is_Rotating() || Track_Is_Heading_Hold())) {
+        Track_Abort_Rotation(Safety_FaultName(Safety_GetFault()));
+        if (Track_Is_Heading_Hold()) {
+            (void)Track_Stop_Heading_Hold();
+        }
+    }
+}
+
+static void Main_LogVehicleStatus(main_runtime_t *runtime)
+{
+    uint8_t state = (uint8_t)Track.state;
+    uint8_t circle = (uint8_t)Track.current_circle;
+    uint8_t black_count = Grayscale_Sensor.black_count;
+    bool changed = state != runtime->last_state || circle != runtime->last_circle ||
+                   black_count != runtime->last_black_count;
+
+    if (!changed && (state == TRACK_STATE_IDLE || state == TRACK_STATE_FINISHED)) return;
+
+    uint8_t left_dir1 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR1_PIN) ? 1u : 0u;
+    uint8_t left_dir2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN) ? 1u : 0u;
+    uint8_t right_dir1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1u : 0u;
+    uint8_t right_dir2 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1u : 0u;
+
+    APP_VEHICLE_LOG_I("CAR", "State:%d Circle:%d Error:%ld GyroRate:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
+                      Track.state, Track.current_circle, (long)(Track.error * 1000),
+                      (long)Track.gyro_rate, Track.left_speed, Track.right_speed, black_count);
+    APP_VEHICLE_LOG_I("MOTOR", "LeftPwm:%ld RightPwm:%ld | LeftEnc:%ld RightEnc:%ld | LeftTotal:%ld RightTotal:%ld",
+                      (long)Motor_Left.current_pwm, (long)Motor_Right.current_pwm,
+                      (long)Motor_Left.encoder_speed, (long)Motor_Right.encoder_speed,
+                      (long)Motor_Left.total_position, (long)Motor_Right.total_position);
+    APP_VEHICLE_LOG_I("MOTOR", "LeftDir1:%d LeftDir2:%d | RightDir1:%d RightDir2:%d",
+                      left_dir1, left_dir2, right_dir1, right_dir2);
+    if (Track.state == TRACK_STATE_ROTATE) {
+        APP_VEHICLE_LOG_I("ROTCTL", "actual=%ld error=%ld rate=%ld output=%ld",
+                          (long)(Track.rotate_actual_deg * 10.0f),
+                          (long)(Track.rotate_error_deg * 10.0f),
+                          (long)(Mpu_Sensor.gyro_z * 10.0f),
+                          (long)(Track.turn_output * 10.0f));
+    } else if (Track.state == TRACK_STATE_HEADING_HOLD) {
+        APP_VEHICLE_LOG_I("HOLDCTL", "target=%ld actual=%ld error=%ld rate=%ld output=%ld",
+                          (long)(Track.heading_hold_target * 10.0f),
+                          (long)(Track.heading_hold_actual * 10.0f),
+                          (long)(Track.heading_hold_error * 10.0f),
+                          (long)(Mpu_Sensor.gyro_z * 10.0f),
+                          (long)(Track.turn_output * 10.0f));
+    }
+
+    runtime->last_state = state;
+    runtime->last_circle = circle;
+    runtime->last_black_count = black_count;
+}
+
+static void Main_LogGrayscale(void)
+{
+    APP_GRAY_ADC_LOG_I("GRAY", "ADC_Ch0:%d ADC_Ch1:%d ADC_Ch2:%d ADC_Ch3:%d ADC_Ch4:%d ADC_Ch5:%d ADC_Ch6:%d ADC_Ch7:%d",
+                   Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
+                   Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
+                   Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
+                   Grayscale_Sensor.analog[6], Grayscale_Sensor.analog[7]);
+    APP_GRAY_STATE_LOG_I("GRAY", "Digital:%d %d %d %d %d %d %d %d | BlackCount:%d",
+                   Grayscale_Sensor.digital[0], Grayscale_Sensor.digital[1],
+                   Grayscale_Sensor.digital[2], Grayscale_Sensor.digital[3],
+                   Grayscale_Sensor.digital[4], Grayscale_Sensor.digital[5],
+                   Grayscale_Sensor.digital[6], Grayscale_Sensor.digital[7],
+                   Grayscale_Sensor.black_count);
+    APP_GRAY_STATE_LOG_I("GRAY", "Cal: Black:%d White:%d | HystHigh:%d HystLow:%d",
+                   Grayscale_Sensor.black[0], Grayscale_Sensor.white[0],
+                   (int)((Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 2 +
+                         (Grayscale_Sensor.white[0] - Grayscale_Sensor.black[0]) / 4),
+                   (int)((Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 2 -
+                         (Grayscale_Sensor.white[0] - Grayscale_Sensor.black[0]) / 4));
+}
+
+static void Main_HandleKeyPush(uint8_t key)
+{
+    if (key == 0u) {
+        if (Safety_GetState() == SAFETY_STATE_READY) {
+            Track_Start();
+            elog_i("CTRL", "Tracking started");
+        } else {
+            elog_w("CTRL", "Start blocked (safety=%s)", Safety_StateName(Safety_GetState()));
+        }
+    } else if (key == 1u) {
+        Track_Stop();
+        elog_i("CTRL", "Tracking stopped");
+    } else if (key == 2u && Main_CalibrationAllowed()) {
+        Track_Calibrate_White();
+        elog_i("SENSOR", "White calibrated");
+        Safety_TryAdvanceAfterCalibration();
+    } else if (key == 3u && Main_CalibrationAllowed()) {
+        Track_Calibrate_Black();
+        elog_i("SENSOR", "Black calibrated");
+        Safety_TryAdvanceAfterCalibration();
+    }
+}
+
+static void Main_ProcessKeys(void)
+{
+    for (uint8_t key = 0; key < BSP_KEY_NUM; key++) {
+        bsp_key_event_t event = Key_GetEvent(key);
+        if (event == BSP_KEY_EVENT_IDLE) continue;
+        Led_Toggle(key);
+
+        if (event == BSP_KEY_EVENT_PUSH) {
+            elog_i("KEY", "K%d pressed", (int)key);
+            Main_HandleKeyPush(key);
+        } else if (event == BSP_KEY_EVENT_DOUBLECLICK) {
+            elog_i("KEY", "K%d double-click", (int)key);
+            if (key == 0u && Safety_GetState() == SAFETY_STATE_READY) {
+                uint8_t circles = (uint8_t)(Track.target_circles + 1u);
+                if (circles > 5u) circles = 1u;
+                Track_Set_Circles(circles);
+                elog_i("CTRL", "Circles set to %d", circles);
+            }
+        } else if (event == BSP_KEY_EVENT_LONGPUSH) {
+            elog_i("KEY", "K%d long-pressed", (int)key);
+            if (key == 2u) App_Motor_Calibrate_Scale();
+        }
+    }
+}
+
+static void Main_ProcessDebugUart(void)
+{
+    uint8_t frame[BSP_UART_RX_BUF_SIZE + 1];
+    uint16_t len = 0;
+    while (Uart_Get_Frame(frame, &len)) {
+        if (len >= BSP_UART_RX_BUF_SIZE) len = BSP_UART_RX_BUF_SIZE - 1u;
+        frame[len] = '\0';
+        elog_i("COMM", "RX(%u): %s", (unsigned)len, (char *)frame);
+    }
+}
+
+static void Main_PollCommunication(void)
+{
+#if APP_ESP01S_ENABLE
+    App_ESP01S_Poll();
+    App_Tuning_Poll();
+    elog_port_esp_flush();
+#elif APP_UART1_DIAG_CONSOLE_ENABLE
+    UART1_Diag_PollEcho();
+#endif
+}
+
+static void Main_RunLoop(void)
+{
+    main_runtime_t runtime = {
+        .last_state = 0xFFu,
+        .last_circle = 0xFFu,
+        .last_black_count = 0xFFu,
+    };
+
+    while (1) {
+        uint32_t now = systick_ms;
+
+        /* 高频连续任务：推进八路灰度扫描，完成一帧时通知 Safety。 */
+        Main_UpdateGrayscale(now);
+
+        /* 高频连续任务：每圈进入主控制；内部按 5 ms 非阻塞更新循迹与速度 PID。 */
+        Main_RunControl(now, &runtime);
+
+        /* 定时任务：按键消抖、按键事件、车辆状态和灰度诊断。 */
+        if (Main_PeriodElapsed(now, &runtime.last_10ms, 10u)) Key_Scan_Task();
+        if (Main_PeriodElapsed(now, &runtime.last_100ms, 100u)) Main_ProcessKeys();
+        if (Main_PeriodElapsed(now, &runtime.last_500ms, 500u)) Main_LogVehicleStatus(&runtime);
+        if (Main_PeriodElapsed(now, &runtime.last_1000ms, 1000u)) Main_LogGrayscale();
+
+        /* 事件任务：排空调试串口帧，并推进 ESP/TCP 状态机与遥测队列。 */
+        Main_ProcessDebugUart();
+        Main_PollCommunication();
+    }
+}
+
 int main(void)
 {
     System_Init();
+#if SELFTEST_MODE && APP_LOG_DIAGNOSTIC_ENABLE
+    Run_SelfTest();
+    elog_i("SYS", "Switching to tracking mode...");
+    Bsp_Delay_ms(500);
+#endif
+    Main_InitializeTracking();
+    Main_RunLoop();
+}
 
-#if SELFTEST_MODE
+#if 0 /* Legacy loop retained temporarily for migration reference. */
+int Main_LegacyLoop(void)
+{
+    System_Init();
+
+#if SELFTEST_MODE && APP_LOG_DIAGNOSTIC_ENABLE
     Run_SelfTest();
     elog_i("SYS", "Switching to tracking mode...");
     Bsp_Delay_ms(500);
 #endif
 
     /* ====== 循迹模式 ====== */
-    Track_Init();
+    Safety_Init();                 /* 安全状态机优先初始化，电机立即切断 */
+    Track_Init();                  /* 硬件初始化 + 灰度自动白校准 + K4黑校准状态 */
     Track_Set_Circles(USER_TRACK_CIRCLES);
     Track_Set_Speed(40);
+
+    /* 校准状态检查: 白色校准(开机自动) + 黑色校准(K4手动) 都完成才进 READY
+     * 开机时 black_calibrated=0, 用户必须按 K4 校准黑色后才能启动 */
+    if (Grayscale_Sensor.calibrated && Grayscale_Sensor.black_calibrated) {
+        Safety_NotifyCalibrationComplete();
+        Safety_TransitionToReady();
+    } else {
+        elog_w("SYS", "Calibration incomplete: white=%d black=%d, press K4 to calibrate black",
+               Grayscale_Sensor.calibrated, Grayscale_Sensor.black_calibrated);
+    }
 
     elog_i("SYS", "Ready. K1=Start K2=Stop K3=WhiteCal(K3Long=ScaleCal) K4=BlackCal");
 
@@ -673,11 +834,20 @@ int main(void)
     {
         uint32_t now = systick_ms;
 
-        Track_Update();
+        /* 灰度传感器非阻塞分步扫描（顶层推进，比控制 tick 更快） */
+        Grayscale_Update();
+        if (Grayscale_Sensor.data_ready) {
+            Safety_NotifyGrayscaleFrame(now);
+        }
 
+        /* 5ms 控制 tick: Safety 活跃监测 + Track 状态机 + 速度PID */
         if ((now - last_5ms) >= 5) {
             last_5ms = now;
-            App_Motor_Speed_PID_Update();
+            bool motor_allowed = Safety_ControlTick();
+            if (motor_allowed) {
+                Track_Update();         /* Safety 授权后才推进循迹 */
+            }
+            App_Motor_Speed_PID_Update();  /* 速度PID独立更新(含停车态归零) */
         }
 
         if ((now - last_10ms) >= 10) {
@@ -707,16 +877,16 @@ int main(void)
                 uint8_t ld2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN)  ? 1 : 0;
                 uint8_t rd1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1 : 0;
                 uint8_t rd2 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1 : 0;
-                elog_i("CAR", "State:%d Circle:%d Error:%ld GyroRate:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
+                APP_VEHICLE_LOG_I("CAR", "State:%d Circle:%d Error:%ld GyroRate:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
                        Track.state, Track.current_circle,
                        (long)(Track.error * 1000),
                        (long)Track.gyro_rate,
                        Track.left_speed, Track.right_speed, cur_bc);
-                elog_i("MOTOR", "LeftPwm:%ld RightPwm:%ld | LeftEnc:%ld RightEnc:%ld | LeftTotal:%ld RightTotal:%ld",
+                APP_VEHICLE_LOG_I("MOTOR", "LeftPwm:%ld RightPwm:%ld | LeftEnc:%ld RightEnc:%ld | LeftTotal:%ld RightTotal:%ld",
                        (long)Motor_Left.current_pwm, (long)Motor_Right.current_pwm,
                        (long)Motor_Left.encoder_speed, (long)Motor_Right.encoder_speed,
                        (long)Motor_Left.total_position, (long)Motor_Right.total_position);
-                elog_i("MOTOR", "LeftDir1:%d LeftDir2:%d | RightDir1:%d RightDir2:%d",
+                APP_VEHICLE_LOG_I("MOTOR", "LeftDir1:%d LeftDir2:%d | RightDir1:%d RightDir2:%d",
                        ld1, ld2, rd1, rd2);
                 last_state  = cur_state;
                 last_circle = cur_circle;
@@ -728,18 +898,18 @@ int main(void)
          * ADC: 原始ADC值, DIG: 黑白判定(0=白 1=黑), CAL: 校准基准(black/white) */
         if ((now - last_1000ms) >= 1000) {
             last_1000ms = now;
-            elog_i("GRAY", "ADC_Ch0:%d ADC_Ch1:%d ADC_Ch2:%d ADC_Ch3:%d ADC_Ch4:%d ADC_Ch5:%d ADC_Ch6:%d ADC_Ch7:%d",
+            APP_GRAY_ADC_LOG_I("GRAY", "ADC_Ch0:%d ADC_Ch1:%d ADC_Ch2:%d ADC_Ch3:%d ADC_Ch4:%d ADC_Ch5:%d ADC_Ch6:%d ADC_Ch7:%d",
                    Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
                    Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
                    Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
                    Grayscale_Sensor.analog[6], Grayscale_Sensor.analog[7]);
-            elog_i("GRAY", "Digital:%d %d %d %d %d %d %d %d | BlackCount:%d",
+            APP_GRAY_STATE_LOG_I("GRAY", "Digital:%d %d %d %d %d %d %d %d | BlackCount:%d",
                    Grayscale_Sensor.digital[0], Grayscale_Sensor.digital[1],
                    Grayscale_Sensor.digital[2], Grayscale_Sensor.digital[3],
                    Grayscale_Sensor.digital[4], Grayscale_Sensor.digital[5],
                    Grayscale_Sensor.digital[6], Grayscale_Sensor.digital[7],
                    Grayscale_Sensor.black_count);
-            elog_i("GRAY", "Cal: Black:%d White:%d | HystHigh:%d HystLow:%d",
+            APP_GRAY_STATE_LOG_I("GRAY", "Cal: Black:%d White:%d | HystHigh:%d HystLow:%d",
                    Grayscale_Sensor.black[0], Grayscale_Sensor.white[0],
                    (int)((Grayscale_Sensor.black[0] + Grayscale_Sensor.white[0]) / 2 +
                          (Grayscale_Sensor.white[0] - Grayscale_Sensor.black[0]) / 4),
@@ -756,13 +926,48 @@ int main(void)
                 Led_Toggle(i);
                 if (evt == BSP_KEY_EVENT_PUSH) {
                     elog_i("KEY", "K%d pressed", (int)i);
-                    if (i == 0) { Track_Start(); elog_i("CTRL", "Tracking started"); }
+                    if (i == 0) {
+                        /* K1 单击: 仅 READY 状态启动 */
+                        if (Safety_GetState() == SAFETY_STATE_READY) {
+                            Track_Start();
+                            elog_i("CTRL", "Tracking started");
+                        } else {
+                            elog_w("CTRL", "Start blocked (safety=%s)",
+                                   Safety_StateName(Safety_GetState()));
+                        }
+                    }
                     if (i == 1) { Track_Stop();  elog_i("CTRL", "Tracking stopped"); }
-                    if (i == 2) { Track_Calibrate_White(); elog_i("SENSOR", "White calibrated"); }
-                    if (i == 3) { Track_Calibrate_Black(); elog_i("SENSOR", "Black calibrated"); }
+                    if (i == 2) {
+                        /* K3: 仅静止状态(BOOT/CALIBRATING/READY)校准白色 */
+                        safety_state_t s = Safety_GetState();
+                        if (s == SAFETY_STATE_BOOT || s == SAFETY_STATE_CALIBRATING ||
+                            s == SAFETY_STATE_READY) {
+                            Track_Calibrate_White(); elog_i("SENSOR", "White calibrated");
+                            Safety_TryAdvanceAfterCalibration();
+                        }
+                    }
+                    if (i == 3) {
+                        /* K4: 仅静止状态校准黑色 */
+                        safety_state_t s = Safety_GetState();
+                        if (s == SAFETY_STATE_BOOT || s == SAFETY_STATE_CALIBRATING ||
+                            s == SAFETY_STATE_READY) {
+                            Track_Calibrate_Black(); elog_i("SENSOR", "Black calibrated");
+                            Safety_TryAdvanceAfterCalibration();
+                        }
+                    }
+                } else if (evt == BSP_KEY_EVENT_DOUBLECLICK) {
+                    elog_i("KEY", "K%d double-click", (int)i);
+                    /* K1 双击: READY 下循环选择 1-5 圈 */
+                    if (i == 0 && Safety_GetState() == SAFETY_STATE_READY) {
+                        uint8_t circles = Track.target_circles + 1;
+                        if (circles > 5) circles = 1;
+                        Track_Set_Circles(circles);
+                        elog_i("CTRL", "Circles set to %d", circles);
+                    }
                 } else if (evt == BSP_KEY_EVENT_LONGPUSH) {
                     elog_i("KEY", "K%d long-pressed", (int)i);
-                    /* K3长按: 速度比例尺自动标定 (国一方案核心, 悬空车轮!) */
+                    /* K3长按: 速度比例尺自动标定 (国一方案核心, 悬空车轮!)
+                     * 仅 TUNING 台架模式 */
                     if (i == 2) { App_Motor_Calibrate_Scale(); }
                 }
             }
@@ -789,3 +994,4 @@ int main(void)
 #endif
     }
 }
+#endif /* legacy main loop */

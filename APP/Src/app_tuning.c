@@ -1,37 +1,50 @@
 /**
  * @file    app_tuning.c
- * @brief   AI 远程调参协议层实现
- * @note    极简 JSON 解析（针对调参协议，不引 cJSON）+ 100Hz 遥测组包
+ * @brief   TC1 远程调参协议层实现
  *
- *          解析策略：用 strstr 定位 "set"/"cmd" 模式，再对每个已知 key
- *          用 strstr 查找 "KEY" 后跟 :数字，atof 解析。
- *          优点：零内存分配，栈占用极小，针对性强。
- *          限制：不处理嵌套对象/数组/转义，但调参协议用不到这些。
+ *          使用 app_tc1 的零堆分配字节流解帧器处理入站 TC1 帧。
+ *          完整帧解码后按消息类型派发: auth/set/cmd/ping。
+ *          遥测以 10Hz TC1 帧上报, 带序列号/时间戳/帧年龄/故障/校准/速度/参数版本。
+ *          set/cmd 带单调 id, MCU 原子应用并回传完整参数快照 (ack)。
+ *
+ * @note    RACE 模式 (APP_TUNING_MODE=0) 编译禁用入站命令处理。
  */
 #include "app_tuning.h"
+#include "app_tc1.h"
 #include "app_esp01s.h"
+#include "app_safety.h"
 #include "app_common.h"
+#include "app_log.h"
 #include "track.h"
 #include "bsp_common.h"
 #include "bsp_grayscale.h"
 #include "bsp_encoder_motor.h"
+#include "user_tuning.h"
 #include "elog.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #undef LOG_TAG
 #define LOG_TAG  "tuning"
 
-/* ESP-01S AT+CIPSEND 单帧有握手开销。远程调试先用 2Hz，避免日志/遥测挤占链路。 */
-#define TUNING_TELEM_INTERVAL_MS   500
-
 /* ============================================================
  * 内部状态
  * ============================================================ */
-static uint32_t s_last_telem_tick = 0;
-static char     s_telem_buf[256];    /* 遥测组包缓冲（栈外静态，避免栈占用） */
-static char     s_rx_buf[256];       /* Rx 拷贝缓冲（OnRx 回调中加 NUL 结尾用） */
+static tc1_parser_t s_parser;           /* TC1 字节流解帧器 */
+static uint32_t     s_last_telem_tick = 0;
+static uint32_t     s_telem_seq       = 0;
+static bool         s_authenticated   = false;
+
+/* 静态缓冲区 (避免栈分配) */
+static char s_telem_json[TC1_MAX_JSON_BYTES + 1]; /* 遥测 JSON 组包缓冲 */
+static char s_ack_json[256];            /* ACK JSON 组包缓冲 */
+static uint8_t s_tx_frame[TC1_MAX_FRAME_BYTES + 1]; /* TC1 编码输出缓冲 */
+
+/* ============================================================
+ * 工具函数
+ * ============================================================ */
 
 /* 状态枚举 → 2 字母缩写 */
 static const char *state_abbr(track_state_t st)
@@ -43,104 +56,351 @@ static const char *state_abbr(track_state_t st)
     case TRACK_STATE_LINE_LOST:   return "LL";
     case TRACK_STATE_START_LINE:  return "SL";
     case TRACK_STATE_CROSS:       return "CR";
+    case TRACK_STATE_ROTATE:      return "RT";
+    case TRACK_STATE_HEADING_HOLD:return "HH";
     case TRACK_STATE_FINISHED:    return "FN";
     default:                      return "??";
     }
 }
 
-/* ============================================================
- * 极简 JSON 解析
- * ============================================================ */
-
-/* 在 buf 中查找 "key":数字 模式，返回是否找到并输出数值
- * 例：find_num(buf, "KP", &val) 匹配 "KP":2.5 或 "KP": 2.5 */
-static bool find_num(const char *buf, const char *key, float *out)
+/* 固件侧参数钳位 (与 host/param_schema.py 范围一致) */
+static float clamp_f(float v, float lo, float hi)
 {
-    char pattern[8];
-    snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-    const char *p = strstr(buf, pattern);
-    if (p == NULL) return false;
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+}
 
-    /* 跳过 "key" 后的空白和冒号 */
+static int32_t clamp_i(int32_t v, int32_t lo, int32_t hi)
+{
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+}
+
+/* 在 JSON 中查找 "key":数字 模式 (作用于 TC1 已校验的 payload) */
+static bool find_num(const char *json, const char *key, float *out)
+{
+    char pattern[16];
+    (void)snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+    const char *p = strstr(json, pattern);
+    if (p == NULL) return false;
     p += strlen(pattern);
     while (*p == ' ' || *p == '\t') p++;
     if (*p != ':') return false;
     p++;
     while (*p == ' ' || *p == '\t') p++;
-
-    /* atof 解析数字（支持负数和小数） */
     *out = (float)atof(p);
     return true;
 }
 
-/* 解析 set 模式：{"set":{"KP":...,"KD":...}} */
-static void parse_set(const char *buf)
+/* 在 JSON 中查找 "key":"value" 字符串值 */
+static bool find_str(const char *json, const char *key, char *out, uint8_t out_size)
 {
-    float v;
-    bool  changed = false;
+    char pattern[16];
+    (void)snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+    const char *p = json;
 
-    if (find_num(buf, "KP", &v)) {
-        Track_Set_TrackPID(v, Track.line_pid.ki, Track.line_pid.kd);
-        elog_i(LOG_TAG, "set KP=%.3f", v);
-        changed = true;
+    /* The value of another field can equal key (for example
+     * {"t":"cmd","cmd":"rotate"}). Skip it and keep looking for a
+     * matching JSON key followed by ':'. */
+    while ((p = strstr(p, pattern)) != NULL) {
+        const char *value = p + strlen(pattern);
+        while (*value == ' ' || *value == '\t') value++;
+        if (*value != ':') {
+            p = value;
+            continue;
+        }
+        value++;
+        while (*value == ' ' || *value == '\t') value++;
+        if (*value != '"') return false;
+        value++;
+        uint8_t i = 0;
+        while (*value && *value != '"' && i < (out_size - 1)) {
+            out[i++] = *value++;
+        }
+        out[i] = '\0';
+        return (*value == '"');
     }
-    if (find_num(buf, "KI", &v)) {
-        Track_Set_TrackPID(Track.line_pid.kp, v, Track.line_pid.kd);
-        elog_i(LOG_TAG, "set KI=%.3f", v);
-        changed = true;
-    }
-    if (find_num(buf, "KD", &v)) {
-        Track_Set_TrackPID(Track.line_pid.kp, Track.line_pid.ki, v);
-        elog_i(LOG_TAG, "set KD=%.3f", v);
-        changed = true;
-    }
-    if (find_num(buf, "GDAMP", &v)) {
-        Track_Set_GyroDamp(v);
-        elog_i(LOG_TAG, "set GDAMP=%.3f", (double)v);
-        changed = true;
-    }
-    if (find_num(buf, "VBASE", &v)) {
-        Track_Set_Speed((int32_t)v);
-        elog_i(LOG_TAG, "set VBASE=%d", (int)v);
-        changed = true;
-    }
-    if (find_num(buf, "VSTR", &v)) {
-        Track_Set_SpeedStraight((int32_t)v);
-        elog_i(LOG_TAG, "set VSTR=%d", (int)v);
-        changed = true;
-    }
-    if (find_num(buf, "VCUR", &v)) {
-        Track_Set_SpeedCurve((int32_t)v);
-        elog_i(LOG_TAG, "set VCUR=%d", (int)v);
-        changed = true;
-    }
-    if (find_num(buf, "RATHR", &v)) {
-        Track_Set_RightAngleThreshold(v);
-        elog_i(LOG_TAG, "set RATHR=%.3f", (double)v);
-        changed = true;
-    }
-    (void)changed;
+    return false;
 }
 
-/* 解析 cmd 模式：{"cmd":"start"} 等 */
-static void parse_cmd(const char *buf)
+/* 发送 TC1 帧 (JSON → TC1 编码 → ESP01S 发送) */
+static void send_tc1_json(const char *json, uint16_t json_len)
 {
-    if (strstr(buf, "\"start\"") != NULL) {
-        elog_i(LOG_TAG, "cmd start");
-        Track_Start();
-    } else if (strstr(buf, "\"stop\"") != NULL) {
-        elog_i(LOG_TAG, "cmd stop");
-        Track_Stop();
-    } else if (strstr(buf, "\"whitecal\"") != NULL) {
-        elog_i(LOG_TAG, "cmd whitecal");
-        Track_Calibrate_White();
-    } else if (strstr(buf, "\"blackcal\"") != NULL) {
-        elog_i(LOG_TAG, "cmd blackcal");
-        Track_Calibrate_Black();
-    } else if (strstr(buf, "\"reconnect\"") != NULL) {
-        elog_i(LOG_TAG, "cmd reconnect");
-        App_ESP01S_ReconnectTCP();
+    uint16_t frame_len = App_TC1_EncodeFrame(json, json_len,
+                                             s_tx_frame, sizeof(s_tx_frame));
+    if (frame_len == 0) {
+        APP_TUNING_LOG_W(LOG_TAG, "encode failed, json_len=%u", json_len);
+        return;
     }
+    (void)App_ESP01S_SendJSON(s_tx_frame, frame_len);
+}
+
+/* ============================================================
+ * ACK 组包与发送
+ * ============================================================ */
+
+/* 构建包含全部 8 参数的 applied 快照 */
+static uint16_t build_applied_snapshot(char *buf, uint16_t size)
+{
+    int n = snprintf(buf, size,
+        "{\"KP\":%.3f,\"KI\":%.3f,\"KD\":%.3f,\"GDAMP\":%.3f,"
+        "\"VBASE\":%d,\"VSTR\":%d,\"VCUR\":%d,\"RATHR\":%.3f}",
+        (double)Track.line_pid.kp,
+        (double)Track.line_pid.ki,
+        (double)Track.line_pid.kd,
+        (double)Track.gyro_damp,
+        (int)Track.base_speed,
+        (int)Track.speed_straight,
+        (int)Track.speed_curve,
+        (double)Track.right_angle_threshold);
+    if (n < 0 || n >= (int)size) return 0;
+    return (uint16_t)n;
+}
+
+/* 发送 ACK 帧 */
+static void send_ack(uint32_t msg_id, bool has_id, bool ok,
+                     const char *kind, const char *error)
+{
+    char applied[128];
+    uint16_t applied_len = 0;
+    if (ok && strcmp(kind, "set") == 0) {
+        applied_len = build_applied_snapshot(applied, sizeof(applied));
+    }
+
+    int n;
+    if (ok && applied_len > 0) {
+        if (has_id) {
+            n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"ack\",\"id\":%lu,\"ok\":true,\"kind\":\"%s\",\"applied\":%s}",
+                (unsigned long)msg_id, kind, applied);
+        } else {
+            n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"ack\",\"ok\":true,\"kind\":\"%s\",\"applied\":%s}",
+                kind, applied);
+        }
+    } else if (ok) {
+        if (has_id) {
+            n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"ack\",\"id\":%lu,\"ok\":true,\"kind\":\"%s\"}",
+                (unsigned long)msg_id, kind);
+        } else {
+            n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"ack\",\"ok\":true,\"kind\":\"%s\"}", kind);
+        }
+    } else {
+        if (has_id) {
+            n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"ack\",\"id\":%lu,\"ok\":false,\"kind\":\"%s\",\"error\":\"%s\"}",
+                (unsigned long)msg_id, kind, error ? error : "unknown");
+        } else {
+            n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"ack\",\"ok\":false,\"kind\":\"%s\",\"error\":\"%s\"}",
+                kind, error ? error : "unknown");
+        }
+    }
+
+    if (n > 0 && n < (int)sizeof(s_ack_json)) {
+        send_tc1_json(s_ack_json, (uint16_t)n);
+    }
+}
+
+/* ============================================================
+ * 参数应用
+ * ============================================================ */
+
+/* 解析 set 消息中的参数并应用 (每个参数钳位后应用) */
+static void apply_set_params(const char *json)
+{
+    float v;
+
+    if (find_num(json, "KP", &v)) {
+        v = clamp_f(v, USER_PARAM_KP_MIN, USER_PARAM_KP_MAX);
+        Track_Set_TrackPID(v, Track.line_pid.ki, Track.line_pid.kd);
+        APP_TUNING_LOG_I(LOG_TAG, "set KP=%.3f", (double)v);
+    }
+    if (find_num(json, "KI", &v)) {
+        v = clamp_f(v, USER_PARAM_KI_MIN, USER_PARAM_KI_MAX);
+        Track_Set_TrackPID(Track.line_pid.kp, v, Track.line_pid.kd);
+        APP_TUNING_LOG_I(LOG_TAG, "set KI=%.3f", (double)v);
+    }
+    if (find_num(json, "KD", &v)) {
+        v = clamp_f(v, USER_PARAM_KD_MIN, USER_PARAM_KD_MAX);
+        Track_Set_TrackPID(Track.line_pid.kp, Track.line_pid.ki, v);
+        APP_TUNING_LOG_I(LOG_TAG, "set KD=%.3f", (double)v);
+    }
+    if (find_num(json, "GDAMP", &v)) {
+        v = clamp_f(v, USER_PARAM_GDAMP_MIN, USER_PARAM_GDAMP_MAX);
+        Track_Set_GyroDamp(v);
+        APP_TUNING_LOG_I(LOG_TAG, "set GDAMP=%.3f", (double)v);
+    }
+    if (find_num(json, "VBASE", &v)) {
+        int32_t iv = clamp_i((int32_t)v, USER_PARAM_VBASE_MIN, USER_PARAM_VBASE_MAX);
+        Track_Set_Speed(iv);
+        APP_TUNING_LOG_I(LOG_TAG, "set VBASE=%d", (int)iv);
+    }
+    if (find_num(json, "VSTR", &v)) {
+        int32_t iv = clamp_i((int32_t)v, USER_PARAM_VSTR_MIN, USER_PARAM_VSTR_MAX);
+        Track_Set_SpeedStraight(iv);
+        APP_TUNING_LOG_I(LOG_TAG, "set VSTR=%d", (int)iv);
+    }
+    if (find_num(json, "VCUR", &v)) {
+        int32_t iv = clamp_i((int32_t)v, USER_PARAM_VCUR_MIN, USER_PARAM_VCUR_MAX);
+        Track_Set_SpeedCurve(iv);
+        APP_TUNING_LOG_I(LOG_TAG, "set VCUR=%d", (int)iv);
+    }
+    if (find_num(json, "RATHR", &v)) {
+        v = clamp_f(v, USER_PARAM_RATHR_MIN, USER_PARAM_RATHR_MAX);
+        Track_Set_RightAngleThreshold(v);
+        APP_TUNING_LOG_I(LOG_TAG, "set RATHR=%.3f", (double)v);
+    }
+}
+
+/* 解析 cmd 消息并派发 */
+static bool apply_cmd(const char *json, const char **error)
+{
+    char cmd[24];
+    float degrees;
+
+    *error = "unknown cmd";
+    if (!find_str(json, "cmd", cmd, sizeof(cmd))) {
+        *error = "invalid cmd";
+        return false;
+    }
+    if (strcmp(cmd, "start") == 0) {
+        APP_TUNING_LOG_I(LOG_TAG, "cmd start");
+        Track_Start();
+        return true;
+    } else if (strcmp(cmd, "stop") == 0) {
+        APP_TUNING_LOG_I(LOG_TAG, "cmd stop");
+        Track_Stop();
+        return true;
+    } else if (strcmp(cmd, "whitecal") == 0) {
+        APP_TUNING_LOG_I(LOG_TAG, "cmd whitecal");
+        Track_Calibrate_White();
+        Safety_TryAdvanceAfterCalibration();
+        return true;
+    } else if (strcmp(cmd, "blackcal") == 0) {
+        APP_TUNING_LOG_I(LOG_TAG, "cmd blackcal");
+        Track_Calibrate_Black();
+        Safety_TryAdvanceAfterCalibration();
+        return true;
+    } else if (strcmp(cmd, "rotate") == 0) {
+        if (!find_num(json, "deg", &degrees) || !isfinite(degrees)) {
+            *error = "invalid_angle";
+            return false;
+        }
+#if APP_TUNING_ROTATE_LINK_TEST_MODE
+        /* Communication test only: prove command parsing and ACK delivery
+         * while keeping the motor path completely disarmed. */
+        APP_TUNING_LOG_I(LOG_TAG, "cmd rotate link-test accepted=%d", (int)degrees);
+        return true;
+#else
+        if (!Track_Start_Rotation(degrees)) {
+            *error = Track_Get_Rotation_Result();
+            return false;
+        }
+        APP_TUNING_LOG_I(LOG_TAG, "cmd rotate=%d", (int)degrees);
+        return true;
+#endif
+    } else if (strcmp(cmd, "heading_hold_on") == 0) {
+        if (!Track_Start_Heading_Hold()) {
+            *error = Track_Get_Heading_Hold_Result();
+            return false;
+        }
+        APP_TUNING_LOG_I(LOG_TAG, "cmd heading_hold_on");
+        return true;
+    } else if (strcmp(cmd, "heading_hold_off") == 0) {
+        if (!Track_Stop_Heading_Hold()) {
+            *error = "not_holding";
+            return false;
+        }
+        APP_TUNING_LOG_I(LOG_TAG, "cmd heading_hold_off");
+        return true;
+    }
+    APP_TUNING_LOG_W(LOG_TAG, "unknown cmd: %s", cmd);
+    return false;
+}
+
+/* ============================================================
+ * TC1 帧派发
+ * ============================================================ */
+
+static void dispatch_frame(const tc1_frame_t *frame)
+{
+#if !APP_TUNING_MODE
+    /* RACE 模式: 禁用所有入站命令处理 */
+    (void)frame;
+    return;
+#else
+    switch (frame->type) {
+    case TC1_MSG_AUTH: {
+        /* 认证: 检查 token. 用 nack/log 响应 (ack kind 仅限 set/cmd) */
+        char token[64];
+        if (find_str(frame->json, "token", token, sizeof(token)) &&
+            strcmp(token, APP_TUNING_AUTH_TOKEN) == 0) {
+            s_authenticated = true;
+            APP_TUNING_LOG_I(LOG_TAG, "auth ok");
+            /* 发送 log 帧告知主机认证成功 */
+            int n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"log\",\"msg\":\"auth ok\"}");
+            if (n > 0 && n < (int)sizeof(s_ack_json)) {
+                send_tc1_json(s_ack_json, (uint16_t)n);
+            }
+        } else {
+            s_authenticated = false;
+            APP_TUNING_LOG_W(LOG_TAG, "auth failed");
+            /* 发送 nack 帧告知主机认证失败 */
+            int n = snprintf(s_ack_json, sizeof(s_ack_json),
+                "{\"v\":1,\"t\":\"nack\",\"id\":%lu,\"error\":\"auth failed\"}",
+                (unsigned long)frame->msg_id);
+            if (n > 0 && n < (int)sizeof(s_ack_json)) {
+                send_tc1_json(s_ack_json, (uint16_t)n);
+            }
+        }
+        break;
+    }
+    case TC1_MSG_SET: {
+        if (!s_authenticated) {
+            APP_TUNING_LOG_W(LOG_TAG, "set rejected: not authenticated");
+            send_ack(frame->msg_id, frame->has_id, false, "set", "not authenticated");
+            break;
+        }
+        apply_set_params(frame->json);
+        send_ack(frame->msg_id, frame->has_id, true, "set", NULL);
+        break;
+    }
+    case TC1_MSG_CMD: {
+        const char *error;
+        if (!s_authenticated) {
+            APP_TUNING_LOG_W(LOG_TAG, "cmd rejected: not authenticated");
+            send_ack(frame->msg_id, frame->has_id, false, "cmd", "not authenticated");
+            break;
+        }
+        bool ok = apply_cmd(frame->json, &error);
+        send_ack(frame->msg_id, frame->has_id, ok, "cmd",
+                 ok ? NULL : error);
+        break;
+    }
+    case TC1_MSG_PING: {
+        /* 心跳: 通知 Safety + 回 pong */
+        Safety_NotifyHeartbeat(Bsp_GetTick());
+        /* 回复 pong (携带 MCU 当前 tick) */
+        int n = snprintf(s_ack_json, sizeof(s_ack_json),
+            "{\"v\":1,\"t\":\"pong\",\"ms\":%lu}", (unsigned long)Bsp_GetTick());
+        if (n > 0 && n < (int)sizeof(s_ack_json)) {
+            send_tc1_json(s_ack_json, (uint16_t)n);
+        }
+        break;
+    }
+    default:
+        /* pong/ack/nack/tele/log 是 MCU 发出的, 入站时忽略 */
+        APP_TUNING_LOG_D(LOG_TAG, "ignore inbound msg type=%s",
+               App_TC1_MsgTypeName(frame->type));
+        break;
+    }
+#endif /* APP_TUNING_MODE */
 }
 
 /* ============================================================
@@ -150,53 +410,84 @@ static void parse_cmd(const char *buf)
 void App_Tuning_OnRx(const uint8_t *data, uint16_t len)
 {
     if (data == NULL || len == 0) return;
-    if (len >= sizeof(s_rx_buf)) len = sizeof(s_rx_buf) - 1;  /* 截断防溢出 */
 
-    memcpy(s_rx_buf, data, len);
-    s_rx_buf[len] = '\0';
-
-    /* 派发：set / cmd / 其它（忽略） */
-    if (strstr(s_rx_buf, "\"set\"") != NULL) {
-        parse_set(s_rx_buf);
-    } else if (strstr(s_rx_buf, "\"cmd\"") != NULL) {
-        parse_cmd(s_rx_buf);
-    } else {
-        elog_d(LOG_TAG, "rx unknown: %.*s", (int)len, s_rx_buf);
+    /* 逐字节喂入 TC1 解帧器 */
+    for (uint16_t i = 0; i < len; i++) {
+        tc1_frame_t frame = {0};
+        tc1_decode_result_t result = App_TC1_FeedByte(&s_parser, data[i], &frame);
+        if (result == TC1_DECODE_OK) {
+            dispatch_frame(&frame);
+        } else if (result != TC1_DECODE_NEED_MORE) {
+            /* 错误统计 (非 NEED_MORE 的结果表示一帧处理完毕) */
+            APP_TUNING_LOG_D(LOG_TAG, "decode %s", App_TC1_DecodeResultName(result));
+        }
     }
 }
 
 void App_Tuning_Init(void)
 {
+    App_TC1_Init(&s_parser);
     s_last_telem_tick = Bsp_GetTick();
+    s_telem_seq = 0;
+    s_authenticated = false;
     App_ESP01S_RegisterRx(App_Tuning_OnRx);
-    elog_i(LOG_TAG, "tuning layer ready, telemetry %dms/frame", TUNING_TELEM_INTERVAL_MS);
+    APP_TUNING_LOG_I(LOG_TAG, "TC1 tuning layer ready, telemetry %ums/frame, auth=%s",
+           APP_TUNING_TELEM_INTERVAL_MS,
+#if APP_TUNING_MODE
+           "on"
+#else
+           "off (RACE mode)"
+#endif
+          );
 }
 
 void App_Tuning_Poll(void)
 {
-    /* 仅在 TCP 连接时上报，避免 CIPSEND 失败 */
+    /* 仅在 TCP 连接时上报, 避免 CIPSEND 失败 */
     if (!App_ESP01S_IsTCPConnected()) return;
 
     uint32_t now = Bsp_GetTick();
-    if ((now - s_last_telem_tick) < TUNING_TELEM_INTERVAL_MS) return;
+    if ((now - s_last_telem_tick) < APP_TUNING_TELEM_INTERVAL_MS) return;
     s_last_telem_tick = now;
+    s_telem_seq++;
 
-    /* 组包遥测 JSON
-     * 字段说明：
-     *   t   = "tele"（帧类型）
-     *   adc = 8 路灰度原始 ADC
-     *   gz  = 陀螺仪 Z 轴角速度
-     *   el  = 左编码器速度
-     *   er  = 右编码器速度
-     *   le  = 当前循迹误差
-     *   po  = PID 转向输出
-     *   st  = 状态缩写
-     *   kp/kd = 当前 PID 参数（便于 AI 确认参数已生效）
+    /* 组包遥测 JSON (10Hz, 带扩展字段)
+     * 必需字段: t/adc/gz/el/er/le/po/st/kp/kd
+     * 可选字段: v/seq/ms/bc/ki/gd/vb/vs/vc/rt/drop/cal/tg/ta/te/rr
      */
-    int n = snprintf(s_telem_buf, sizeof(s_telem_buf),
-        "{\"t\":\"tele\",\"adc\":[%u,%u,%u,%u,%u,%u,%u,%u],"
+    char motion_json[128] = "";
+    if (Track_Is_Heading_Hold()) {
+        int hold_n = snprintf(motion_json, sizeof(motion_json),
+            ",\"hh\":true,\"ht\":%.2f,\"ha\":%.2f,\"he\":%.2f,\"hr\":\"%s\"",
+            (double)Track_Get_Heading_Hold_Target(),
+            (double)Track_Get_Heading_Hold_Actual(),
+            (double)Track_Get_Heading_Hold_Error(),
+            Track_Get_Heading_Hold_Result());
+        if (hold_n < 0 || hold_n >= (int)sizeof(motion_json)) {
+            motion_json[0] = '\0';
+        }
+    } else if (Track_Rotate_TargetValid(Track_Get_Rotation_Target())) {
+        int rotate_n = snprintf(motion_json, sizeof(motion_json),
+            ",\"tg\":%.2f,\"ta\":%.2f,\"te\":%.2f,\"rr\":\"%s\"",
+            (double)Track_Get_Rotation_Target(),
+            (double)Track_Get_Rotation_Angle(),
+            (double)Track_Get_Rotation_Error(),
+            Track_Get_Rotation_Result());
+        if (rotate_n < 0 || rotate_n >= (int)sizeof(motion_json)) {
+            motion_json[0] = '\0';
+        }
+    }
+
+    int n = snprintf(s_telem_json, sizeof(s_telem_json),
+        "{\"v\":1,\"t\":\"tele\","
+        "\"seq\":%lu,\"ms\":%lu,"
+        "\"adc\":[%u,%u,%u,%u,%u,%u,%u,%u],"
         "\"gz\":%.2f,\"el\":%d,\"er\":%d,\"le\":%.2f,\"po\":%.2f,"
-        "\"st\":\"%s\",\"kp\":%.3f,\"kd\":%.3f}\n",
+        "\"st\":\"%s\",\"bc\":%u,"
+        "\"kp\":%.3f,\"ki\":%.3f,\"kd\":%.3f,\"gd\":%.3f,"
+        "\"vb\":%d,\"vs\":%d,\"vc\":%d,\"rt\":%.3f,"
+        "\"drop\":%lu,\"cal\":%u%s}",
+        (unsigned long)s_telem_seq, (unsigned long)now,
         Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
         Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
         Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
@@ -205,11 +496,37 @@ void App_Tuning_Poll(void)
         (int)Motor_Left.encoder_speed, (int)Motor_Right.encoder_speed,
         (double)Track.error, (double)Track.turn_output,
         state_abbr(Track.state),
-        (double)Track.line_pid.kp, (double)Track.line_pid.kd);
+        (unsigned)Grayscale_Sensor.black_count,
+        (double)Track.line_pid.kp, (double)Track.line_pid.ki,
+        (double)Track.line_pid.kd, (double)Track.gyro_damp,
+        (int)Track.base_speed, (int)Track.speed_straight,
+        (int)Track.speed_curve, (double)Track.right_angle_threshold,
+        (unsigned long)App_ESP01S_GetTxDropCount(),
+        (unsigned)((Grayscale_Sensor.calibrated ? 1u : 0u) |
+                   (Grayscale_Sensor.black_calibrated ? 2u : 0u)),
+         motion_json);
 
-    if (n > 0 && n < (int)sizeof(s_telem_buf)) {
-        if (!App_ESP01S_SendJSON((uint8_t *)s_telem_buf, (uint16_t)n)) {
-            /* 发送失败已由 ESP01S 内部记日志，此处静默避免日志风暴 */
-        }
+    if (n > 0 && n < (int)sizeof(s_telem_json)) {
+        send_tc1_json(s_telem_json, (uint16_t)n);
     }
+}
+
+uint32_t App_Tuning_GetTelemetrySeq(void)
+{
+    return s_telem_seq;
+}
+
+uint32_t App_Tuning_GetFramesOk(void)
+{
+    return s_parser.frames_ok;
+}
+
+uint32_t App_Tuning_GetFramesBadCrc(void)
+{
+    return s_parser.frames_bad_crc;
+}
+
+uint32_t App_Tuning_GetFramesBadSchema(void)
+{
+    return s_parser.frames_bad_schema;
 }

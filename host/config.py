@@ -17,6 +17,10 @@ logger = logging.getLogger("config")
 
 
 class Config:
+    TUNING_AUTH_TOKEN = "track_car_2025"
+    # Below the 500 ms firmware safety timeout while avoiding uplink starvation.
+    HEARTBEAT_INTERVAL_MS = 250
+
     # TCP server 监听端口（与 app_esp01s_cfg.h ESP01S_SERVER_PORT 一致）
     TCP_PORT = 8888
 

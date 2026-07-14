@@ -9,6 +9,7 @@
  */
 #include "app_grayscale.h"
 #include "app_common.h"
+#include "app_log.h"
 #include "ti_msp_dl_config.h"
 #include <elog.h>
 #include <stdbool.h>
@@ -41,7 +42,7 @@ static void HW_Gray_Init(void)
     /* 5. 等待 ADC 稳定 */
     Bsp_Delay_ms(10);
 
-    elog_i("GRAY", "Init: PA27 PINCM60=0x%08lX PWRDN=MANUAL ENC=%d",
+    APP_GRAY_STATE_LOG_I("GRAY", "Init: PA27 PINCM60=0x%08lX PWRDN=MANUAL ENC=%d",
            (unsigned long)IOMUX->SECCFG.PINCM[IOMUX_PINCM60],
            DL_ADC12_isConversionsEnabled(GRAYSCALE_ADC_INST) ? 1 : 0);
 }
@@ -86,7 +87,7 @@ static uint16_t HW_Gray_ADC_Read(void)
         DL_ADC12_enableConversions(GRAYSCALE_ADC_INST);
         if ((Bsp_GetTick() - s_last_timeout_log) >= 500u) {
             s_last_timeout_log = Bsp_GetTick();
-            elog_w("GRAY", "ADC timeout, reuse last=%u", s_last_adc_result);
+            APP_GRAY_STATE_LOG_W("GRAY", "ADC timeout, reuse last=%u", s_last_adc_result);
         }
         return s_last_adc_result;
     }

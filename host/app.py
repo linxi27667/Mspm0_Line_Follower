@@ -20,6 +20,7 @@ Web 路由：
 """
 import argparse
 import logging
+import math
 import threading
 import time
 from collections import deque
@@ -31,8 +32,9 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 
 from config import Config
-from protocol import PARAMS, build_set, build_cmd, clamp
-from tcp_server import TcpServer
+from optimizer import Optimizer as LocalOptimizer
+from protocol import PARAMS, build_auth, build_ping, clamp
+from tcp_server import TcpServer, RequestManager
 from tuning_engine import get_engine
 
 
@@ -100,6 +102,15 @@ log_buffer = deque(maxlen=200)
 # 小车/ESP-01S 日志缓冲（新打开的浏览器也能看到最近日志）
 car_log_buffer = deque(maxlen=500)
 
+REQUEST_ERROR_MESSAGES = {
+    "not_ready": "当前已有循迹或其他控制任务在运行，请先停止后再旋转",
+    "imu_unavailable": "MPU6050 未连接、未识别或尚未完成静止校准",
+    "safety_rejected": "安全状态机拒绝执行，请检查故障状态和心跳",
+    "invalid_angle": "角度无效，范围为 -180 到 180 且不能为 0",
+    "invalid cmd": "固件未识别该命令",
+    "not authenticated": "认证尚未完成，请等待小车重新连接",
+}
+
 # 线程锁
 state_lock = threading.Lock()
 
@@ -163,6 +174,25 @@ def on_telemetry(tele: dict):
                     tele.get("kp"), tele.get("kd"))
     # 推送到所有浏览器客户端
     socketio.emit("telemetry", tele, namespace="/")
+    if {"tg", "ta", "te", "rr"}.issubset(tele):
+        socketio.emit("rotate_status", {
+            "state": "running" if tele.get("st") == "RT" else "terminal",
+            "target_deg": tele["tg"],
+            "actual_deg": tele["ta"],
+            "error_deg": tele["te"],
+            "result": tele["rr"],
+        })
+    if {"hh", "ht", "ha", "he", "hr"}.issubset(tele):
+        socketio.emit("heading_hold_status", {
+            "active": tele["hh"],
+            "target_deg": tele["ht"],
+            "actual_deg": tele["ha"],
+            "error_deg": tele["he"],
+            "result": tele["hr"],
+        })
+    # 转发给优化器（若活跃）
+    if optimizer is not None:
+        optimizer.on_telemetry(tele)
 
 
 def on_connect(addr):
@@ -173,6 +203,20 @@ def on_connect(addr):
         client_addr = addr
     add_log("INFO", f"小车连接: {addr[0]}:{addr[1]}")
     socketio.emit("client_status", {"connected": True, "addr": f"{addr[0]}:{addr[1]}"})
+    if tcp.send(build_auth(config.TUNING_AUTH_TOKEN)):
+        add_log("INFO", "小车调参认证已发送")
+    else:
+        add_log("ERROR", "小车调参认证发送失败")
+    threading.Thread(target=_retry_auth_after_online, args=(addr,), daemon=True).start()
+
+
+def _retry_auth_after_online(addr):
+    """Avoid losing the one-shot auth frame while ESP finishes CIPSTART."""
+    time.sleep(0.5)
+    with state_lock:
+        same_client = client_connected and client_addr == addr
+    if same_client and tcp.send(build_auth(config.TUNING_AUTH_TOKEN)):
+        add_log("INFO", "小车调参认证重发")
 
 
 def on_disconnect():
@@ -198,8 +242,17 @@ def on_car_log(line: str):
     socketio.emit("car_log", entry)
 
 
+def heartbeat_worker():
+    """Keep a running tuning session armed without blocking web or TCP threads."""
+    interval_s = config.HEARTBEAT_INTERVAL_MS / 1000.0
+    while True:
+        if tcp.is_connected():
+            tcp.send(build_ping(int(time.monotonic() * 1000)))
+        time.sleep(interval_s)
+
+
 # ============================================================
-# 创建 TCP server
+# 创建 TCP server + 请求管理器
 # ============================================================
 tcp = TcpServer(
     port=config.TCP_PORT,
@@ -207,6 +260,107 @@ tcp = TcpServer(
     on_connect=on_connect,
     on_disconnect=on_disconnect,
     on_log=on_car_log,
+)
+
+
+def on_request_confirmed(ack: dict):
+    """ACK 确认成功 — 从 ACK 的 applied 快照更新当前参数。"""
+    applied = ack.get("applied")
+    if applied:
+        with state_lock:
+            for k, v in applied.items():
+                if k in PARAMS:
+                    current_params[k] = v
+        socketio.emit("params_update", current_params)
+        add_log("INFO", f"参数已确认: {applied}")
+    else:
+        add_log("INFO", f"指令已确认 (id={ack.get('id')})")
+    # 转发给优化器
+    if optimizer is not None:
+        optimizer.on_ack_confirmed(ack)
+
+
+def on_request_rejected(ack: dict):
+    """ACK 拒绝 - 参数未应用，通知前端。"""
+    error = ack.get("error", "unknown")
+    message = REQUEST_ERROR_MESSAGES.get(error, f"小车拒绝执行（{error}）")
+    add_log("ERROR", f"请求被拒绝: {message}")
+    socketio.emit("request_status", {
+        "state": "rejected",
+        "id": ack.get("id"),
+        "error": error,
+        "message": message,
+    })
+    # 转发给优化器
+    if optimizer is not None:
+        optimizer.on_ack_rejected(ack)
+
+
+def on_request_timeout(snapshot: dict):
+    """请求超时 — 3 次尝试均未收到 ACK。"""
+    kind = snapshot.get("kind", "?")
+    add_log("ERROR", f"请求超时 (id={snapshot.get('id')}, kind={kind}, "
+                    f"attempts={snapshot.get('attempts')})")
+    socketio.emit("request_status", {
+        "state": "timeout",
+        "id": snapshot.get("id"),
+        "kind": kind,
+        "message": "小车未在重试期限内确认，请检查 ESP-01S 链路",
+    })
+    # 转发给优化器
+    if optimizer is not None:
+        optimizer.on_ack_timeout(snapshot)
+
+
+# 请求管理器：单待确认请求 + 300ms 超时 + 2 次重试
+req_mgr = RequestManager(
+    tcp,
+    on_confirmed=on_request_confirmed,
+    on_rejected=on_request_rejected,
+    on_timeout=on_request_timeout,
+)
+tcp.on_ack = req_mgr.on_ack  # 将 ACK 路由到请求管理器
+
+
+# ============================================================
+# 本地约束优化器
+# ============================================================
+
+def _opt_on_apply(params: dict) -> bool:
+    """优化器下发候选参数 — 通过请求管理器，等待 MCU ACK。"""
+    return req_mgr.send_set(params)
+
+
+def _opt_on_cmd(cmd: str) -> bool:
+    """优化器下发命令（start/stop）。"""
+    return req_mgr.send_cmd(cmd)
+
+
+def _opt_on_state(state: dict):
+    """优化器状态变更 — 推送到前端。"""
+    socketio.emit("optimizer_state", state)
+    msg = state.get("msg", "")
+    if msg:
+        add_log("INFO", f"[OPT] {state.get('state')}: {msg}")
+
+
+def _opt_on_candidate(record):
+    """候选完成 — 推送到前端。"""
+    socketio.emit("optimizer_candidate", {
+        "index": record.index,
+        "params": record.params,
+        "accepted": record.accepted,
+        "abort_reason": record.abort_reason,
+    })
+
+
+optimizer = LocalOptimizer(
+    base_params=current_params,
+    target_laps=5,
+    on_apply_params=_opt_on_apply,
+    on_send_cmd=_opt_on_cmd,
+    on_state_change=_opt_on_state,
+    on_candidate_complete=_opt_on_candidate,
 )
 
 
@@ -249,30 +403,63 @@ def ws_send_cmd(data):
     """前端发指令：data = {"cmd": "start"}"""
     cmd = data.get("cmd", "")
     try:
-        json_str = build_cmd(cmd)
-        if tcp.send(json_str):
-            add_log("INFO", f"指令已发送: {cmd}")
+        if req_mgr.is_busy():
+            if cmd == "stop" and req_mgr.send_stop_override():
+                add_log("WARNING", "停止指令已替换待确认请求")
+                socketio.emit("request_status", {"state": "pending", "cmd": "stop"})
+                return
+            add_log("WARNING", "上一个请求待确认，请稍后")
+            return
+        if req_mgr.send_cmd(cmd):
+            add_log("INFO", f"指令已发送(待确认): {cmd}")
+            socketio.emit("request_status", {"state": "pending", "cmd": cmd})
         else:
             add_log("ERROR", f"指令发送失败（小车未连接）: {cmd}")
     except ValueError as e:
         add_log("ERROR", f"非法指令: {e}")
 
 
+@socketio.on("send_rotate")
+def ws_send_rotate(data):
+    """前端发相对角度原地旋转：正数左转，负数右转。"""
+    degrees = (data or {}).get("deg")
+    if isinstance(degrees, bool) or not isinstance(degrees, (int, float)):
+        add_log("ERROR", "旋转角度必须是数字")
+        socketio.emit("rotate_status", {"state": "rejected", "result": "invalid_angle"})
+        return
+    degrees = float(degrees)
+    if not math.isfinite(degrees) or degrees == 0.0 or abs(degrees) > 180.0:
+        add_log("ERROR", "旋转角度必须在 -180 到 180 之间且不能为 0")
+        socketio.emit("rotate_status", {"state": "rejected", "result": "invalid_angle"})
+        return
+    if req_mgr.is_busy():
+        add_log("WARNING", "上一个请求待确认，请稍后")
+        socketio.emit("rotate_status", {"state": "rejected", "result": "request_busy"})
+        return
+    if req_mgr.send_rotate(degrees):
+        add_log("INFO", f"旋转指令已发送(待确认): {degrees:.1f}°")
+        socketio.emit("request_status", {"state": "pending", "cmd": "rotate", "deg": degrees})
+    else:
+        add_log("ERROR", "旋转指令发送失败（小车未连接）")
+        socketio.emit("rotate_status", {"state": "rejected", "result": "not_connected"})
+
+
 @socketio.on("send_params")
 def ws_send_params(data):
-    """前端发参数：data = {"KP": 6.0, "KD": 1.5}"""
+    """前端发参数：data = {"KP": 6.0, "KD": 1.5}
+
+    参数在 MCU ACK 确认后才更新到 current_params（on_request_confirmed）。
+    发送期间不预先更新本地参数，确保 ACK 前不得更新已应用参数。
+    """
     if not data:
         return
     try:
-        json_str = build_set(data)
-        # 更新当前参数
-        with state_lock:
-            for k, v in data.items():
-                if k in PARAMS:
-                    current_params[k] = clamp(k, v)
-        if tcp.send(json_str):
-            add_log("INFO", f"参数已发送: {data}")
-            socketio.emit("params_update", current_params)
+        if req_mgr.is_busy():
+            add_log("WARNING", "上一个请求待确认，请稍后")
+            return
+        if req_mgr.send_set(data):
+            add_log("INFO", f"参数已发送(待确认): {data}")
+            socketio.emit("request_status", {"state": "pending", "params": data})
         else:
             add_log("ERROR", f"参数发送失败（小车未连接）: {data}")
     except Exception as e:
@@ -303,6 +490,7 @@ def ws_ai_analyze():
 @socketio.on("get_status")
 def ws_get_status():
     """前端查询状态"""
+    opt_state = optimizer.get_state()
     socketio.emit("status", {
         "client_connected": client_connected,
         "client_addr": f"{client_addr[0]}:{client_addr[1]}" if client_addr else "",
@@ -311,6 +499,12 @@ def ws_get_status():
         "engine": type(engine).__name__,
         "auto_tuning": auto_tuner.active,
         "auto_tuning_rounds": auto_tuner.rounds,
+        "request_pending": req_mgr.is_busy(),
+        "request_pending_id": req_mgr.get_pending_id(),
+        "optimizer_state": opt_state["state"],
+        "optimizer_candidates": opt_state["candidates_generated"],
+        "optimizer_max_candidates": opt_state["max_candidates"],
+        "optimizer_best": opt_state["best_params"],
     })
 
 
@@ -405,18 +599,24 @@ class AutoTuner:
                 add_log("INFO", f"[AUTO] 第{self.rounds}轮: 置信度{confidence:.2f}<{self.min_confidence}，自动停止")
                 break
 
-            # 3. 下发参数
-            json_str = build_set(params_suggested)
-            with state_lock:
-                for k, v in params_suggested.items():
-                    if k in PARAMS:
-                        current_params[k] = clamp(k, v)
-            if tcp.send(json_str):
-                add_log("INFO", f"[AUTO] 第{self.rounds}轮: 下发 {params_suggested} (置信度{confidence:.2f})")
-                socketio.emit("params_update", current_params)
-            else:
+            # 3. 下发参数（通过请求管理器，等待 ACK 确认后才更新 current_params）
+            if req_mgr.is_busy():
+                add_log("WARNING", f"[AUTO] 第{self.rounds}轮: 请求管理器忙，跳过本轮")
+                time.sleep(self.interval)
+                continue
+            if not req_mgr.send_set(params_suggested):
                 add_log("ERROR", f"[AUTO] 第{self.rounds}轮: 下发失败（小车未连接），停止")
                 break
+            # 等待 ACK 确认（最多 1.2s = 3×300ms + 余量）
+            ack_waited = 0.0
+            while self.active and req_mgr.is_busy() and ack_waited < 1.2:
+                time.sleep(0.05)
+                ack_waited += 0.05
+            if req_mgr.is_busy():
+                add_log("ERROR", f"[AUTO] 第{self.rounds}轮: ACK 超时，停止")
+                break
+            add_log("INFO", f"[AUTO] 第{self.rounds}轮: 下发 {params_suggested} "
+                            f"(置信度{confidence:.2f})")
 
             # 4. 收敛检测
             if self.rounds > 1 and self.history_snapshots:
@@ -473,6 +673,72 @@ def ws_auto_tuning_stop():
 
 
 # ============================================================
+# 本地约束优化器事件
+# ============================================================
+
+@socketio.on("optimizer_start")
+def ws_optimizer_start(data):
+    """启动优化器：data = {"target_laps": 5}"""
+    if not client_connected:
+        add_log("ERROR", "[OPT] 小车未连接，无法启动优化器")
+        return
+    target_laps = data.get("target_laps", 5) if data else 5
+    optimizer._target_laps = int(target_laps)
+    if optimizer.start():
+        add_log("INFO", f"[OPT] 优化器启动（目标 {target_laps} 圈）")
+    else:
+        add_log("WARNING", "[OPT] 优化器已在运行")
+
+
+@socketio.on("optimizer_stop")
+def ws_optimizer_stop():
+    """停止优化器"""
+    optimizer.stop()
+    add_log("INFO", "[OPT] 优化器已停止")
+
+
+@socketio.on("optimizer_confirm")
+def ws_optimizer_confirm():
+    """人工物理确认通过 — 下发候选参数"""
+    optimizer.confirm_manual()
+    add_log("INFO", "[OPT] 人工确认已通过")
+
+
+@socketio.on("optimizer_status")
+def ws_optimizer_status():
+    """查询优化器状态"""
+    socketio.emit("optimizer_state", optimizer.get_state())
+
+
+@socketio.on("optimizer_export")
+def ws_optimizer_export():
+    """导出候选报告"""
+    report = optimizer.export_report()
+    socketio.emit("optimizer_report", report)
+    add_log("INFO", f"[OPT] 报告导出: {report['candidates_generated']} 个候选")
+
+
+@socketio.on("optimizer_export_race")
+def ws_optimizer_export_race():
+    """导出最终 user_tuning.h 比赛档内容（人工审核后烧录 RACE）。"""
+    from optimizer import generate_race_header
+    template_path = _resource_path("..", "APP", "Inc", "user_tuning.h")
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_text = f.read()
+    except OSError as e:
+        add_log("ERROR", f"[OPT] 读取 user_tuning.h 失败: {e}")
+        return
+    best = optimizer.export_report()["best_params"]
+    race_header = generate_race_header(best, template_text)
+    socketio.emit("optimizer_race_header", {
+        "best_params": best,
+        "content": race_header,
+    })
+    add_log("INFO", f"[OPT] 比赛档已生成（最佳参数: {best}），请人工审核后烧录 RACE")
+
+
+# ============================================================
 # 主入口
 # ============================================================
 
@@ -483,6 +749,7 @@ def run_host(no_browser: bool = False, web_port: int | None = None):
         config.WEB_PORT = web_port
 
     tcp.start()
+    threading.Thread(target=heartbeat_worker, daemon=True, name="tuning-heartbeat").start()
     add_log("INFO", f"TCP server 监听 :{config.TCP_PORT}")
     add_log("INFO", f"调参引擎: {type(engine).__name__}")
 

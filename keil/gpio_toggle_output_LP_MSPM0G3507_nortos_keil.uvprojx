@@ -534,6 +534,26 @@
               <FileType>5</FileType>
               <FilePath>..\APP\Inc\app_tuning.h</FilePath>
             </File>
+            <File>
+              <FileName>app_safety.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_safety.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_safety.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_safety.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_tc1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_tc1.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_tc1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_tc1.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

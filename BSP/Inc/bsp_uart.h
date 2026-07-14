@@ -74,6 +74,8 @@ void     Bsp_UART_Tx_OnDMAComplete(bsp_uart_t *uart);
 void     Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
 /* RX —— 推入字节流，不重启硬件接收（供轮询 DMA 增量搬运） */
 void     Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+/* RX byte stream without frame descriptors (AT parsers consume bytes only). */
+void     Bsp_UART_Rx_PushStreamBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
 /* RX —— 调用可选硬件轮询钩子 */
 void     Bsp_UART_PumpRx(bsp_uart_t *uart);
 /* RX —— 弹出一帧（返回 false 表示无完整帧） */

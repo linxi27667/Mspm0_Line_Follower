@@ -198,7 +198,8 @@ void Bsp_UART_Rx_OnFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
     if (uart && uart->RestartRx) uart->RestartRx();
 }
 
-void Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+static void rx_push_bytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len,
+                          bool record_frame)
 {
     if (uart == NULL) {
         return;
@@ -209,6 +210,10 @@ void Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
     if (data == NULL) {
         return;
     }
+
+    /* PumpRx runs in the main loop while RX timeout can publish concurrently
+     * from the UART ISR. Keep both producers from interleaving FIFO updates. */
+    BSP_UART_ENTER_CRITICAL();
 
     /* ---- 推入字节 FIFO ---- */
     uint16_t pushed = 0;
@@ -224,7 +229,7 @@ void Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
     }
 
     /* ---- 记录帧长（仅当有字节推入） ---- */
-    if (pushed > 0) {
+    if (record_frame && pushed > 0) {
         uint16_t fhead = uart->rx_frame_head;
         uint16_t fnext = (uint16_t)((fhead + 1) % BSP_UART_FRAME_FIFO_SIZE);
         if (fnext == uart->rx_frame_tail) {
@@ -239,6 +244,18 @@ void Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
             uart->rx_frame_head = fnext;
         }
     }
+
+    BSP_UART_EXIT_CRITICAL();
+}
+
+void Bsp_UART_Rx_PushBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+{
+    rx_push_bytes(uart, data, len, true);
+}
+
+void Bsp_UART_Rx_PushStreamBytes(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+{
+    rx_push_bytes(uart, data, len, false);
 }
 
 void Bsp_UART_PumpRx(bsp_uart_t *uart)

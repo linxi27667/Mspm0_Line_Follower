@@ -45,7 +45,7 @@ Thumbs.db
 -LogFile
 .trae/
 host/.host_build_tmp/
-host/__pycache__/
+__pycache__/
 host/*.log
 Event.dot
 README.html

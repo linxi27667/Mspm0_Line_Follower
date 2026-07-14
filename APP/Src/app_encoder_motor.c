@@ -2,12 +2,14 @@
  * @file    app_encoder_motor.c
  * @brief   霍尔编码器电机硬件绑定实现（MSPM0G3507）
  * @note    左编码器: 硬件QEI (TIMG8)
- *          右编码器: GPIO中断计数 (PB14=PHA, PB15=PHB)
+ *          右编码器: GPIO中断计数 (PB12=PHA, PB13=PHB)
  *          速度PID: 前馈(目标速度) + PID修正，级联位置PID
  */
 #include "app_encoder_motor.h"
+#include "app_log.h"
 #include "app_common.h"
 #include "app_pid.h"
+#include "motor_speed_logic.h"
 #include <elog.h>
 
 /* ================= 右编码器中断计数 ================= */
@@ -20,6 +22,8 @@ static bsp_pid_t s_right_speed_pid;
 /* 国一方案: 左右编码器分辨率不同 (左 QEI 4x / 右 GPIO 2x), 必须分别标定 scale */
 static float     s_speed_scale_left  = MOTOR_SPEED_SCALE_LEFT_DEFAULT;
 static float     s_speed_scale_right = MOTOR_SPEED_SCALE_RIGHT_DEFAULT;
+static float     s_left_speed_filtered;
+static float     s_right_speed_filtered;
 
 /* ================= 1. 硬件底层函数 (HW_ 前缀) ================= */
 
@@ -155,18 +159,29 @@ void Right_Encoder_IRQHandler(void)
  *          最终PWM = target_speed + PID_correction
  *          scale: 左右独立的速度比例尺 (国一方案: 编码器分辨率不同)
  */
-static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid, float scale)
+static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid,
+                                    float scale, float *filtered_encoder)
 {
-    if (motor == NULL || pid == NULL) return;
+    if (motor == NULL || pid == NULL || filtered_encoder == NULL) return;
     if (!motor->use_speed_pid) return;
 
     /* 读取编码器速度 */
     Bsp_Motor_Update_Status(motor);
 
+    *filtered_encoder = Motor_Speed_LowPass(*filtered_encoder,
+                                             (float)motor->encoder_speed,
+                                             MOTOR_SPEED_FILTER_ALPHA);
+
+    if (motor->target_speed == 0) {
+        Pid_Reset(pid);
+        Bsp_Motor_Write_Pwm(motor, 0);
+        return;
+    }
+
     /* 编码器速度转换为0-100速度单位 (左右独立 scale) */
     float actual_speed = 0;
     if (scale > 0.001f) {
-        actual_speed = (float)motor->encoder_speed / scale;
+        actual_speed = *filtered_encoder / scale;
     }
 
     /* PID计算修正量: setpoint=target_speed, feedback=actual_speed */
@@ -175,9 +190,10 @@ static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid, float sc
     /* 前馈 + 修正 */
     int32_t pwm = motor->target_speed + (int32_t)correction;
 
-    /* 限幅 */
-    if (pwm > 100)  pwm = 100;
-    if (pwm < -100) pwm = -100;
+    float actual_abs = (actual_speed >= 0.0f) ? actual_speed : -actual_speed;
+    int32_t minimum_drive = (actual_abs < MOTOR_SPEED_START_THRESHOLD)
+                          ? MOTOR_SPEED_MIN_DRIVE_PWM : 0;
+    pwm = Motor_Speed_ConstrainPwm(motor->target_speed, pwm, minimum_drive);
 
     /* 写入电机 */
     Bsp_Motor_Write_Pwm(motor, pwm);
@@ -185,8 +201,10 @@ static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid, float sc
 
 void App_Motor_Speed_PID_Update(void)
 {
-    Speed_PID_Update_Single(&Motor_Left,  &s_left_speed_pid,  s_speed_scale_left);
-    Speed_PID_Update_Single(&Motor_Right, &s_right_speed_pid, s_speed_scale_right);
+    Speed_PID_Update_Single(&Motor_Left, &s_left_speed_pid,
+                            s_speed_scale_left, &s_left_speed_filtered);
+    Speed_PID_Update_Single(&Motor_Right, &s_right_speed_pid,
+                            s_speed_scale_right, &s_right_speed_filtered);
 }
 
 void App_Motor_Enable_Speed_PID(bool enable)
@@ -198,6 +216,8 @@ void App_Motor_Enable_Speed_PID(bool enable)
         /* 切换到闭环时，复位PID防止积分突跳 */
         Pid_Reset(&s_left_speed_pid);
         Pid_Reset(&s_right_speed_pid);
+        s_left_speed_filtered = 0.0f;
+        s_right_speed_filtered = 0.0f;
         /* 修复: 同步编码器基准，避免首次读取产生大 delta 导致 PID 误差尖峰。
          * 调用 Bsp_Motor_Update_Status 更新 last_count 为当前值，
          * 然后清零 encoder_speed 丢弃这次读取。 */
@@ -244,8 +264,8 @@ void App_Motor_Set_Speed_Scale_Right(float scale)
 #define MOTOR_CALIB_SAMPLES     200     /* 200*5ms=1s */
 void App_Motor_Calibrate_Scale(void)
 {
-    elog_i("CALIB", "==== Speed Scale Calibration ====");
-    elog_i("CALIB", "Lift wheels! Running PWM=%d for %dms...",
+    APP_DIAG_LOG_I("CALIB", "==== Speed Scale Calibration ====");
+    APP_DIAG_LOG_I("CALIB", "Lift wheels! Running PWM=%d for %dms...",
            MOTOR_CALIB_PWM, MOTOR_CALIB_SAMPLES * MOTOR_CALIB_SAMPLE_MS);
 
     /* 切开环, 直写 PWM (避免闭环干扰测量) */
@@ -284,14 +304,14 @@ void App_Motor_Calibrate_Scale(void)
     if (left_avg  > 1.0f) s_speed_scale_left  = left_avg  / (float)MOTOR_CALIB_PWM;
     if (right_avg > 1.0f) s_speed_scale_right = right_avg / (float)MOTOR_CALIB_PWM;
 
-    elog_i("CALIB", "LeftEncAvg:%ld RightEncAvg:%ld", (long)left_avg, (long)right_avg);
-    elog_i("CALIB", "Scale Left:%ld/1000 Right:%ld/1000",
+    APP_DIAG_LOG_I("CALIB", "LeftEncAvg:%ld RightEncAvg:%ld", (long)left_avg, (long)right_avg);
+    APP_DIAG_LOG_I("CALIB", "Scale Left:%ld/1000 Right:%ld/1000",
            (long)(s_speed_scale_left  * 1000),
            (long)(s_speed_scale_right * 1000));
-    elog_i("CALIB", "Write to main.c:");
-    elog_i("CALIB", "  #define USER_MOTOR_SPEED_SCALE_LEFT   %d/1000", (long)(s_speed_scale_left  * 1000));
-    elog_i("CALIB", "  #define USER_MOTOR_SPEED_SCALE_RIGHT  %d/1000", (long)(s_speed_scale_right * 1000));
-    elog_i("CALIB", "==== Calibration Done ====");
+    APP_DIAG_LOG_I("CALIB", "Write to app_common.h/user_tuning.h:");
+    APP_DIAG_LOG_I("CALIB", "  #define USER_MOTOR_SPEED_SCALE_LEFT   %d/1000", (long)(s_speed_scale_left  * 1000));
+    APP_DIAG_LOG_I("CALIB", "  #define USER_MOTOR_SPEED_SCALE_RIGHT  %d/1000", (long)(s_speed_scale_right * 1000));
+    APP_DIAG_LOG_I("CALIB", "==== Calibration Done ====");
 }
 
 /* ================= 5. 对外业务切入点 ================= */
@@ -320,6 +340,11 @@ void App_Motor_Init(void)
      * 误差超过阈值时不累加积分，PID 仍正常计算 P/D */
     s_left_speed_pid.integral_sep_threshold  = MOTOR_SPEED_PID_INTEGRAL_SEP;
     s_right_speed_pid.integral_sep_threshold = MOTOR_SPEED_PID_INTEGRAL_SEP;
+
+    /* Keep both H-bridges inactive until Safety explicitly authorizes motion. */
+    App_Motor_Enable_Speed_PID(false);
+    Bsp_Motor_Write_Pwm(&Motor_Left, 0);
+    Bsp_Motor_Write_Pwm(&Motor_Right, 0);
 }
 
 void Motor_Set_Speed(int32_t speed)

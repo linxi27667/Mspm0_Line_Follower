@@ -169,9 +169,11 @@ bool Bsp_ESP_AT_SendCmd(bsp_esp_at_ctx_t *ctx, const char *cmd,
     line_reset(ctx);
     ctx->state = BSP_ESP_AT_STATE_LINE;
 
-    /* 先排空 RX FIFO 里的残留（上一条指令的尾巴） */
+    /* Publish in-flight DMA bytes before discarding the previous command's
+     * tail; otherwise stale ERROR text can race the new command response. */
     {
         uint8_t b;
+        Bsp_UART_PumpRx(ctx->uart);
         while (Bsp_UART_ReadByte(ctx->uart, &b)) {}
     }
 

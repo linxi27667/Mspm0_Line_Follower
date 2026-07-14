@@ -6,6 +6,7 @@
 #define APP_ALL_H
 
 #include "app_common.h"
+#include "app_safety.h"
 #include "app_encoder_motor.h"
 #include "app_grayscale.h"
 #include "app_key.h"

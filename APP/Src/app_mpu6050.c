@@ -4,6 +4,7 @@
  * @note    通过 MPU6050_USE_HW_I2C 宏选择软件/硬件I2C
  */
 #include "app_mpu6050.h"
+#include "app_log.h"
 #include "bsp_common.h"
 #include <elog.h>
 
@@ -17,7 +18,7 @@
 #include "ti_msp_dl_config.h"
 
 /* I2C 操作超时阈值（循环计数）— 避免外设未启用 / 设备未应答时永久阻塞 */
-#define I2C_TIMEOUT_LOOP        (200000u)
+#define I2C_TIMEOUT_MS          2u
 
 /**
  * @brief   硬件I2C写寄存器（阻塞式 + 超时保护）
@@ -32,12 +33,12 @@ static uint8_t HW_I2C_Write_Reg(uint8_t dev_addr, uint8_t reg_addr,
                                  const uint8_t *data, uint16_t len)
 {
     I2C_Regs *i2c = MPU6050_HW_I2C_INST;
-    uint32_t timeout;
+    uint32_t start;
 
     /* 等待总线空闲（带超时） */
-    timeout = I2C_TIMEOUT_LOOP;
+    start = Bsp_GetTick();
     while (DL_I2C_getControllerStatus(i2c) & DL_I2C_CONTROLLER_STATUS_BUSY) {
-        if (--timeout == 0) return 2;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
 
     /* 清除可能残留的中断标志 */
@@ -55,10 +56,10 @@ static uint8_t HW_I2C_Write_Reg(uint8_t dev_addr, uint8_t reg_addr,
         DL_I2C_CONTROLLER_DIRECTION_TX, 1 + len);
 
     /* 等待传输完成（带超时） */
-    timeout = I2C_TIMEOUT_LOOP;
+    start = Bsp_GetTick();
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_TX_DONE))) {
-        if (--timeout == 0) return 2;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
     DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_TX_DONE);
 
@@ -82,12 +83,12 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
                                 uint8_t *data, uint16_t len)
 {
     I2C_Regs *i2c = MPU6050_HW_I2C_INST;
-    uint32_t timeout;
+    uint32_t start;
 
     /* 等待总线空闲（带超时） */
-    timeout = I2C_TIMEOUT_LOOP;
+    start = Bsp_GetTick();
     while (DL_I2C_getControllerStatus(i2c) & DL_I2C_CONTROLLER_STATUS_BUSY) {
-        if (--timeout == 0) return 2;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
 
     /* 清除残留中断标志 */
@@ -102,10 +103,10 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
         DL_I2C_CONTROLLER_DIRECTION_TX, 1);
 
     /* 等待写完成（带超时） */
-    timeout = I2C_TIMEOUT_LOOP;
+    start = Bsp_GetTick();
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_TX_DONE))) {
-        if (--timeout == 0) return 2;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
     DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_TX_DONE);
 
@@ -123,21 +124,21 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
 
     /* 边传输边从RX FIFO取数据，防止FIFO溢出丢字节 */
     uint16_t received = 0;
-    timeout = I2C_TIMEOUT_LOOP;
+    start = Bsp_GetTick();
     while (received < len) {
         uint32_t avail = DL_I2C_getControllerRXFIFOCounter(i2c);
         while (avail > 0 && received < len) {
             data[received++] = DL_I2C_receiveControllerData(i2c);
             avail--;
         }
-        if (--timeout == 0) return 2;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
 
     /* 等待RX_DONE并清除 */
-    timeout = I2C_TIMEOUT_LOOP;
+    start = Bsp_GetTick();
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_RX_DONE))) {
-        if (--timeout == 0) break;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) break;
     }
     DL_I2C_clearInterruptStatus(i2c,
         DL_I2C_INTERRUPT_CONTROLLER_RX_DONE |
@@ -219,10 +220,10 @@ void App_Mpu_Init(void)
     uint8_t ret = Bsp_MPU6050_Init_Device(&Mpu_Sensor);
 
     if (ret == 0 && Mpu_Sensor.gyro_ok) {
-        elog_i("MPU", "Init OK (gyro ready)");
+        APP_MPU_LOG_I("MPU", "Init OK (gyro ready)");
     } else {
         /* 失败也不阻塞主流程：gyro_ok=false 时航向角积分自动跳过 */
-        elog_w("MPU", "Init FAIL ret=%d gyro_ok=%d (continuing without gyro)",
+        APP_MPU_LOG_W("MPU", "Init FAIL ret=%d gyro_ok=%d (continuing without gyro)",
                ret, Mpu_Sensor.gyro_ok ? 1 : 0);
     }
 }

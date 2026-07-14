@@ -104,10 +104,14 @@ socket.on("telemetry", (tele) => {
         LL: "丢线",
         SL: "起点",
         CR: "十字",
+        RT: "原地旋转",
+        HH: "航向保持",
         FN: "完成",
     };
     document.getElementById("track-state").textContent =
         `状态: ${stateMap[tele.st] || tele.st || "-"}`;
+
+    updateLinkHealth(tele);
 });
 
 socket.on("client_status", (data) => {
@@ -125,6 +129,14 @@ socket.on("status", (data) => {
     document.getElementById("engine-info").textContent = `引擎: ${data.engine}`;
     if (typeof data.frame_count === "number" && data.frame_count > frameCount) {
         document.getElementById("frame-counter").textContent = `帧: ${data.frame_count}`;
+    }
+
+    // 请求待确认状态
+    if (typeof data.request_pending === "boolean") {
+        const pill = document.getElementById("link-health");
+        if (data.request_pending) {
+            pill.classList.add("link-warn");
+        }
     }
 });
 
@@ -165,6 +177,101 @@ document.getElementById("btn-stop").addEventListener("click", () => sendCmd("sto
 document.getElementById("btn-whitecal").addEventListener("click", () => sendCmd("whitecal"));
 document.getElementById("btn-blackcal").addEventListener("click", () => sendCmd("blackcal"));
 document.getElementById("btn-reconnect").addEventListener("click", () => sendCmd("reconnect"));
+
+const rotateControls = [
+    document.getElementById("btn-rotate-left"),
+    document.getElementById("btn-rotate-right"),
+    document.getElementById("btn-rotate-custom"),
+];
+const rotateStatus = document.getElementById("rotate-status");
+const rotateInput = document.getElementById("rotate-deg");
+const headingHoldButton = document.getElementById("btn-heading-hold");
+const headingHoldStatus = document.getElementById("heading-hold-status");
+let headingHoldActive = false;
+
+function setRotateControlsDisabled(disabled) {
+    rotateControls.forEach((button) => { button.disabled = disabled; });
+}
+
+function setRotateStatus(text, state = "idle") {
+    rotateStatus.textContent = text;
+    rotateStatus.className = `rotate-status is-${state}`;
+}
+
+function requestRotate(degrees) {
+    if (!Number.isFinite(degrees) || degrees === 0 || Math.abs(degrees) > 180) {
+        setRotateStatus("角度必须在 -180~180 且不能为 0", "fault");
+        return;
+    }
+    const direction = degrees > 0 ? "左转（逆时针）" : "右转（顺时针）";
+    if (!confirm(`确认原地${direction} ${Math.abs(degrees)}°？`)) return;
+    setRotateControlsDisabled(true);
+    setRotateStatus(`等待确认 ${degrees.toFixed(1)}°`, "pending");
+    socket.emit("send_rotate", { deg: degrees });
+}
+
+document.getElementById("btn-rotate-left").addEventListener("click", () => requestRotate(90));
+document.getElementById("btn-rotate-right").addEventListener("click", () => requestRotate(-90));
+document.getElementById("btn-rotate-custom").addEventListener("click", () => {
+    requestRotate(Number.parseFloat(rotateInput.value));
+});
+
+function setHeadingHoldStatus(text, active = false, pending = false) {
+    headingHoldActive = active;
+    headingHoldButton.disabled = pending;
+    headingHoldButton.textContent = active ? "停止航向保持" : "保持当前角度";
+    headingHoldStatus.textContent = text;
+    headingHoldStatus.className = `rotate-status is-${pending ? "pending" : active ? "running" : "idle"}`;
+}
+
+headingHoldButton.addEventListener("click", () => {
+    if (headingHoldActive) {
+        setHeadingHoldStatus("正在关闭", true, true);
+        sendCmd("heading_hold_off");
+        setTimeout(() => setHeadingHoldStatus("已关闭"), 250);
+        return;
+    }
+    if (!confirm("确认保持当前车身角度？")) return;
+    setHeadingHoldStatus("等待确认", false, true);
+    sendCmd("heading_hold_on");
+});
+
+socket.on("heading_hold_status", (data) => {
+    const target = Number(data.target_deg).toFixed(1);
+    const actual = Number(data.actual_deg).toFixed(1);
+    const error = Number(data.error_deg).toFixed(1);
+    setHeadingHoldStatus(`保持中 目标${target}° 当前${actual}° 误差${error}°`, data.active === true);
+});
+
+socket.on("rotate_status", (data) => {
+    const state = data.state || "terminal";
+    const result = data.result || "unknown";
+    if (state === "running") {
+        const target = Number(data.target_deg).toFixed(1);
+        const actual = Number(data.actual_deg).toFixed(1);
+        const error = Number(data.error_deg).toFixed(1);
+        setRotateStatus(`执行中 目标${target}° 实际${actual}° 误差${error}°`, "running");
+        return;
+    }
+    setRotateControlsDisabled(false);
+    if (state === "rejected") {
+        setRotateStatus(`已拒绝: ${result}`, "fault");
+    } else {
+        setRotateStatus(`结束: ${result}`, result === "complete" ? "complete" : "fault");
+    }
+});
+
+socket.on("request_status", (data) => {
+    if (data.state === "pending" && data.cmd === "rotate") return;
+    if (data.state === "rejected" || data.state === "timeout") {
+        setRotateControlsDisabled(false);
+        const detail = data.message || data.error || "unknown";
+        setRotateStatus(data.state === "timeout" ? `请求超时: ${detail}` : `已拒绝: ${detail}`, "fault");
+        if (headingHoldButton.disabled) {
+            setHeadingHoldStatus(data.state === "timeout" ? "航向保持请求超时" : `航向保持被拒绝: ${detail}`);
+        }
+    }
+});
 
 let lastSuggestion = null;
 
@@ -423,6 +530,204 @@ socket.on("auto_tuning_round", (snapshot) => {
     autoRoundsLog.appendChild(div);
     autoRoundsLog.scrollTop = autoRoundsLog.scrollHeight;
     while (autoRoundsLog.children.length > 50) autoRoundsLog.removeChild(autoRoundsLog.firstChild);
+});
+
+// ============================================================
+// 链路健康追踪
+// ============================================================
+
+let lastSeq = null;
+let lastMs = null;
+let lastFrameTime = null;
+let dropCount = 0;
+
+function updateLinkHealth(tele) {
+    const linkEl = document.getElementById("link-health");
+    const seq = tele.seq;
+    const ms = tele.ms;
+
+    // 帧间隔（浏览器侧）
+    const now = Date.now();
+    let intervalMs = 0;
+    if (lastFrameTime) intervalMs = now - lastFrameTime;
+    lastFrameTime = now;
+
+    // 丢帧统计
+    if (typeof seq === "number" && lastSeq !== null) {
+        const expected = (lastSeq + 1) & 0xFFFF;
+        if (seq !== expected) {
+            const lost = ((seq - expected + 0x10000) & 0xFFFF);
+            dropCount += lost;
+        }
+    }
+    if (typeof seq === "number") lastSeq = seq;
+
+    // MCU 帧年龄（浏览器接收时 ms 可能陈旧）
+    let ageMs = 0;
+    if (typeof ms === "number") {
+        if (lastMs !== null) {
+            // 检测 MCU 时间回退（重启）
+            if (ms < lastMs) lastMs = ms;
+        }
+        lastMs = ms;
+    }
+
+    // 链路健康分级
+    let cls = "link-good";
+    let label = "良好";
+    if (!intervalMs) {
+        label = "-";
+    } else if (intervalMs > 500 || dropCount > 50) {
+        cls = "link-bad";
+        label = `差(${intervalMs}ms,丢${dropCount})`;
+    } else if (intervalMs > 200 || dropCount > 10) {
+        cls = "link-warn";
+        label = `延迟(${intervalMs}ms,丢${dropCount})`;
+    } else {
+        label = `${intervalMs}ms,丢${dropCount}`;
+    }
+    linkEl.textContent = `链路: ${label}`;
+    linkEl.className = `status-pill ${cls}`;
+}
+
+// ============================================================
+// 本地约束优化器
+// ============================================================
+
+const optStateMap = {
+    idle: "空闲",
+    proposing: "生成候选",
+    awaiting_confirm: "等待确认",
+    applying: "下发参数",
+    running_trial_1: "试验1",
+    running_trial_2: "试验2",
+    rolling_back: "回滚",
+    converged: "收敛",
+    aborted: "中止",
+};
+
+const btnOptStart = document.getElementById("btn-opt-start");
+const btnOptConfirm = document.getElementById("btn-opt-confirm");
+const btnOptStop = document.getElementById("btn-opt-stop");
+const btnOptExport = document.getElementById("btn-opt-export");
+const btnOptExportRace = document.getElementById("btn-opt-export-race");
+const optStatePill = document.getElementById("opt-state-pill");
+const optCandidatesEl = document.getElementById("opt-candidates");
+const optBestEl = document.getElementById("opt-best");
+const optMessageEl = document.getElementById("opt-message");
+const optCandidateList = document.getElementById("opt-candidate-list");
+
+btnOptStart.addEventListener("click", () => {
+    const targetLaps = Number.parseInt(document.getElementById("opt-target-laps").value, 10) || 5;
+    if (!confirm(`启动优化器？目标 ${targetLaps} 圈，将自动搜索最佳参数。`)) return;
+    socket.emit("optimizer_start", { target_laps: targetLaps });
+});
+
+btnOptConfirm.addEventListener("click", () => {
+    socket.emit("optimizer_confirm");
+});
+
+btnOptStop.addEventListener("click", () => {
+    socket.emit("optimizer_stop");
+});
+
+btnOptExport.addEventListener("click", () => {
+    socket.emit("optimizer_export");
+});
+
+btnOptExportRace.addEventListener("click", () => {
+    socket.emit("optimizer_export_race");
+});
+
+socket.on("optimizer_state", (data) => {
+    const state = data.state || "idle";
+    const label = optStateMap[state] || state;
+    optStatePill.textContent = label;
+
+    // 状态样式
+    optStatePill.className = "opt-state-pill";
+    if (["running_trial_1", "running_trial_2", "proposing", "applying"].includes(state)) {
+        optStatePill.classList.add("is-active");
+    } else if (state === "awaiting_confirm") {
+        optStatePill.classList.add("is-awaiting");
+    } else if (["aborted", "rolling_back"].includes(state)) {
+        optStatePill.classList.add("is-fault");
+    }
+
+    // 候选计数
+    const generated = data.candidates_generated ?? 0;
+    const maxC = data.max_candidates ?? 0;
+    optCandidatesEl.textContent = `${generated}/${maxC}`;
+
+    // 最佳参数
+    const best = data.best_params;
+    if (best && Object.keys(best).length > 0) {
+        const summary = `KP=${best.KP?.toFixed(1)} V=${best.VBASE?.toFixed(0)}`;
+        optBestEl.textContent = summary;
+    } else {
+        optBestEl.textContent = "-";
+    }
+
+    // 消息
+    const msg = data.msg || "";
+    if (msg) {
+        optMessageEl.textContent = msg;
+        optMessageEl.className = "opt-message";
+    } else {
+        optMessageEl.textContent = label;
+        optMessageEl.className = "opt-message";
+    }
+
+    // 按钮状态
+    const isActive = state !== "idle" && state !== "converged" && state !== "aborted";
+    btnOptStart.disabled = isActive;
+    btnOptStop.disabled = !isActive;
+    btnOptConfirm.disabled = state !== "awaiting_confirm";
+    btnOptExport.disabled = generated === 0;
+    btnOptExportRace.disabled = !best || Object.keys(best).length === 0;
+});
+
+socket.on("optimizer_candidate", (data) => {
+    const row = document.createElement("div");
+    const accepted = data.accepted;
+    row.className = `opt-cand-row ${accepted ? "is-accepted" : "is-rejected"}`;
+
+    const params = data.params || {};
+    const paramSummary = Object.entries(params)
+        .map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(1) : v}`)
+        .join(" ");
+
+    const resultText = accepted ? "采纳" : (data.abort_reason || "拒绝");
+
+    row.innerHTML =
+        `<span class="opt-cand-idx">#${data.index}</span>` +
+        `<span class="opt-cand-params"></span>` +
+        `<span class="opt-cand-result">${resultText}</span>`;
+    row.querySelector(".opt-cand-params").textContent = paramSummary;
+
+    optCandidateList.appendChild(row);
+    optCandidateList.scrollTop = optCandidateList.scrollHeight;
+    while (optCandidateList.children.length > 50) {
+        optCandidateList.removeChild(optCandidateList.firstChild);
+    }
+});
+
+socket.on("optimizer_report", (report) => {
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `optimizer-report-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+});
+
+socket.on("optimizer_race_header", (data) => {
+    const box = document.getElementById("opt-race-header");
+    if (data.error) {
+        box.textContent = `错误: ${data.error}`;
+        return;
+    }
+    box.textContent = data.content || "";
 });
 
 setInterval(() => {

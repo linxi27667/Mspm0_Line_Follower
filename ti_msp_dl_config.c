@@ -275,7 +275,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_Monitor_Left_Timer_init(void) {
     DL_TimerG_initPWMMode(
         Monitor_Left_Timer_INST, (DL_TimerG_PWMConfig *) &gMonitor_Left_TimerConfig);
 
-    DL_TimerG_setCaptureCompareValue(Monitor_Left_Timer_INST, 100, DL_TIMER_CC_0_INDEX);
+    DL_TimerG_setCaptureCompareValue(Monitor_Left_Timer_INST, 0, DL_TIMER_CC_0_INDEX);
     DL_TimerG_setCaptureCompareOutCtl(Monitor_Left_Timer_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
 		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
 		DL_TIMERG_CAPTURE_COMPARE_0_INDEX);
@@ -314,7 +314,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_Right_Motor_Timer_init(void) {
     DL_TimerG_initPWMMode(
         Right_Motor_Timer_INST, (DL_TimerG_PWMConfig *) &gRight_Motor_TimerConfig);
 
-    DL_TimerG_setCaptureCompareValue(Right_Motor_Timer_INST, 100, DL_TIMER_CC_0_INDEX);
+    DL_TimerG_setCaptureCompareValue(Right_Motor_Timer_INST, 0, DL_TIMER_CC_0_INDEX);
     DL_TimerG_setCaptureCompareOutCtl(Right_Motor_Timer_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
 		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
 		DL_TIMERG_CAPTURE_COMPARE_0_INDEX);

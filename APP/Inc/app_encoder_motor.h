@@ -10,17 +10,17 @@
 #include "user_tuning.h"
 
 /* ============ 左电机硬件配置 ============ */
-#define MOTOR_LEFT_PWM_TIMER        TIMG7
-#define MOTOR_LEFT_PWM_CHANNEL      0
-#define MOTOR_LEFT_ENC_TIMER        TIMG8
+#define MOTOR_LEFT_PWM_TIMER        Monitor_Left_Timer_INST
+#define MOTOR_LEFT_PWM_CHANNEL      GPIO_Monitor_Left_Timer_C0_IDX
+#define MOTOR_LEFT_ENC_TIMER        Encoder_Timer_INST
 #define MOTOR_LEFT_DIR1_PORT        Monitor_Dir_PORT
 #define MOTOR_LEFT_DIR1_PIN         Monitor_Dir_Monitor_AIN1_PIN
 #define MOTOR_LEFT_DIR2_PORT        Monitor_Dir_PORT
 #define MOTOR_LEFT_DIR2_PIN         Monitor_Dir_Monitor_AIN2_PIN
 
 /* ============ 右电机硬件配置 ============ */
-#define MOTOR_RIGHT_PWM_TIMER       TIMG6
-#define MOTOR_RIGHT_PWM_CHANNEL     0
+#define MOTOR_RIGHT_PWM_TIMER       Right_Motor_Timer_INST
+#define MOTOR_RIGHT_PWM_CHANNEL     GPIO_Right_Motor_Timer_C0_IDX
 #define MOTOR_RIGHT_DIR1_PORT       Right_Motor_Dir_PORT
 #define MOTOR_RIGHT_DIR1_PIN        Right_Motor_Dir_AIN1_PIN
 #define MOTOR_RIGHT_DIR2_PORT       Right_Motor_Dir_PORT
@@ -28,7 +28,7 @@
 
 /* ============ 右编码器硬件配置（GPIO中断方式） ============
  * MSPM0G3507仅有一个硬件QEI(TIMG8)，已被左编码器占用
- * 右编码器使用GPIO中断计数: PB14=PHA(双沿中断), PB15=PHB
+ * 右编码器使用GPIO中断计数: PB12=PHA(双沿中断), PB13=PHB
  */
 #define RIGHT_ENC_PHA_PORT          Right_Encoder_PORT
 #define RIGHT_ENC_PHA_PIN           Right_Encoder_PHA_PIN
@@ -38,35 +38,29 @@
 /* ============ 速度PID参数 ============
  * 级联控制: 位置PID(循迹) → 目标速度 → 速度PID → PWM
  *
+ * 所有 USER_MOTOR_SPEED_PID_* 默认值唯一定义在 user_tuning.h。
+ * 此处只保留别名，不再保留 #ifndef 回退默认值。
+ *
  * speed_scale: 编码器计数/周期 对应 1% PWM 的系数
  *   计算式: actual_speed = encoder_speed / speed_scale
  *   校准方法: 设 PWM=50, 测 encoder_speed, scale = encoder_speed / 50
  *   注意: 未校准时 scale=1.0, encoder_speed 被直接当作速度单位,
  *         闭环性能不可靠。需实车标定后调用 App_Motor_Calibrate_Scale()。
  *   左编码器(QEI 4x)与右编码器(GPIO 2x)分辨率不同,
- *         必须分别为左右设置不同 scale (典型 scale_right ≈ 2 * scale_left)。
+ *         必须分别为左右设置不同 scale (典型 scale_right约为0.5 * scale_left)。
  *
  * integral_sep: 积分分离阈值, 误差超过此值时不累加积分
  *   作用: 启动/急停时避免积分饱和导致超调
  */
-#ifndef USER_MOTOR_SPEED_PID_KP
-#define USER_MOTOR_SPEED_PID_KP    0.8f
-#endif
-#ifndef USER_MOTOR_SPEED_PID_KI
-#define USER_MOTOR_SPEED_PID_KI    0.2f
-#endif
-#ifndef USER_MOTOR_SPEED_PID_KD
-#define USER_MOTOR_SPEED_PID_KD    0.0f
-#endif
-#ifndef USER_MOTOR_SPEED_PID_ILIMIT
-#define USER_MOTOR_SPEED_PID_ILIMIT 30.0f
-#endif
-#ifndef USER_MOTOR_SPEED_PID_OLIMIT
-#define USER_MOTOR_SPEED_PID_OLIMIT 30.0f
-#endif
-#ifndef USER_MOTOR_SPEED_PID_INTEGRAL_SEP
-#define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f
-#endif
+#define MOTOR_SPEED_PID_KP          USER_MOTOR_SPEED_PID_KP
+#define MOTOR_SPEED_PID_KI          USER_MOTOR_SPEED_PID_KI
+#define MOTOR_SPEED_PID_KD          USER_MOTOR_SPEED_PID_KD
+#define MOTOR_SPEED_PID_ILIMIT      USER_MOTOR_SPEED_PID_ILIMIT
+#define MOTOR_SPEED_PID_OLIMIT      USER_MOTOR_SPEED_PID_OLIMIT
+#define MOTOR_SPEED_PID_INTEGRAL_SEP USER_MOTOR_SPEED_PID_INTEGRAL_SEP
+#define MOTOR_SPEED_FILTER_ALPHA     USER_MOTOR_SPEED_FILTER_ALPHA
+#define MOTOR_SPEED_START_THRESHOLD  USER_MOTOR_SPEED_START_THRESHOLD
+#define MOTOR_SPEED_MIN_DRIVE_PWM    USER_MOTOR_SPEED_MIN_DRIVE_PWM
 
 /* 左右独立速度比例尺 (国一方案: 左右编码器分辨率不同必须分别标定)
  * 若只定义了 USER_MOTOR_SPEED_SCALE (兼容旧配置), 左右都用该值 */
@@ -77,21 +71,8 @@
 #ifndef USER_MOTOR_SPEED_SCALE_RIGHT
 #define USER_MOTOR_SPEED_SCALE_RIGHT  USER_MOTOR_SPEED_SCALE
 #endif
-#else
-#ifndef USER_MOTOR_SPEED_SCALE_LEFT
-#define USER_MOTOR_SPEED_SCALE_LEFT   1.0f
-#endif
-#ifndef USER_MOTOR_SPEED_SCALE_RIGHT
-#define USER_MOTOR_SPEED_SCALE_RIGHT  1.0f
-#endif
 #endif
 
-#define MOTOR_SPEED_PID_KP          USER_MOTOR_SPEED_PID_KP
-#define MOTOR_SPEED_PID_KI          USER_MOTOR_SPEED_PID_KI
-#define MOTOR_SPEED_PID_KD          USER_MOTOR_SPEED_PID_KD
-#define MOTOR_SPEED_PID_ILIMIT      USER_MOTOR_SPEED_PID_ILIMIT
-#define MOTOR_SPEED_PID_OLIMIT      USER_MOTOR_SPEED_PID_OLIMIT
-#define MOTOR_SPEED_PID_INTEGRAL_SEP USER_MOTOR_SPEED_PID_INTEGRAL_SEP
 #define MOTOR_SPEED_SCALE_LEFT_DEFAULT   USER_MOTOR_SPEED_SCALE_LEFT
 #define MOTOR_SPEED_SCALE_RIGHT_DEFAULT  USER_MOTOR_SPEED_SCALE_RIGHT
 

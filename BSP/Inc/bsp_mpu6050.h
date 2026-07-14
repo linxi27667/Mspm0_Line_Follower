@@ -47,6 +47,7 @@ typedef struct {
     float    heading;            /* 累计航向角(deg)，积分得到 */
     bool     gyro_ok;            /* 初始化成功标志 */
     bool     calibrated;         /* 零偏校准完成标志 */
+    bool     data_valid;         /* 最近一次完整I2C采样有效 */
 
     /* --- 5. 抽象延时方法 --- */
     void (*Delay_ms)(uint32_t ms);

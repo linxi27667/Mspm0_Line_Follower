@@ -5,6 +5,7 @@
  *          I2C操作通过函数指针调用，不依赖具体总线实现
  */
 #include "bsp_mpu6050.h"
+#include "app_log.h"
 #include <elog.h>
 #include <stddef.h>
 #include <math.h>
@@ -16,6 +17,7 @@ uint8_t Bsp_MPU6050_Init_Device(bsp_mpu_t *mpu)
 
     mpu->gyro_ok       = false;
     mpu->calibrated    = false;
+    mpu->data_valid    = false;
     mpu->gyro_z_offset = 0;
     mpu->heading       = 0;
 
@@ -23,11 +25,11 @@ uint8_t Bsp_MPU6050_Init_Device(bsp_mpu_t *mpu)
     uint8_t check_id = 0;
     uint8_t ret = mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_WHO_AM_I_REG, &check_id, 1);
     if (check_id != 0x68 && check_id != 0x70 && check_id != 0x71) {
-        elog_e("MPU", "WHO_AM_I fail: ret=%d id=0x%02X addr=0x%02X",
+        APP_MPU_LOG_E("MPU", "WHO_AM_I fail: ret=%d id=0x%02X addr=0x%02X",
                ret, check_id, mpu->dev_addr);
         return 1;
     }
-    elog_i("MPU", "WHO_AM_I OK: id=0x%02X addr=0x%02X", check_id, mpu->dev_addr);
+    APP_MPU_LOG_I("MPU", "WHO_AM_I OK: id=0x%02X addr=0x%02X", check_id, mpu->dev_addr);
 
     /* 唤醒 */
     uint8_t w = 0x00;
@@ -60,7 +62,10 @@ void Bsp_MPU6050_Read_Data(bsp_mpu_t *mpu)
     if (mpu == NULL || mpu->I2C_Read_Reg == NULL) return;
 
     uint8_t raw[14];
-    if (mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_ACCEL_XOUT_H_REG, raw, 14) != 0) return;
+    if (mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_ACCEL_XOUT_H_REG, raw, 14) != 0) {
+        mpu->data_valid = false;
+        return;
+    }
 
     int16_t ax = (int16_t)((raw[0] << 8) | raw[1]);
     int16_t ay = (int16_t)((raw[2] << 8) | raw[3]);
@@ -77,21 +82,25 @@ void Bsp_MPU6050_Read_Data(bsp_mpu_t *mpu)
     mpu->gyro_x  = (float)gx / BSP_MPU_GYRO_SENS;
     mpu->gyro_y  = (float)gy / BSP_MPU_GYRO_SENS;
     mpu->gyro_z  = (float)gz / BSP_MPU_GYRO_SENS;
+    mpu->data_valid = true;
 }
 
 /* ================= 3. 零偏校准 ================= */
 void Bsp_MPU6050_Calibrate(bsp_mpu_t *mpu)
 {
     if (mpu == NULL || mpu->I2C_Read_Reg == NULL || !mpu->gyro_ok) {
-        if (mpu != NULL) mpu->calibrated = false;
-        elog_w("MPU", "gyro bias calibration skipped: gyro not ready");
+        if (mpu != NULL) {
+            mpu->calibrated = false;
+            mpu->data_valid = false;
+        }
+        APP_MPU_LOG_W("MPU", "gyro bias calibration skipped: gyro not ready");
         return;
     }
 
     float sum = 0, sum_sq = 0;
     float samples[BSP_MPU_CALIB_SAMPLES];
 
-    elog_i("MPU", "gyro bias calibration start: keep car still, samples=%d interval=%dms",
+    APP_MPU_LOG_I("MPU", "gyro bias calibration start: keep car still, samples=%d interval=%dms",
            BSP_MPU_CALIB_SAMPLES, BSP_MPU_CALIB_INTERVAL_MS);
 
     /* 采集 N 个样本 */
@@ -99,14 +108,15 @@ void Bsp_MPU6050_Calibrate(bsp_mpu_t *mpu)
         uint8_t raw[14];
         if (mpu->I2C_Read_Reg(mpu->dev_addr, BSP_MPU_ACCEL_XOUT_H_REG, raw, 14) != 0) {
             mpu->calibrated = false;
-            elog_w("MPU", "gyro bias calibration failed: i2c read at sample %d", i);
+            mpu->data_valid = false;
+            APP_MPU_LOG_W("MPU", "gyro bias calibration failed: i2c read at sample %d", i);
             return;
         }
         int16_t gz = (int16_t)((raw[12] << 8) | raw[13]);
         samples[i] = (float)gz / BSP_MPU_GYRO_SENS;
         sum += samples[i];
         if (((i + 1) % 50u) == 0u) {
-            elog_i("MPU", "gyro bias calibration progress: %d/%d",
+            APP_MPU_LOG_I("MPU", "gyro bias calibration progress: %d/%d",
                    i + 1, BSP_MPU_CALIB_SAMPLES);
         }
         if (mpu->Delay_ms) mpu->Delay_ms(BSP_MPU_CALIB_INTERVAL_MS);
@@ -125,14 +135,15 @@ void Bsp_MPU6050_Calibrate(bsp_mpu_t *mpu)
     /* 标准差过大说明校准期间有运动，放弃校准 */
     if (std_dev > BSP_MPU_CALIB_MAX_STD) {
         mpu->calibrated = false;
-        elog_w("MPU", "gyro bias calibration failed: std=%.3f deg/s > %.3f",
+        APP_MPU_LOG_W("MPU", "gyro bias calibration failed: std=%.3f deg/s > %.3f",
                (double)std_dev, (double)BSP_MPU_CALIB_MAX_STD);
         return;
     }
 
     mpu->gyro_z_offset = mean;
     mpu->calibrated = true;
-    elog_i("MPU", "gyro bias calibrated: bias=%.3f deg/s std=%.3f deg/s",
+    mpu->data_valid = true;
+    APP_MPU_LOG_I("MPU", "gyro bias calibrated: bias=%.3f deg/s std=%.3f deg/s",
            (double)mpu->gyro_z_offset, (double)std_dev);
 }
 
@@ -143,6 +154,7 @@ void Bsp_MPU6050_Update_Heading(bsp_mpu_t *mpu, float dt)
 
     /* 读取最新数据 */
     Bsp_MPU6050_Read_Data(mpu);
+    if (!mpu->data_valid) return;
 
     /* 减去零偏 */
     if (mpu->calibrated) {
