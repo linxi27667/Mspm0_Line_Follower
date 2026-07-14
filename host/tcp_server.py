@@ -180,7 +180,9 @@ class TcpServer:
             self._last_request_id = clean["id"]
             return clean
         if obj.get("t") == "auth":
-            return load_json_object(build_auth(obj.get("token", "")))
+            return load_json_object(build_auth(
+                obj.get("token", ""), session=obj.get("session"),
+            ))
         if obj.get("t") == "ping":
             return validate_ping(obj)
         raise ProtocolError("outgoing message must be set, cmd, or ping")
@@ -429,21 +431,13 @@ class RequestManager:
             except (ProtocolError, ValueError) as exc:
                 logger.error("request manager: build_set failed: %s", exc)
                 return False
-
-        if not self._tcp.send(json_str):
-            return False
-
-        with self._lock:
             self._pending_json = json_str
             self._pending_id = request_id
             self._pending_kind = "set"
             self._pending_params = dict(params)
             self._pending_cmd = None
             self._attempt = 0
-            self._start_timer_locked()
-
-        logger.info("request manager: sent set id=%d (attempt 0)", request_id)
-        return True
+        return self._send_reserved(request_id, "set")
 
     def send_cmd(self, cmd: str) -> bool:
         """Send a cmd request. Returns False if busy or send failed."""
@@ -457,21 +451,13 @@ class RequestManager:
             except (ProtocolError, ValueError) as exc:
                 logger.error("request manager: build_cmd failed: %s", exc)
                 return False
-
-        if not self._tcp.send(json_str):
-            return False
-
-        with self._lock:
             self._pending_json = json_str
             self._pending_id = request_id
             self._pending_kind = "cmd"
             self._pending_params = None
             self._pending_cmd = cmd
             self._attempt = 0
-            self._start_timer_locked()
-
-        logger.info("request manager: sent cmd id=%d (attempt 0)", request_id)
-        return True
+        return self._send_reserved(request_id, "cmd")
 
     def send_rotate(self, degrees: float) -> bool:
         """Send one signed-angle rotate command with normal ACK/retry handling."""
@@ -485,21 +471,13 @@ class RequestManager:
             except (ProtocolError, ValueError) as exc:
                 logger.error("request manager: build_rotate failed: %s", exc)
                 return False
-
-        if not self._tcp.send(json_str):
-            return False
-
-        with self._lock:
             self._pending_json = json_str
             self._pending_id = request_id
             self._pending_kind = "cmd"
             self._pending_params = None
             self._pending_cmd = f"rotate:{degrees:.1f}"
             self._attempt = 0
-            self._start_timer_locked()
-
-        logger.info("request manager: sent rotate id=%d deg=%.1f", request_id, degrees)
-        return True
+        return self._send_reserved(request_id, "rotate")
 
     def send_stop_override(self) -> bool:
         """Cancel the pending request locally and send a tracked stop immediately."""
@@ -535,8 +513,26 @@ class RequestManager:
 
     # ---------- internal ----------
 
+    def _send_reserved(self, request_id: int, label: str) -> bool:
+        """Send after publishing pending state, allowing a synchronous ACK safely."""
+        with self._lock:
+            json_str = self._pending_json
+        if json_str is None or not self._tcp.send(json_str):
+            with self._lock:
+                if self._pending_id == request_id:
+                    self._clear_pending_locked()
+            return False
+
+        with self._lock:
+            # A fast ACK may already have resolved the request.
+            if self._pending_id == request_id:
+                self._start_timer_locked()
+        logger.info("request manager: sent %s id=%d (attempt 0)", label, request_id)
+        return True
+
     def _handle_timeout(self):
         """Timer callback: retry with same ID or declare timeout."""
+        snapshot = None
         with self._lock:
             if self._pending_json is None:
                 return  # already resolved by ACK
@@ -561,26 +557,31 @@ class RequestManager:
             else:
                 # retry: resend exact same JSON (same ID)
                 json_str = self._pending_json
-                sent_ok = self._tcp.send(json_str)
-                if sent_ok:
-                    self._start_timer_locked()
-                    logger.info(
-                        "request manager: retry id=%d (attempt %d)",
-                        request_id, attempt,
-                    )
-                    return
-                # send failed (client gone) → treat as timeout
-                snapshot = {
-                    "id": request_id,
-                    "kind": self._pending_kind,
-                    "params": self._pending_params,
-                    "cmd": self._pending_cmd,
-                    "attempts": attempt,
-                }
-                self._clear_pending_locked()
-                logger.warning(
-                    "request manager: send failed on retry id=%d", request_id,
-                )
+                snapshot = None
+
+        if snapshot is not None:
+            if self._on_timeout:
+                self._on_timeout(snapshot)
+            return
+
+        sent_ok = self._tcp.send(json_str)
+        with self._lock:
+            # A synchronous ACK may have cleared this request during send().
+            if self._pending_id != request_id:
+                return
+            if sent_ok:
+                self._start_timer_locked()
+                logger.info("request manager: retry id=%d (attempt %d)", request_id, attempt)
+                return
+            snapshot = {
+                "id": request_id,
+                "kind": self._pending_kind,
+                "params": self._pending_params,
+                "cmd": self._pending_cmd,
+                "attempts": attempt,
+            }
+            self._clear_pending_locked()
+            logger.warning("request manager: send failed on retry id=%d", request_id)
 
         # invoke callback outside lock
         if self._on_timeout:

@@ -130,10 +130,10 @@ class TcpServerTests(unittest.TestCase):
         self.assertGreater(automatic["id"], 0)
 
     def test_send_auth_frame(self):
-        self.assertTrue(self.server.send(build_auth("track_car_2025")))
+        self.assertTrue(self.server.send(build_auth("track_car_2025", session="session-123")))
         self.assertEqual(
             self.recv_frame(),
-            {"v": 1, "t": "auth", "token": "track_car_2025"},
+            {"v": 1, "t": "auth", "token": "track_car_2025", "session": "session-123"},
         )
 
     def test_log_callback_and_keepalive_are_enabled(self):

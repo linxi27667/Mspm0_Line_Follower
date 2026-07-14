@@ -35,6 +35,63 @@ def compile_and_run(source: str) -> subprocess.CompletedProcess:
 
 
 class TrackLogicTests(unittest.TestCase):
+    def test_safety_health_and_ready_gate(self):
+        result = compile_and_run(
+            r'''
+            #include <stdint.h>
+            #include "APP/Inc/safety_logic.h"
+
+            int main(void) {
+                safety_health_t h = {0};
+                h.encoder_left_ok = true;
+                h.encoder_right_ok = true;
+                h.remote_armed = true;
+                h.heartbeat_seen = true;
+                h.last_heartbeat_tick = 100u;
+                h.last_control_tick = 180u;
+                if (Safety_Logic_Check(200u, &h, 500u, 50u, 25u) != SAFETY_LOGIC_OK) return 1;
+                if (Safety_Logic_Check(601u, &h, 500u, 50u, 25u) != SAFETY_LOGIC_HEARTBEAT_LOST) return 2;
+                h.last_heartbeat_tick = UINT32_MAX - 10u;
+                h.last_control_tick = 4u;
+                if (Safety_Logic_Check(9u, &h, 500u, 50u, 25u) != SAFETY_LOGIC_OK) return 3;
+                h.encoder_left_ok = false;
+                if (Safety_Logic_Check(9u, &h, 500u, 50u, 25u) != SAFETY_LOGIC_ENCODER_ANOMALY) return 4;
+                h.encoder_left_ok = true;
+                h.grayscale_required = true;
+                h.grayscale_seen = true;
+                h.last_grayscale_tick = UINT32_MAX - 10u;
+                if (Safety_Logic_Check(9u, &h, 500u, 50u, 25u) != SAFETY_LOGIC_OK) return 7;
+                if (Safety_Logic_Check(50u, &h, 500u, 50u, 100u) != SAFETY_LOGIC_GRAYSCALE_EXPIRED) return 8;
+                if (!Safety_Logic_CanEnterRotation(2u)) return 5;
+                if (Safety_Logic_CanEnterRotation(0u) || Safety_Logic_CanEnterRotation(1u) ||
+                    Safety_Logic_CanEnterRotation(3u) || Safety_Logic_CanEnterRotation(4u)) return 6;
+                return 0;
+            }
+            '''
+        )
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_encoder_stall_and_impossible_delta_are_faults(self):
+        result = compile_and_run(
+            r'''
+            #include "APP/Inc/encoder_health_logic.h"
+
+            int main(void) {
+                encoder_health_monitor_t h = {0};
+                for (int i = 0; i < 39; ++i) {
+                    if (!Encoder_Health_UpdateSide(20, 0, 8, 20000, 40, &h.left_stall_ticks)) return 1;
+                }
+                if (Encoder_Health_UpdateSide(20, 0, 8, 20000, 40, &h.left_stall_ticks)) return 2;
+                if (!Encoder_Health_UpdateSide(20, 3, 8, 20000, 40, &h.left_stall_ticks)) return 3;
+                if (h.left_stall_ticks != 0) return 4;
+                if (Encoder_Health_UpdateSide(20, 20001, 8, 20000, 40, &h.left_stall_ticks)) return 5;
+                if (!Encoder_Health_UpdateSide(0, 0, 8, 20000, 40, &h.left_stall_ticks)) return 6;
+                return 0;
+            }
+            '''
+        )
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
     def test_right_angle_exit_requires_min_angle_before_line_capture(self):
         result = compile_and_run(
             r'''

@@ -232,10 +232,11 @@ static tc1_decode_result_t finalize_frame(tc1_parser_t *p, tc1_frame_t *out)
     /* ID 提取与重复检测（仅对带 id 的消息） */
     uint32_t msg_id = 0;
     bool has_id = json_find_uint((const char *)p->payload, "id", &msg_id);
+    bool duplicate_id = false;
     if (has_id) {
         if (p->last_msg_id_valid && msg_id == p->last_msg_id) {
             p->frames_duplicate_id++;
-            /* 重复 ID 不拒绝，仅统计（主机重试场景） */
+            duplicate_id = true;
         }
         p->last_msg_id = msg_id;
         p->last_msg_id_valid = true;
@@ -248,6 +249,7 @@ static tc1_decode_result_t finalize_frame(tc1_parser_t *p, tc1_frame_t *out)
         out->json_len = p->payload_idx;
         out->msg_id = msg_id;
         out->has_id = has_id;
+        out->duplicate_id = duplicate_id;
     }
 
     p->frames_ok++;

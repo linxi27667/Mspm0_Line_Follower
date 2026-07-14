@@ -407,11 +407,16 @@ def build_ping(ms: int) -> str:
     return compact_json(obj)
 
 
-def build_auth(token: str) -> str:
+def build_auth(token: str, session: str | None = None) -> str:
     """Build the one-way connection authentication message."""
     if not isinstance(token, str) or not token or len(token) >= 64:
         raise ProtocolError("auth token must contain 1 to 63 characters")
-    return compact_json({"v": PROTOCOL_VERSION, "t": "auth", "token": token})
+    obj = {"v": PROTOCOL_VERSION, "t": "auth", "token": token}
+    if session is not None:
+        if not isinstance(session, str) or not session or len(session) > 32:
+            raise ProtocolError("auth session must contain 1 to 32 characters")
+        obj["session"] = session
+    return compact_json(obj)
 
 
 def build_ack(

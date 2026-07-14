@@ -40,6 +40,16 @@ static bool         s_authenticated   = false;
 /* 静态缓冲区 (避免栈分配) */
 static char s_telem_json[TC1_MAX_JSON_BYTES + 1]; /* 遥测 JSON 组包缓冲 */
 static char s_ack_json[256];            /* ACK JSON 组包缓冲 */
+static char s_cached_ack_json[256];     /* 最近 SET/CMD ACK，供同 ID 重试重放 */
+static uint16_t s_cached_ack_len = 0;
+static uint32_t s_cached_ack_id = 0;
+static bool s_cached_ack_valid = false;
+static tc1_msg_type_t s_cached_ack_type = TC1_MSG_UNKNOWN;
+static uint32_t s_cached_request_crc = 0;
+static tc1_msg_type_t s_dispatch_type = TC1_MSG_UNKNOWN;
+static uint32_t s_dispatch_request_crc = 0;
+static char s_auth_session[33];
+static bool s_auth_session_valid = false;
 static uint8_t s_tx_frame[TC1_MAX_FRAME_BYTES + 1]; /* TC1 编码输出缓冲 */
 
 /* ============================================================
@@ -203,6 +213,14 @@ static void send_ack(uint32_t msg_id, bool has_id, bool ok,
 
     if (n > 0 && n < (int)sizeof(s_ack_json)) {
         send_tc1_json(s_ack_json, (uint16_t)n);
+        if (has_id) {
+            memcpy(s_cached_ack_json, s_ack_json, (size_t)n + 1u);
+            s_cached_ack_len = (uint16_t)n;
+            s_cached_ack_id = msg_id;
+            s_cached_ack_type = s_dispatch_type;
+            s_cached_request_crc = s_dispatch_request_crc;
+            s_cached_ack_valid = true;
+        }
     }
 }
 
@@ -270,7 +288,17 @@ static bool apply_cmd(const char *json, const char **error)
     }
     if (strcmp(cmd, "start") == 0) {
         APP_TUNING_LOG_I(LOG_TAG, "cmd start");
-        Track_Start();
+        if ((Safety_GetState() != SAFETY_STATE_READY &&
+             Safety_GetState() != SAFETY_STATE_FINISHED) ||
+            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "safety_not_ready";
+            return false;
+        }
+        if (!Track_Start()) {
+            Safety_DisarmRemoteMotion();
+            *error = "safety_rejected";
+            return false;
+        }
         return true;
     } else if (strcmp(cmd, "stop") == 0) {
         APP_TUNING_LOG_I(LOG_TAG, "cmd stop");
@@ -297,7 +325,13 @@ static bool apply_cmd(const char *json, const char **error)
         APP_TUNING_LOG_I(LOG_TAG, "cmd rotate link-test accepted=%d", (int)degrees);
         return true;
 #else
+        if (Safety_GetState() != SAFETY_STATE_READY ||
+            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "safety_not_ready";
+            return false;
+        }
         if (!Track_Start_Rotation(degrees)) {
+            Safety_DisarmRemoteMotion();
             *error = Track_Get_Rotation_Result();
             return false;
         }
@@ -305,7 +339,13 @@ static bool apply_cmd(const char *json, const char **error)
         return true;
 #endif
     } else if (strcmp(cmd, "heading_hold_on") == 0) {
+        if (Safety_GetState() != SAFETY_STATE_READY ||
+            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "safety_not_ready";
+            return false;
+        }
         if (!Track_Start_Heading_Hold()) {
+            Safety_DisarmRemoteMotion();
             *error = Track_Get_Heading_Hold_Result();
             return false;
         }
@@ -334,12 +374,35 @@ static void dispatch_frame(const tc1_frame_t *frame)
     (void)frame;
     return;
 #else
+    if ((frame->type == TC1_MSG_SET || frame->type == TC1_MSG_CMD) &&
+        frame->duplicate_id && s_cached_ack_valid &&
+        frame->msg_id == s_cached_ack_id &&
+        frame->type == s_cached_ack_type &&
+        App_TC1_CRC32((const uint8_t *)frame->json, frame->json_len) ==
+            s_cached_request_crc) {
+        send_tc1_json(s_cached_ack_json, s_cached_ack_len);
+        APP_TUNING_LOG_I(LOG_TAG, "replayed ACK id=%lu", (unsigned long)frame->msg_id);
+        return;
+    }
     switch (frame->type) {
     case TC1_MSG_AUTH: {
         /* 认证: 检查 token. 用 nack/log 响应 (ack kind 仅限 set/cmd) */
         char token[64];
+        char session[33];
         if (find_str(frame->json, "token", token, sizeof(token)) &&
             strcmp(token, APP_TUNING_AUTH_TOKEN) == 0) {
+            bool has_session = find_str(frame->json, "session", session, sizeof(session));
+            if (!has_session || !s_auth_session_valid ||
+                strcmp(session, s_auth_session) != 0) {
+                /* 新 TCP/host 会话清理旧 ACK；同会话 AUTH 重发不影响幂等缓存。 */
+                s_cached_ack_valid = false;
+                if (has_session) {
+                    memcpy(s_auth_session, session, strlen(session) + 1u);
+                    s_auth_session_valid = true;
+                } else {
+                    s_auth_session_valid = false;
+                }
+            }
             s_authenticated = true;
             APP_TUNING_LOG_I(LOG_TAG, "auth ok");
             /* 发送 log 帧告知主机认证成功 */
@@ -362,6 +425,9 @@ static void dispatch_frame(const tc1_frame_t *frame)
         break;
     }
     case TC1_MSG_SET: {
+        s_dispatch_type = frame->type;
+        s_dispatch_request_crc = App_TC1_CRC32(
+            (const uint8_t *)frame->json, frame->json_len);
         if (!s_authenticated) {
             APP_TUNING_LOG_W(LOG_TAG, "set rejected: not authenticated");
             send_ack(frame->msg_id, frame->has_id, false, "set", "not authenticated");
@@ -373,6 +439,9 @@ static void dispatch_frame(const tc1_frame_t *frame)
     }
     case TC1_MSG_CMD: {
         const char *error;
+        s_dispatch_type = frame->type;
+        s_dispatch_request_crc = App_TC1_CRC32(
+            (const uint8_t *)frame->json, frame->json_len);
         if (!s_authenticated) {
             APP_TUNING_LOG_W(LOG_TAG, "cmd rejected: not authenticated");
             send_ack(frame->msg_id, frame->has_id, false, "cmd", "not authenticated");
@@ -430,6 +499,9 @@ void App_Tuning_Init(void)
     s_last_telem_tick = Bsp_GetTick();
     s_telem_seq = 0;
     s_authenticated = false;
+    s_cached_ack_valid = false;
+    s_cached_ack_len = 0u;
+    s_auth_session_valid = false;
     App_ESP01S_RegisterRx(App_Tuning_OnRx);
     APP_TUNING_LOG_I(LOG_TAG, "TC1 tuning layer ready, telemetry %ums/frame, auth=%s",
            APP_TUNING_TELEM_INTERVAL_MS,

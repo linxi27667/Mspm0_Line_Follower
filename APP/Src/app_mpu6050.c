@@ -17,7 +17,7 @@
 #include "app_common.h"
 #include "ti_msp_dl_config.h"
 
-/* I2C 操作超时阈值（循环计数）— 避免外设未启用 / 设备未应答时永久阻塞 */
+/* 单次完整 I2C 事务的总时间预算，必须小于 5ms 控制周期。 */
 #define I2C_TIMEOUT_MS          2u
 
 /**
@@ -33,10 +33,9 @@ static uint8_t HW_I2C_Write_Reg(uint8_t dev_addr, uint8_t reg_addr,
                                  const uint8_t *data, uint16_t len)
 {
     I2C_Regs *i2c = MPU6050_HW_I2C_INST;
-    uint32_t start;
+    uint32_t start = Bsp_GetTick();
 
     /* 等待总线空闲（带超时） */
-    start = Bsp_GetTick();
     while (DL_I2C_getControllerStatus(i2c) & DL_I2C_CONTROLLER_STATUS_BUSY) {
         if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
@@ -56,7 +55,6 @@ static uint8_t HW_I2C_Write_Reg(uint8_t dev_addr, uint8_t reg_addr,
         DL_I2C_CONTROLLER_DIRECTION_TX, 1 + len);
 
     /* 等待传输完成（带超时） */
-    start = Bsp_GetTick();
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_TX_DONE))) {
         if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
@@ -83,10 +81,9 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
                                 uint8_t *data, uint16_t len)
 {
     I2C_Regs *i2c = MPU6050_HW_I2C_INST;
-    uint32_t start;
+    uint32_t start = Bsp_GetTick();
 
     /* 等待总线空闲（带超时） */
-    start = Bsp_GetTick();
     while (DL_I2C_getControllerStatus(i2c) & DL_I2C_CONTROLLER_STATUS_BUSY) {
         if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
@@ -103,7 +100,6 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
         DL_I2C_CONTROLLER_DIRECTION_TX, 1);
 
     /* 等待写完成（带超时） */
-    start = Bsp_GetTick();
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_TX_DONE))) {
         if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
@@ -124,7 +120,6 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
 
     /* 边传输边从RX FIFO取数据，防止FIFO溢出丢字节 */
     uint16_t received = 0;
-    start = Bsp_GetTick();
     while (received < len) {
         uint32_t avail = DL_I2C_getControllerRXFIFOCounter(i2c);
         while (avail > 0 && received < len) {
@@ -135,20 +130,17 @@ static uint8_t HW_I2C_Read_Reg(uint8_t dev_addr, uint8_t reg_addr,
     }
 
     /* 等待RX_DONE并清除 */
-    start = Bsp_GetTick();
     while (!(DL_I2C_getRawInterruptStatus(i2c,
                 DL_I2C_INTERRUPT_CONTROLLER_RX_DONE))) {
-        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) break;
+        if ((Bsp_GetTick() - start) >= I2C_TIMEOUT_MS) return 2;
     }
-    DL_I2C_clearInterruptStatus(i2c,
-        DL_I2C_INTERRUPT_CONTROLLER_RX_DONE |
-        DL_I2C_INTERRUPT_CONTROLLER_NACK);
 
     /* 检查NACK（设备不应答） */
     if (DL_I2C_getRawInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_NACK)) {
         DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_NACK);
         return 1;
     }
+    DL_I2C_clearInterruptStatus(i2c, DL_I2C_INTERRUPT_CONTROLLER_RX_DONE);
 
     return 0;
 }

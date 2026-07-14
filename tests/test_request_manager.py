@@ -38,6 +38,35 @@ class MockTcpServer:
             return len(self.sent_frames)
 
 
+class ImmediateAckTcpServer(MockTcpServer):
+    """Deliver an ACK synchronously from send(), before send() returns."""
+
+    def __init__(self):
+        super().__init__()
+        self.manager: RequestManager | None = None
+
+    def send(self, json_str: str) -> bool:
+        sent = super().send(json_str)
+        if sent and self.manager is not None:
+            request_id = int(json_str.rsplit('"id":', 1)[1].rstrip("}"))
+            self.manager.on_ack(make_ack_dict(request_id, kind="cmd"))
+        return sent
+
+
+class BlockingTcpServer(MockTcpServer):
+    """Hold send() open so another caller can probe the reservation window."""
+
+    def __init__(self):
+        super().__init__()
+        self.entered = threading.Event()
+        self.release = threading.Event()
+
+    def send(self, json_str: str) -> bool:
+        self.entered.set()
+        self.release.wait(timeout=1.0)
+        return super().send(json_str)
+
+
 def make_ack_dict(request_id: int, ok: bool = True, kind: str = "set",
                   applied: dict[str, Any] | None = None) -> dict:
     """Build a validated ACK dict for testing."""
@@ -143,6 +172,16 @@ class RequestManagerConfirmedTests(unittest.TestCase):
         rm.on_ack(ack)  # no pending request
         self.assertEqual(len(confirmed), 0)
 
+    def test_immediate_ack_during_send_is_not_lost(self):
+        tcp = ImmediateAckTcpServer()
+        confirmed: list[dict] = []
+        rm = RequestManager(tcp, on_confirmed=confirmed.append)
+        tcp.manager = rm
+
+        self.assertTrue(rm.send_cmd("start"))
+        self.assertFalse(rm.is_busy())
+        self.assertEqual(len(confirmed), 1)
+
 
 class RequestManagerRejectedTests(unittest.TestCase):
     """ACK rejected scenarios."""
@@ -192,6 +231,21 @@ class RequestManagerBusyTests(unittest.TestCase):
 
         self.assertFalse(rm.send_set({"KP": 6.0}))
         self.assertFalse(rm.is_busy())
+
+    def test_request_is_reserved_before_transport_send_returns(self):
+        tcp = BlockingTcpServer()
+        rm = RequestManager(tcp)
+        first_result: list[bool] = []
+        sender = threading.Thread(target=lambda: first_result.append(rm.send_cmd("start")))
+        sender.start()
+        self.assertTrue(tcp.entered.wait(timeout=1.0))
+
+        self.assertTrue(rm.is_busy())
+        self.assertFalse(rm.send_cmd("stop"))
+
+        tcp.release.set()
+        sender.join(timeout=1.0)
+        self.assertEqual(first_result, [True])
 
 
 class RequestManagerTimeoutTests(unittest.TestCase):

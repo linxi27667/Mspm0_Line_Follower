@@ -3,8 +3,7 @@
  * @brief   安全状态机 — 唯一授权电机输出的模块。
  *
  *          状态: BOOT → CALIBRATING → READY → RUNNING → FINISHED。
- *          比赛运行不使用灰度、编码器、通信或传感器瞬态作为自动停车条件。
- *          FAULT 仅保留给未来明确调用 Safety_EnterFault() 的外部扩展。
+ *          运行期间持续检查控制节拍、编码器和传感器健康；远程启动还要求心跳。
  *
  *          核心原则: Track/PID 可计算期望速度，但电机输出
  *          仅当 Safety_AllowsMotorOutput() 返回 true 时才执行。
@@ -47,8 +46,8 @@ void Safety_Init(void);
 void Safety_TransitionToCalibrating(void);
 void Safety_TransitionToReady(void);
 void Safety_TransitionToRunning(void);
-bool Safety_TransitionToRotation(void);  /* MPU 原地旋转：不要求灰度黑白校准 */
-void Safety_TransitionAfterRotation(void); /* 旋转结束：按灰度校准状态回到 READY 或 BOOT */
+bool Safety_TransitionToRotation(void);  /* MPU 原地旋转：仅允许从 READY 进入 */
+void Safety_TransitionAfterRotation(void); /* 旋转结束后切断电机并返回 READY */
 void Safety_TransitionToFinished(void);
 void Safety_EnterFault(safety_fault_t fault);
 void Safety_ClearFault(void);  /* 故障清除→回到 READY(需手动) */
@@ -57,6 +56,8 @@ void Safety_ClearFault(void);  /* 故障清除→回到 READY(需手动) */
  * 控制tick — 每5ms由主循环调用，按状态授权电机输出。
  * ============================================================ */
 bool Safety_ControlTick(void);
+bool Safety_ArmRemoteMotion(uint32_t tick);
+void Safety_DisarmRemoteMotion(void);
 
 /* ============================================================
  * 查询接口
@@ -71,16 +72,16 @@ const char *Safety_FaultName(safety_fault_t fault);
  * 传感器健康更新 (由各模块调用)
  * ============================================================ */
 
-/* 保留为兼容现有调用；不参与停车判定。 */
+/* 更新最近有效灰度帧时间。 */
 void Safety_NotifyGrayscaleFrame(uint32_t tick);
 
-/* 保留为兼容现有调用；不参与停车判定。 */
+/* 更新左右编码器健康状态。 */
 void Safety_NotifyEncoderHealth(bool left_ok, bool right_ok);
 
-/* 保留为兼容现有调用；不参与停车判定。 */
+/* 更新远程调参心跳。 */
 void Safety_NotifyHeartbeat(uint32_t tick);
 
-/* 保留为兼容现有调用；不参与停车判定。 */
+/* 报告不可继续运动的传感器异常。 */
 void Safety_NotifySensorAbnormal(void);
 
 /* 校准完成通知 */

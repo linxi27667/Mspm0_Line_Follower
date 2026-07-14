@@ -194,7 +194,7 @@ extern track_t Track;
  * ============================================================ */
 void Track_Init(void);                  /* 初始化所有硬件+状态 */
 void Track_Update(void);                /* 主循环调用，非阻塞，内部5ms周期 */
-void Track_Start(void);                 /* 启动循迹 */
+bool Track_Start(void);                 /* 启动循迹，Safety 拒绝时返回 false */
 void Track_Stop(void);                  /* 停止循迹 */
 bool Track_Start_Rotation(float target_deg); /* READY状态开始相对角度原地旋转 */
 bool Track_Is_Rotating(void);

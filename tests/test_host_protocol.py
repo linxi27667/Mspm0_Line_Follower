@@ -131,8 +131,14 @@ class RequestTests(unittest.TestCase):
             json.loads(build_auth("track_car_2025")),
             {"v": 1, "t": "auth", "token": "track_car_2025"},
         )
+        self.assertEqual(
+            json.loads(build_auth("track_car_2025", session="abc123")),
+            {"v": 1, "t": "auth", "token": "track_car_2025", "session": "abc123"},
+        )
         with self.assertRaises(ProtocolError):
             build_auth("")
+        with self.assertRaises(ProtocolError):
+            build_auth("track_car_2025", session="")
 
 
 class TelemetryTests(unittest.TestCase):

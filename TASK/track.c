@@ -849,7 +849,7 @@ void Track_Update(void)
      * 保证 IDLE/FINISHED 状态下也能更新(避免电机保持最后PWM)。 */
 }
 
-void Track_Start(void)
+bool Track_Start(void)
 {
     /* 检查黑色校准状态,未校准时警告(允许启动但循迹不可靠) */
     if (!Grayscale_Sensor.black_calibrated) {
@@ -861,7 +861,7 @@ void Track_Start(void)
     if (!Safety_AllowsMotorOutput()) {
         APP_TRACK_LOG_W("TRACK", "Start blocked by Safety (state=%s)",
                Safety_StateName(Safety_GetState()));
-        return;
+        return false;
     }
 
     Track.state = TRACK_STATE_LINE_FOLLOW;
@@ -878,6 +878,7 @@ void Track_Start(void)
     APP_TRACK_LOG_I("TRACK", "Tracking started (circles=%d speed=%d black_cal=%d)",
            Track.target_circles, Track.base_speed,
            Grayscale_Sensor.black_calibrated);
+    return true;
 }
 
 void Track_Stop(void)

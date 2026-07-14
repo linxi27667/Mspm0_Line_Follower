@@ -149,6 +149,7 @@ python simulator.py
 ```json
 {
   "TCP_PORT": 8888,
+  "WEB_HOST": "127.0.0.1",
   "WEB_PORT": 5000,
   "GLM_API_KEY": "",
   "GLM_MODEL": "glm-4-flash",
@@ -157,6 +158,8 @@ python simulator.py
   "CHART_POINTS": 200
 }
 ```
+
+Web 默认只监听本机。确需从局域网访问时，显式设置 `WEB_HOST`，并同时做好主机防火墙和访问控制。
 
 ## 硬件注意事项（ESP-01S）
 

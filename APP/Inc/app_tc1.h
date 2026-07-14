@@ -104,6 +104,7 @@ typedef struct {
     uint16_t       json_len;
     uint32_t       msg_id;      /* 消息 ID (0=无 ID) */
     bool           has_id;
+    bool           duplicate_id; /* 与上一条带 ID 消息相同，供 ACK 重放 */
 } tc1_frame_t;
 
 /* ============================================================

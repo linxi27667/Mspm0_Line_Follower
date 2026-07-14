@@ -21,6 +21,7 @@ Web 路由：
 import argparse
 import logging
 import math
+import secrets
 import threading
 import time
 from collections import deque
@@ -75,10 +76,10 @@ app = Flask(
     static_folder=_resource_path("static"),
     static_url_path="/static",
 )
-app.config["SECRET_KEY"] = "tuning-secret"
+app.config["SECRET_KEY"] = secrets.token_hex(32)
 
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode=None)
+socketio = SocketIO(app, async_mode=None)  # 默认仅允许同源浏览器连接
 
 # ============================================================
 # 全局状态
@@ -203,19 +204,25 @@ def on_connect(addr):
         client_addr = addr
     add_log("INFO", f"小车连接: {addr[0]}:{addr[1]}")
     socketio.emit("client_status", {"connected": True, "addr": f"{addr[0]}:{addr[1]}"})
-    if tcp.send(build_auth(config.TUNING_AUTH_TOKEN)):
+    auth_session = secrets.token_hex(8)
+    auth_frame = build_auth(config.TUNING_AUTH_TOKEN, session=auth_session)
+    if tcp.send(auth_frame):
         add_log("INFO", "小车调参认证已发送")
     else:
         add_log("ERROR", "小车调参认证发送失败")
-    threading.Thread(target=_retry_auth_after_online, args=(addr,), daemon=True).start()
+    threading.Thread(
+        target=_retry_auth_after_online,
+        args=(addr, auth_frame),
+        daemon=True,
+    ).start()
 
 
-def _retry_auth_after_online(addr):
+def _retry_auth_after_online(addr, auth_frame: str):
     """Avoid losing the one-shot auth frame while ESP finishes CIPSTART."""
     time.sleep(0.5)
     with state_lock:
         same_client = client_connected and client_addr == addr
-    if same_client and tcp.send(build_auth(config.TUNING_AUTH_TOKEN)):
+    if same_client and tcp.send(auth_frame):
         add_log("INFO", "小车调参认证重发")
 
 
@@ -743,10 +750,13 @@ def ws_optimizer_export_race():
 # ============================================================
 
 
-def run_host(no_browser: bool = False, web_port: int | None = None):
+def run_host(no_browser: bool = False, web_port: int | None = None,
+             web_host: str | None = None):
     """启动上位机主循环（给 exe 入口复用）。"""
     if web_port is not None:
         config.WEB_PORT = web_port
+    if web_host is not None:
+        config.WEB_HOST = web_host
 
     tcp.start()
     threading.Thread(target=heartbeat_worker, daemon=True, name="tuning-heartbeat").start()
@@ -768,7 +778,7 @@ def run_host(no_browser: bool = False, web_port: int | None = None):
 
     try:
         socketio.run(
-            app, host="0.0.0.0", port=config.WEB_PORT,
+            app, host=config.WEB_HOST, port=config.WEB_PORT,
             debug=False, allow_unsafe_werkzeug=True,
         )
     except KeyboardInterrupt:
@@ -781,5 +791,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Track Car 上位机")
     parser.add_argument("--no-browser", action="store_true", help="启动后不自动打开浏览器")
     parser.add_argument("--web-port", type=int, default=config.WEB_PORT, help="Web 端口")
+    parser.add_argument("--web-host", default=config.WEB_HOST,
+                        help="Web 监听地址；默认 127.0.0.1，仅显式设置后才开放局域网")
     args = parser.parse_args()
-    run_host(no_browser=args.no_browser, web_port=args.web_port)
+    run_host(no_browser=args.no_browser, web_port=args.web_port, web_host=args.web_host)

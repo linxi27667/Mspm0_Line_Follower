@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 CSS_PATH = Path(__file__).resolve().parents[1] / "host" / "static" / "style.css"
+HOST_ROOT = CSS_PATH.parents[1]
 
 
 class FrontendLayoutCssTests(unittest.TestCase):
@@ -47,6 +48,15 @@ class FrontendLayoutCssTests(unittest.TestCase):
             chart_grid,
             r"grid-template-rows:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);",
         )
+
+    def test_web_control_defaults_to_loopback_and_same_origin(self):
+        app_source = (HOST_ROOT / "app.py").read_text(encoding="utf-8")
+        config_source = (HOST_ROOT / "config.py").read_text(encoding="utf-8")
+
+        self.assertIn('WEB_HOST = "127.0.0.1"', config_source)
+        self.assertIn("host=config.WEB_HOST", app_source)
+        self.assertNotIn('cors_allowed_origins="*"', app_source)
+        self.assertNotIn('SECRET_KEY"] = "tuning-secret"', app_source)
 
 
 if __name__ == "__main__":
