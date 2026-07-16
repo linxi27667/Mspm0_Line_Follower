@@ -3,7 +3,7 @@
  * @brief   灰度PID循迹任务调度实现（TASK层 — 纯业务逻辑）
  * @note    数据流:
  *          Grayscale_Update → data_ready → Track_Calc_Error → PID → 差速 → Motor
- *          Mpu_Update_Heading → heading → 丢线辅助/直角弯道
+ *          Imu_Update_Heading → heading → 丢线辅助/直角弯道
  *
  *          本文件不直接操作任何硬件寄存器，全部通过 BSP/APP 层 API 调用
  */
@@ -11,6 +11,7 @@
 #include "app_log.h"
 #include "bsp_common.h"
 #include "app_safety.h"
+#include "imu_health_logic.h"
 #include <elog.h>
 #include <math.h>
 
@@ -28,6 +29,14 @@ static const float s_weights[8] = {
  * ============================================================ */
 
 track_t Track = {0};
+
+static bool Track_Imu_Healthy(void)
+{
+    return Imu_Health_AllowsMotion(Imu_Sensor.initialized,
+                                   Imu_Sensor.data_valid,
+                                   Imu_Sensor.calibration_state) &&
+           isfinite(Imu_Sensor.heading) && isfinite(Imu_Sensor.gyro_z);
+}
 
 /* ============================================================
  * 内部函数：偏差计算（模拟量差比和 — 连续精度）
@@ -119,7 +128,7 @@ static void Track_Detect_Pattern(void)
     if (Track.start_line_armed &&
         Grayscale_Sensor.black_count >= TRACK_START_LINE_MIN_BLACK) {
         if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.target_heading = Mpu_Sensor.heading;
+            Track.target_heading = Imu_Sensor.heading;
             Track.state = TRACK_STATE_START_LINE;
             Track.state_timer = Bsp_GetTick();
             Track.start_line_armed = false;  /* 需等黑线消失后重新武装 */
@@ -171,7 +180,7 @@ static void Track_Detect_Pattern(void)
         bool cond_rate  = (Track.gyro_rate > TRACK_RIGHT_ANGLE_GYRO_RATE ||
                            Track.gyro_rate < -TRACK_RIGHT_ANGLE_GYRO_RATE);
 
-        bool gyro_available = Track.use_gyro && Mpu_Sensor.gyro_ok;
+        bool gyro_available = Track.use_gyro && Track_Imu_Healthy();
 
         if (gyro_available && (cond_outer || cond_accum || cond_rate)) {
             Track.right_angle_confirm++;
@@ -183,9 +192,9 @@ static void Track_Detect_Pattern(void)
                     float direction = Track_RightAngle_Direction(
                         Track.error, Track.last_error, Track.gyro_rate);
                     Track.right_angle_direction = direction;
-                    Track.right_angle_entry_heading = Mpu_Sensor.heading;
+                    Track.right_angle_entry_heading = Imu_Sensor.heading;
                     Track.right_angle_target =
-                        Mpu_Sensor.heading + direction * TRACK_RIGHT_ANGLE_TARGET_ANGLE;
+                        Imu_Sensor.heading + direction * TRACK_RIGHT_ANGLE_TARGET_ANGLE;
                     Track.state = TRACK_STATE_RIGHT_ANGLE;
                     Track.state_timer = Bsp_GetTick();
                     Track.right_angle_confirm = 0;
@@ -208,13 +217,13 @@ static void Track_Detect_Pattern(void)
         if (Track.line_lost_confirm >= TRACK_LINE_LOST_CONFIRM_FRAMES) {
             if (Track.state == TRACK_STATE_LINE_FOLLOW) {
                 Track.last_state = TRACK_STATE_LINE_FOLLOW;
-                Track.target_heading = Mpu_Sensor.heading;
+                Track.target_heading = Imu_Sensor.heading;
                 Track.state = TRACK_STATE_LINE_LOST;
                 Track.line_lost_count = 0;
                 Track.state_timer = Bsp_GetTick();
                 Pid_Reset(&Track.gyro_pid);  /* 进入丢线时复位 gyro_pid 防积分突跳 */
                 APP_TRACK_LOG_W("TRACK", "LINE_FOLLOW -> LINE_LOST (hdg=%d)",
-                       (int)Mpu_Sensor.heading);
+                       (int)Imu_Sensor.heading);
             }
         }
     } else {
@@ -302,8 +311,7 @@ static void Track_Handle_Rotate(void)
 {
     uint32_t now = Bsp_GetTick();
 
-    if (!Mpu_Sensor.gyro_ok || !Mpu_Sensor.calibrated || !Mpu_Sensor.data_valid ||
-        !isfinite(Mpu_Sensor.heading) || !isfinite(Mpu_Sensor.gyro_z)) {
+    if (!Track_Imu_Healthy()) {
         Track_Rotate_End("imu_unavailable");
         return;
     }
@@ -312,9 +320,9 @@ static void Track_Handle_Rotate(void)
         return;
     }
 
-    Track.rotate_actual_deg = Mpu_Sensor.heading - Track.rotate_heading_baseline;
+    Track.rotate_actual_deg = Imu_Sensor.heading - Track.rotate_heading_baseline;
     Track.rotate_error_deg = Track_Rotate_Error(Track.rotate_heading_baseline,
-                                                 Mpu_Sensor.heading,
+                                                 Imu_Sensor.heading,
                                                  Track.rotate_target_deg);
 
     if (Track_Rotate_Timeout(now, Track.rotate_started_at,
@@ -325,7 +333,7 @@ static void Track_Handle_Rotate(void)
 
     bool angle_inside = Track_Rotate_AngleInside(Track.rotate_error_deg);
     bool inside_tolerance = Track_Rotate_Complete(
-        Track.rotate_error_deg, Track_Abs_Float(Mpu_Sensor.gyro_z));
+        Track.rotate_error_deg, Track_Abs_Float(Imu_Sensor.gyro_z));
     Track.rotate_settle_frames = Track_Rotate_UpdateSettleFrames(
         Track.rotate_settle_frames, inside_tolerance);
     /* Once the angle is inside the acceptance band, coast to remove residual
@@ -351,11 +359,11 @@ static void Track_Handle_Rotate(void)
             USER_ROTATE_PID_BLEND_ZONE_DEG,
             USER_ROTATE_PID_FINE_MAX_SPEED,
             USER_ROTATE_PID_MAX_SPEED);
-        Track_Apply_Rotate_PD(Track.rotate_error_deg, Mpu_Sensor.gyro_z,
+        Track_Apply_Rotate_PD(Track.rotate_error_deg, Imu_Sensor.gyro_z,
                               speed_limit, USER_ROTATE_PID_FINE_MIN_SPEED,
                               USER_ROTATE_PID_COAST_OUTPUT);
     } else {
-        Track_Apply_Rotate_PD(Track.rotate_error_deg, Mpu_Sensor.gyro_z,
+        Track_Apply_Rotate_PD(Track.rotate_error_deg, Imu_Sensor.gyro_z,
                               USER_ROTATE_PID_MAX_SPEED,
                               USER_ROTATE_PID_MIN_SPEED,
                               USER_ROTATE_PID_COAST_OUTPUT);
@@ -386,8 +394,7 @@ static void Track_Heading_Hold_End(const char *result)
 
 static void Track_Handle_Heading_Hold(void)
 {
-    if (!Mpu_Sensor.gyro_ok || !Mpu_Sensor.calibrated || !Mpu_Sensor.data_valid ||
-        !isfinite(Mpu_Sensor.heading) || !isfinite(Mpu_Sensor.gyro_z)) {
+    if (!Track_Imu_Healthy()) {
         Track_Heading_Hold_End("imu_unavailable");
         return;
     }
@@ -396,10 +403,10 @@ static void Track_Handle_Heading_Hold(void)
         return;
     }
 
-    Track.heading_hold_actual = Mpu_Sensor.heading;
+    Track.heading_hold_actual = Imu_Sensor.heading;
     Track.heading_hold_error = Track.heading_hold_target - Track.heading_hold_actual;
     if (Track_Abs_Float(Track.heading_hold_error) <= USER_HEADING_HOLD_DEADBAND_DEG &&
-        Track_Abs_Float(Mpu_Sensor.gyro_z) <= USER_HEADING_HOLD_SETTLE_RATE_DEG_S) {
+        Track_Abs_Float(Imu_Sensor.gyro_z) <= USER_HEADING_HOLD_SETTLE_RATE_DEG_S) {
         Track.left_speed = 0;
         Track.right_speed = 0;
         Motor_Set_Speed(0);
@@ -407,7 +414,7 @@ static void Track_Handle_Heading_Hold(void)
         return;
     }
 
-    Track_Apply_Rotate_PD(Track.heading_hold_error, Mpu_Sensor.gyro_z,
+    Track_Apply_Rotate_PD(Track.heading_hold_error, Imu_Sensor.gyro_z,
                           USER_HEADING_HOLD_MAX_SPEED, USER_HEADING_HOLD_MIN_SPEED,
                           USER_HEADING_HOLD_COAST_OUTPUT);
     Motor_Set_Speed(Track.left_speed);
@@ -458,12 +465,12 @@ static void Track_Handle_LineLost(void)
     uint32_t now = Bsp_GetTick();
     Track.line_lost_count = (uint32_t)(now - Track.state_timer);
 
-    if (Track.use_gyro && Mpu_Sensor.gyro_ok) {
+    if (Track.use_gyro && Track_Imu_Healthy()) {
         /* 修复: 统一用完整 PID(含 D 项)而非仅 P 控制，与直角弯道策略一致。
          * Pid_Compute 内部 error = target - feedback = target_heading - heading */
         Track.turn_output = Pid_Compute(&Track.gyro_pid,
                                         Track.target_heading,
-                                        Mpu_Sensor.heading);
+                                        Imu_Sensor.heading);
     } else {
         /* 无陀螺仪时: 用上次误差方向修正(last_error符号=方向记忆),逐渐衰减 */
         float decay = 1.0f - (float)Track.line_lost_count / TRACK_LINE_LOST_TIMEOUT;
@@ -496,7 +503,7 @@ static void Track_Handle_RightAngle(void)
 {
     uint32_t now = Bsp_GetTick();
 
-    if (!Track.use_gyro || !Mpu_Sensor.gyro_ok) {
+    if (!Track.use_gyro || !Track_Imu_Healthy()) {
         Track.state = (Grayscale_Sensor.black_count >= 2)
                     ? TRACK_STATE_LINE_FOLLOW
                     : TRACK_STATE_LINE_LOST;
@@ -508,8 +515,8 @@ static void Track_Handle_RightAngle(void)
         return;
     }
 
-    float angle_error = Track.right_angle_target - Mpu_Sensor.heading;
-    float turned_abs = Track_Abs_Float(Mpu_Sensor.heading -
+    float angle_error = Track.right_angle_target - Imu_Sensor.heading;
+    float turned_abs = Track_Abs_Float(Imu_Sensor.heading -
                                        Track.right_angle_entry_heading);
     uint8_t center_black = 0;
     for (uint8_t i = 2; i <= 5; i++) {
@@ -524,7 +531,7 @@ static void Track_Handle_RightAngle(void)
 
     Track.turn_output = Pid_Compute(&Track.gyro_pid,
                                      Track.right_angle_target,
-                                     Mpu_Sensor.heading);
+                                     Imu_Sensor.heading);
 
     /* 转过最小角度后, 中间通道重新捕到线即可提前退出; 接近目标角兜底退出 */
     if (Track_RightAngle_ShouldExit(turned_abs, angle_error, center_black,
@@ -691,8 +698,8 @@ void Track_Init(void)
     Track.gyro_pid.deriv_alpha = 0.4f;  /* 修复: 启用微分滤波，抑制陀螺仪噪声 */
 
     App_Grayscale_Init();
-    App_Mpu_Init();
-    Mpu_Calibrate();
+    (void)App_Imu_Init();
+    Imu_Calibration_Start();
     App_Motor_Init();
 
     /* ====== 灰度校准策略: 自动校准白色(一次) + 手动K4校准黑色 ======
@@ -747,11 +754,17 @@ void Track_Update(void)
     float dt = elapsed_ms / 1000.0f;
     last_update_tick = now;
 
-    /* ② 读取陀螺仪数据并更新航向（APP层API） */
+    /* ② 读取 IMU 并更新航向。任何无效帧都在本控制节拍内撤销输出。 */
     if (Track.use_gyro) {
-        Mpu_Update_Heading(dt);
+        if (!Imu_Update_Heading(dt) || !Track_Imu_Healthy()) {
+            Track.gyro_rate = 0.0f;
+            Track_Motor_Stop_Immediate();
+            Safety_NotifySensorAbnormal();
+            APP_TRACK_LOG_W("TRACK", "IMU invalid -> immediate motor stop");
+            return;
+        }
         /* 记录当前角速度 (已减零偏), 供 LINE_FOLLOW 阻尼和上位机遥测使用 */
-        Track.gyro_rate = Mpu_Sensor.gyro_z;
+        Track.gyro_rate = Imu_Sensor.gyro_z;
     }
 
     /* 原地旋转不能等待灰度帧，必须每个5ms控制周期闭环。 */
@@ -806,11 +819,11 @@ void Track_Update(void)
          * 阻尼: 陀螺仪角速度抑制灰度传感器噪声引起的左右抖动 (gyro_damp)
          * 极性: 右转时 gyro_z>0, 阻尼项 -gyro_damp*gyro_z 抑制右转, 反之亦然
          * 效果: 直行稳(抖动被阻尼), 弯道灵(角速度小阻尼小不影响跟踪)
-         * MPU 失效降级: gyro_ok=false 时纯灰度循迹，禁止使用陈旧航向 */
+         * IMU 失效时由本节拍入口立即停车，禁止使用陈旧航向。 */
         {
             float line_turn = Pid_Compute(&Track.line_pid, Track.error, 0.0f);
             float gyro_damp = 0.0f;
-            if (Track.use_gyro && Mpu_Sensor.gyro_ok) {
+            if (Track.use_gyro && Track_Imu_Healthy()) {
                 gyro_damp = Track.gyro_rate * Track.gyro_damp;
             }
             Track.turn_output = line_turn - gyro_damp;
@@ -851,6 +864,11 @@ void Track_Update(void)
 
 bool Track_Start(void)
 {
+    if (!Track_Imu_Healthy()) {
+        APP_TRACK_LOG_W("TRACK", "Start rejected: imu_unavailable");
+        return false;
+    }
+
     /* 检查黑色校准状态,未校准时警告(允许启动但循迹不可靠) */
     if (!Grayscale_Sensor.black_calibrated) {
         APP_TRACK_LOG_W("TRACK", "WARNING: Black NOT calibrated! Place car on black line and press K4");
@@ -926,8 +944,7 @@ bool Track_Start_Rotation(float target_deg)
                          (int)Track.state);
         return false;
     }
-    if (!Mpu_Sensor.gyro_ok || !Mpu_Sensor.calibrated || !Mpu_Sensor.data_valid ||
-        !isfinite(Mpu_Sensor.heading) || !isfinite(Mpu_Sensor.gyro_z)) {
+    if (!Track_Imu_Healthy()) {
         Track.rotate_result = "imu_unavailable";
         APP_ROTATE_LOG_W("ROTATE", "reject reason=imu_unavailable");
         return false;
@@ -940,7 +957,7 @@ bool Track_Start_Rotation(float target_deg)
     }
 
     target_abs = (uint32_t)Track_Abs_Float(target_deg);
-    Track.rotate_heading_baseline = Mpu_Sensor.heading;
+    Track.rotate_heading_baseline = Imu_Sensor.heading;
     Track.rotate_target_deg = target_deg;
     Track.rotate_actual_deg = 0;
     Track.rotate_error_deg = target_deg;
@@ -987,8 +1004,7 @@ bool Track_Start_Heading_Hold(void)
         Track.heading_hold_result = "not_ready";
         return false;
     }
-    if (!Mpu_Sensor.gyro_ok || !Mpu_Sensor.calibrated || !Mpu_Sensor.data_valid ||
-        !isfinite(Mpu_Sensor.heading) || !isfinite(Mpu_Sensor.gyro_z)) {
+    if (!Track_Imu_Healthy()) {
         Track.heading_hold_result = "imu_unavailable";
         return false;
     }
@@ -997,8 +1013,8 @@ bool Track_Start_Heading_Hold(void)
         return false;
     }
 
-    Track.heading_hold_target = Mpu_Sensor.heading;
-    Track.heading_hold_actual = Mpu_Sensor.heading;
+    Track.heading_hold_target = Imu_Sensor.heading;
+    Track.heading_hold_actual = Imu_Sensor.heading;
     Track.heading_hold_error = 0;
     Track.heading_hold_result = "holding";
     Track.state = TRACK_STATE_HEADING_HOLD;

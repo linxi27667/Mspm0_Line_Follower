@@ -20,9 +20,9 @@
 #define APP_ESP01S_ENABLE                 1
 
 /* ESP-01S 现场网络与上位机 TCP 端点。 */
-#define ESP01S_WIFI_SSID                  "hhy"
-#define ESP01S_WIFI_PASS                  "18028637322"
-#define ESP01S_SERVER_IP                  "192.168.3.100"
+#define ESP01S_WIFI_SSID                  "Ll"
+#define ESP01S_WIFI_PASS                  "ljc12345"
+#define ESP01S_SERVER_IP                  "192.168.137.1"
 #define ESP01S_SERVER_PORT                8888
 
 /* 1=TUNING：允许网页认证、调参和命令；0=RACE：禁止入站远程命令。 */
@@ -53,7 +53,7 @@
 #define APP_LOG_VEHICLE_ENABLE            1  /* 车辆/电机/编码器周期状态 */
 #define APP_LOG_TRACK_ENABLE              0  /* 循迹状态、校准、丢线、直角和十字 */
 #define APP_LOG_TUNING_ENABLE             1  /* 认证、命令、参数与协议诊断 */
-#define APP_LOG_MPU_ENABLE                1  /* MPU 初始化与静止校准 */
+#define APP_LOG_IMU_ENABLE                1  /* ICM42688 初始化与静止校准 */
 #define APP_LOG_DIAGNOSTIC_ENABLE         1  /* 自检、I	OMUX、GPIO 等诊断 */
 
 /* 循迹、PID、速度和远程参数仍集中于此文件，供上位机一致性测试读取。 */

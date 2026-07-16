@@ -28,7 +28,10 @@ typedef struct {
 
 static inline bool Safety_Logic_CanEnterRotation(uint8_t state)
 {
-    return state == 2u; /* SAFETY_STATE_READY */
+    /* Rotation is IMU/encoder based and does not consume grayscale data.
+     * BOOT here means only that grayscale white+black calibration is pending;
+     * the caller still validates IMU health and a fresh remote heartbeat. */
+    return state == 0u || state == 2u; /* BOOT or READY */
 }
 
 static inline safety_logic_result_t Safety_Logic_Check(

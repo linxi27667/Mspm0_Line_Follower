@@ -43,6 +43,7 @@
 DL_TimerG_backupConfig gMonitor_Left_TimerBackup;
 DL_TimerG_backupConfig gRight_Motor_TimerBackup;
 DL_TimerG_backupConfig gEncoder_TimerBackup;
+DL_SPI_backupConfig gICM_SPIBackup;
 
 /*
  *  ======== SYSCFG_DL_init ========
@@ -57,9 +58,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_Monitor_Left_Timer_init();
     SYSCFG_DL_Right_Motor_Timer_init();
     SYSCFG_DL_Encoder_Timer_init();
-    SYSCFG_DL_MPU6050_I2C_init();
     SYSCFG_DL_UART_Debug_init();
     SYSCFG_DL_UART_ESP01S_init();
+    SYSCFG_DL_ICM_SPI_init();
     SYSCFG_DL_GRAYSCALE_ADC_init();
     SYSCFG_DL_DMA_init();
     /* Ensure backup structures have no valid state */
@@ -67,6 +68,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
 	gRight_Motor_TimerBackup.backupRdy 	= false;
 	gEncoder_TimerBackup.backupRdy 	= false;
 
+	gICM_SPIBackup.backupRdy 	= false;
 
 }
 /*
@@ -80,6 +82,7 @@ SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
 	retStatus &= DL_TimerG_saveConfiguration(Monitor_Left_Timer_INST, &gMonitor_Left_TimerBackup);
 	retStatus &= DL_TimerG_saveConfiguration(Right_Motor_Timer_INST, &gRight_Motor_TimerBackup);
 	retStatus &= DL_TimerG_saveConfiguration(Encoder_Timer_INST, &gEncoder_TimerBackup);
+	retStatus &= DL_SPI_saveConfiguration(ICM_SPI_INST, &gICM_SPIBackup);
 
     return retStatus;
 }
@@ -92,6 +95,7 @@ SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
 	retStatus &= DL_TimerG_restoreConfiguration(Monitor_Left_Timer_INST, &gMonitor_Left_TimerBackup, false);
 	retStatus &= DL_TimerG_restoreConfiguration(Right_Motor_Timer_INST, &gRight_Motor_TimerBackup, false);
 	retStatus &= DL_TimerG_restoreConfiguration(Encoder_Timer_INST, &gEncoder_TimerBackup, false);
+	retStatus &= DL_SPI_restoreConfiguration(ICM_SPI_INST, &gICM_SPIBackup);
 
     return retStatus;
 }
@@ -103,9 +107,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_TimerG_reset(Monitor_Left_Timer_INST);
     DL_TimerG_reset(Right_Motor_Timer_INST);
     DL_TimerG_reset(Encoder_Timer_INST);
-    DL_I2C_reset(MPU6050_I2C_INST);
     DL_UART_Main_reset(UART_Debug_INST);
     DL_UART_Main_reset(UART_ESP01S_INST);
+    DL_SPI_reset(ICM_SPI_INST);
     DL_ADC12_reset(GRAYSCALE_ADC_INST);
 
 
@@ -114,9 +118,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_TimerG_enablePower(Monitor_Left_Timer_INST);
     DL_TimerG_enablePower(Right_Motor_Timer_INST);
     DL_TimerG_enablePower(Encoder_Timer_INST);
-    DL_I2C_enablePower(MPU6050_I2C_INST);
     DL_UART_Main_enablePower(UART_Debug_INST);
     DL_UART_Main_enablePower(UART_ESP01S_INST);
+    DL_SPI_enablePower(ICM_SPI_INST);
     DL_ADC12_enablePower(GRAYSCALE_ADC_INST);
 
     delay_cycles(POWER_STARTUP_DELAY);
@@ -133,17 +137,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_initPeripheralInputFunction(GPIO_Encoder_Timer_PHA_IOMUX,GPIO_Encoder_Timer_PHA_IOMUX_FUNC);
     DL_GPIO_initPeripheralInputFunction(GPIO_Encoder_Timer_PHB_IOMUX,GPIO_Encoder_Timer_PHB_IOMUX_FUNC);
 
-    DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_MPU6050_I2C_IOMUX_SDA,
-        GPIO_MPU6050_I2C_IOMUX_SDA_FUNC, DL_GPIO_INVERSION_DISABLE,
-        DL_GPIO_RESISTOR_NONE, DL_GPIO_HYSTERESIS_DISABLE,
-        DL_GPIO_WAKEUP_DISABLE);
-    DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_MPU6050_I2C_IOMUX_SCL,
-        GPIO_MPU6050_I2C_IOMUX_SCL_FUNC, DL_GPIO_INVERSION_DISABLE,
-        DL_GPIO_RESISTOR_NONE, DL_GPIO_HYSTERESIS_DISABLE,
-        DL_GPIO_WAKEUP_DISABLE);
-    DL_GPIO_enableHiZ(GPIO_MPU6050_I2C_IOMUX_SDA);
-    DL_GPIO_enableHiZ(GPIO_MPU6050_I2C_IOMUX_SCL);
-
     DL_GPIO_initPeripheralOutputFunction(
         GPIO_UART_Debug_IOMUX_TX, GPIO_UART_Debug_IOMUX_TX_FUNC);
     DL_GPIO_initPeripheralInputFunction(
@@ -156,6 +149,13 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
 
+    DL_GPIO_initPeripheralOutputFunction(
+        GPIO_ICM_SPI_IOMUX_SCLK, GPIO_ICM_SPI_IOMUX_SCLK_FUNC);
+    DL_GPIO_initPeripheralOutputFunction(
+        GPIO_ICM_SPI_IOMUX_PICO, GPIO_ICM_SPI_IOMUX_PICO_FUNC);
+    DL_GPIO_initPeripheralInputFunction(
+        GPIO_ICM_SPI_IOMUX_POCI, GPIO_ICM_SPI_IOMUX_POCI_FUNC);
+
     DL_GPIO_initDigitalOutput(GPIO_GRP_1_PIN_1_IOMUX);
 
     DL_GPIO_initDigitalOutput(Grayscale_ADDR_B_AD2_IOMUX);
@@ -163,6 +163,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_initDigitalInputFeatures(Key_PA30_KEY4_IOMUX,
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_initDigitalOutput(ICM_CS_CS_IOMUX);
 
     DL_GPIO_initDigitalOutput(Monitor_Dir_Monitor_AIN1_IOMUX);
 
@@ -192,10 +194,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
     DL_GPIO_initDigitalOutput(Led_Group_LED2_IOMUX);
 
-    DL_GPIO_initDigitalOutput(Led_Group_LED3_IOMUX);
-
-    DL_GPIO_initDigitalOutput(Led_Group_LED4_IOMUX);
-
     DL_GPIO_initDigitalInputFeatures(Right_Encoder_PHA_IOMUX,
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
@@ -217,17 +215,15 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		Right_Motor_Dir_AIN1_PIN |
 		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
-		Led_Group_LED2_PIN |
-		Led_Group_LED3_PIN |
-		Led_Group_LED4_PIN);
+		Led_Group_LED2_PIN);
+    DL_GPIO_setPins(GPIOB, ICM_CS_CS_PIN);
     DL_GPIO_enableOutput(GPIOB, GPIO_GRP_1_PIN_1_PIN |
 		Grayscale_ADDR_B_AD2_PIN |
+		ICM_CS_CS_PIN |
 		Right_Motor_Dir_AIN1_PIN |
 		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
-		Led_Group_LED2_PIN |
-		Led_Group_LED3_PIN |
-		Led_Group_LED4_PIN);
+		Led_Group_LED2_PIN);
     DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_12_EDGE_RISE_FALL);
     DL_GPIO_clearInterruptStatus(GPIOB, Right_Encoder_PHA_PIN);
     DL_GPIO_enableInterrupt(GPIOB, Right_Encoder_PHA_PIN);
@@ -352,24 +348,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_Encoder_Timer_init(void) {
 }
 
 
-static const DL_I2C_ClockConfig gMPU6050_I2CClockConfig = {
-    .clockSel = DL_I2C_CLOCK_BUSCLK,
-    .divideRatio = DL_I2C_CLOCK_DIVIDE_1,
-};
-
-SYSCONFIG_WEAK void SYSCFG_DL_MPU6050_I2C_init(void) {
-
-    DL_I2C_setClockConfig(MPU6050_I2C_INST,
-        (DL_I2C_ClockConfig *) &gMPU6050_I2CClockConfig);
-    DL_I2C_setAnalogGlitchFilterPulseWidth(MPU6050_I2C_INST,
-        DL_I2C_ANALOG_GLITCH_FILTER_WIDTH_50NS);
-    DL_I2C_enableAnalogGlitchFilter(MPU6050_I2C_INST);
-
-
-
-
-}
-
 
 static const DL_UART_Main_ClockConfig gUART_DebugClockConfig = {
     .clockSel    = DL_UART_MAIN_CLOCK_BUSCLK,
@@ -461,6 +439,38 @@ SYSCONFIG_WEAK void SYSCFG_DL_UART_ESP01S_init(void)
     DL_UART_Main_setRXInterruptTimeout(UART_ESP01S_INST, 15);
 
     DL_UART_Main_enable(UART_ESP01S_INST);
+}
+
+static const DL_SPI_Config gICM_SPI_config = {
+    .mode        = DL_SPI_MODE_CONTROLLER,
+    .frameFormat = DL_SPI_FRAME_FORMAT_MOTO3_POL1_PHA1,
+    .parity      = DL_SPI_PARITY_NONE,
+    .dataSize    = DL_SPI_DATA_SIZE_8,
+    .bitOrder    = DL_SPI_BIT_ORDER_MSB_FIRST,
+};
+
+static const DL_SPI_ClockConfig gICM_SPI_clockConfig = {
+    .clockSel    = DL_SPI_CLOCK_BUSCLK,
+    .divideRatio = DL_SPI_CLOCK_DIVIDE_RATIO_1
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_ICM_SPI_init(void) {
+    DL_SPI_setClockConfig(ICM_SPI_INST, (DL_SPI_ClockConfig *) &gICM_SPI_clockConfig);
+
+    DL_SPI_init(ICM_SPI_INST, (DL_SPI_Config *) &gICM_SPI_config);
+
+    /* Configure Controller mode */
+    /*
+     * Set the bit rate clock divider to generate the serial output clock
+     *     outputBitRate = (spiInputClock) / ((1 + SCR) * 2)
+     *     1000000 = (32000000)/((1 + 15) * 2)
+     */
+    DL_SPI_setBitRateSerialClockDivider(ICM_SPI_INST, 15);
+    /* Set RX and TX FIFO threshold levels */
+    DL_SPI_setFIFOThreshold(ICM_SPI_INST, DL_SPI_RX_FIFO_LEVEL_1_2_FULL, DL_SPI_TX_FIFO_LEVEL_1_2_EMPTY);
+
+    /* Enable module */
+    DL_SPI_enable(ICM_SPI_INST);
 }
 
 /* GRAYSCALE_ADC Initialization */

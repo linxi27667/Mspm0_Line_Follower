@@ -46,7 +46,7 @@ void Safety_Init(void);
 void Safety_TransitionToCalibrating(void);
 void Safety_TransitionToReady(void);
 void Safety_TransitionToRunning(void);
-bool Safety_TransitionToRotation(void);  /* MPU 原地旋转：仅允许从 READY 进入 */
+bool Safety_TransitionToRotation(void);  /* IMU 原地旋转：允许从 BOOT/READY 进入 */
 void Safety_TransitionAfterRotation(void); /* 旋转结束后切断电机并返回 READY */
 void Safety_TransitionToFinished(void);
 void Safety_EnterFault(safety_fault_t fault);

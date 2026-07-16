@@ -16,6 +16,7 @@
 #include "app_common.h"
 #include "app_log.h"
 #include "track.h"
+#include "imu_health_logic.h"
 #include "bsp_common.h"
 #include "bsp_grayscale.h"
 #include "bsp_encoder_motor.h"
@@ -296,7 +297,11 @@ static bool apply_cmd(const char *json, const char **error)
         }
         if (!Track_Start()) {
             Safety_DisarmRemoteMotion();
-            *error = "safety_rejected";
+            *error = Imu_Health_AllowsMotion(Imu_Sensor.initialized,
+                                             Imu_Sensor.data_valid,
+                                             Imu_Sensor.calibration_state) &&
+                     isfinite(Imu_Sensor.heading) && isfinite(Imu_Sensor.gyro_z)
+                   ? "safety_rejected" : "imu_unavailable";
             return false;
         }
         return true;
@@ -325,7 +330,8 @@ static bool apply_cmd(const char *json, const char **error)
         APP_TUNING_LOG_I(LOG_TAG, "cmd rotate link-test accepted=%d", (int)degrees);
         return true;
 #else
-        if (Safety_GetState() != SAFETY_STATE_READY ||
+        if ((Safety_GetState() != SAFETY_STATE_BOOT &&
+             Safety_GetState() != SAFETY_STATE_READY) ||
             !Safety_ArmRemoteMotion(Bsp_GetTick())) {
             *error = "safety_not_ready";
             return false;
@@ -339,7 +345,8 @@ static bool apply_cmd(const char *json, const char **error)
         return true;
 #endif
     } else if (strcmp(cmd, "heading_hold_on") == 0) {
-        if (Safety_GetState() != SAFETY_STATE_READY ||
+        if ((Safety_GetState() != SAFETY_STATE_BOOT &&
+             Safety_GetState() != SAFETY_STATE_READY) ||
             !Safety_ArmRemoteMotion(Bsp_GetTick())) {
             *error = "safety_not_ready";
             return false;

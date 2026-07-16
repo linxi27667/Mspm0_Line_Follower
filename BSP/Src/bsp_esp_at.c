@@ -82,7 +82,12 @@ static bool try_enter_ipd(bsp_esp_at_ctx_t *ctx)
     ctx->ipd_len      = 0;
     ctx->ipd_recv     = 0;
     ctx->state        = BSP_ESP_AT_STATE_IPD_DATA;
-    line_reset(ctx);
+    /* Preserve any AT response that preceded this unsolicited +IPD header.
+     * A CIPSEND prompt/SEND OK and inbound TCP data can share one UART burst;
+     * clearing the whole line here loses the TX response and causes a false
+     * timeout even though the payload was sent successfully. */
+    ctx->line_len = offset;
+    ctx->line_buf[ctx->line_len] = '\0';
     return true;
 }
 
@@ -108,7 +113,8 @@ static bool feed_byte(bsp_esp_at_ctx_t *ctx, uint8_t b)
         if (ctx->ipd_recv >= ctx->ipd_expected) {
             ipd_complete = true;
             ctx->state = BSP_ESP_AT_STATE_LINE;
-            line_reset(ctx);
+            /* Keep the response prefix retained by try_enter_ipd().  The
+             * command owner clears it after consuming > / SEND OK. */
         }
         break;
 

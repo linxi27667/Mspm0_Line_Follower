@@ -38,6 +38,8 @@
 #define ESP01S_TX_SEND_TIMEOUT      ESP01S_AT_TIMEOUT_SEND
 #define ESP01S_TX_RECOVERY_TIMEOUT  3000u
 #define ESP01S_TX_GAP_MS            100u
+#define ESP01S_TCP_SETTLE_MS         750u
+#define ESP01S_RX_TO_TX_QUIET_MS      25u
 #define ESP01S_ESCAPE_FLUSH_MS       100u
 #define ESP01S_BAUD_115200          115200u
 
@@ -57,6 +59,20 @@ static uint32_t s_uart_at_tx_bytes = 0;
  * never delivered twice when a response crosses the DMA completion boundary. */
 static volatile uint16_t s_esp_rx_dma_published = 0;
 
+static bool bytes_contains(const uint8_t *data, uint16_t len,
+                           const char *needle, uint16_t needle_len)
+{
+    if (data == NULL || needle == NULL || needle_len == 0 || len < needle_len) {
+        return false;
+    }
+    for (uint16_t i = 0; i <= (uint16_t)(len - needle_len); i++) {
+        if (memcmp(&data[i], needle, needle_len) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* RX 软件 FIFO（环形） */
 static uint8_t s_esp_rx_fifo_buf[ESP01S_RX_FIFO_SIZE];
 
@@ -66,6 +82,8 @@ static uint8_t s_esp_tx_fifo_buf[ESP01S_TX_FIFO_SIZE];
 /* AT 引擎缓冲 */
 static uint8_t s_esp_line_buf[ESP01S_LINE_BUF_SIZE];
 static uint8_t s_esp_ipd_buf[ESP01S_IPD_BUF_SIZE];
+static uint16_t s_transparent_rx_len = 0;
+static bool s_transparent_mode = false;
 
 extern bsp_uart_t ESP_Uart_Dev;
 static void HW_ESP_UART_SendCmdBlocking(const uint8_t *data, uint16_t len);
@@ -110,8 +128,8 @@ static void HW_ESP_UART_PumpRx(void)
 {
     uint16_t received = ESP01S_DMA_RX_BUF_SIZE -
                         DL_DMA_getTransferSize(DMA, ESP01S_DMA_CH_RX);
-    if (received == 0 || received >= ESP01S_DMA_RX_BUF_SIZE ||
-        received <= s_esp_rx_dma_published) {
+    if ((received == 0 || received <= s_esp_rx_dma_published) &&
+        DL_UART_isRXFIFOEmpty(ESP01S_UART_INST)) {
         return;
     }
 
@@ -127,6 +145,16 @@ static void HW_ESP_UART_PumpRx(void)
                                     &g_esp_rx_dma_buf[s_esp_rx_dma_published],
                                     (uint16_t)(received - s_esp_rx_dma_published));
         s_esp_rx_dma_published = received;
+    }
+
+    /* A CIPSEND prompt can be only one byte.  With the UART DMA trigger set
+     * above one byte, that prompt (or the tail of an OK response) may remain
+     * in the peripheral FIFO and never change DMASZ.  Publish those bytes
+     * while DMA is stopped so command responses cannot be lost or shifted
+     * into the following AT transaction. */
+    while (!DL_UART_isRXFIFOEmpty(ESP01S_UART_INST)) {
+        uint8_t byte = (uint8_t)DL_UART_receiveData(ESP01S_UART_INST);
+        Bsp_UART_Rx_PushStreamBytes(&ESP_Uart_Dev, &byte, 1u);
     }
     if (received < ESP01S_DMA_RX_BUF_SIZE) {
         DL_DMA_enableChannel(DMA, ESP01S_DMA_CH_RX);
@@ -285,6 +313,8 @@ static void conn_enter_backoff(void)
 static void conn_enter_escape(const char *reason)
 {
     tx_queue_clear();
+    s_transparent_mode = false;
+    s_transparent_rx_len = 0;
     s_wifi_connected = false;
     s_tcp_connected  = false;
     s_conn_state = ESP_CONN_ESCAPE;
@@ -559,6 +589,23 @@ static void tx_state_poll(void)
     const char *line = Bsp_ESP_AT_GetLine(&g_esp_at);
     uint32_t now = Bsp_GetTick();
 
+    if (s_transparent_mode) {
+        if (s_tx_state == ESP_TX_IDLE &&
+            (int32_t)(now - s_tx_next_allowed) >= 0 &&
+            tx_queue_pop(s_tx_active, &s_tx_active_len)) {
+            /* Online frames can be hundreds of bytes.  Polling them into the
+             * UART FIFO at 115200 baud stalls the bare-metal scheduler for
+             * longer than the 25 ms control safety limit.  The dedicated
+             * UART1 TX FIFO is sized for two maximum TC1 frames, so publish
+             * once and let DMA drain it asynchronously. */
+            Bsp_UART_Send(&ESP_Uart_Dev, s_tx_active, s_tx_active_len);
+            s_tx_active_len = 0;
+            s_tx_next_allowed = now + ESP01S_TX_GAP_MS;
+            s_tx_consecutive_failures = 0;
+        }
+        return;
+    }
+
     switch (s_tx_state) {
     case ESP_TX_IDLE:
         if ((int32_t)(now - s_tx_next_allowed) < 0) {
@@ -775,7 +822,7 @@ static void conn_step_tcp(void)
         break;
 
     case 2:
-        ok = Bsp_ESP_AT_SendCmd(&g_esp_at, "AT+CIPMODE=0\r\n", "OK", ESP01S_AT_TIMEOUT_SHORT);
+        ok = Bsp_ESP_AT_SendCmd(&g_esp_at, "AT+CIPMODE=1\r\n", "OK", ESP01S_AT_TIMEOUT_SHORT);
         if (ok) {
             s_conn_step = 3;
         } else {
@@ -792,12 +839,7 @@ static void conn_step_tcp(void)
          * before allowing CIPSEND or host traffic on the new socket. */
         ok = Bsp_ESP_AT_SendCmd(&g_esp_at, cmd, "OK", ESP01S_AT_TIMEOUT_CONNECT);
         if (ok) {
-            s_tcp_connected = true;
-            s_backoff_idx = 0;  /* TCP 成功，重置退避 */
-            s_conn_state = ESP_CONN_ONLINE;
-            APP_ESP_LOG_I(LOG_TAG, "TCP connected, server=%s:%d — ONLINE",
-                   ESP01S_SERVER_IP, ESP01S_SERVER_PORT);
-            conn_notify_progress(4, "ESP01S ready");
+            s_conn_step = 4;
         } else {
             APP_ESP_LOG_W(LOG_TAG, "CIPSTART fail, escape before retry, server=%s:%d",
                    ESP01S_SERVER_IP, ESP01S_SERVER_PORT);
@@ -805,6 +847,28 @@ static void conn_step_tcp(void)
         }
         break;
     }
+
+    case 4:
+        ok = Bsp_ESP_AT_SendCmd(&g_esp_at, "AT+CIPSEND\r\n", ">",
+                                ESP01S_AT_TIMEOUT_SHORT);
+        if (ok) {
+            s_transparent_mode = true;
+            s_transparent_rx_len = 0;
+            s_tcp_connected = true;
+            s_backoff_idx = 0;  /* TCP 成功，重置退避 */
+            s_conn_state = ESP_CONN_ONLINE;
+            /* Some ESP-01S AT builds report CIPSTART OK before their socket
+             * task is ready to accept CIPSEND.  Keep receiving host traffic,
+             * but defer the first queued TX without blocking the control loop. */
+            s_tx_next_allowed = Bsp_GetTick() + ESP01S_TCP_SETTLE_MS;
+            APP_ESP_LOG_I(LOG_TAG, "TCP connected, server=%s:%d — ONLINE",
+                   ESP01S_SERVER_IP, ESP01S_SERVER_PORT);
+            conn_notify_progress(4, "ESP01S ready");
+        } else {
+            APP_ESP_LOG_W(LOG_TAG, "transparent CIPSEND fail, escape before retry");
+            conn_enter_backoff();
+        }
+        break;
 
     default:
         s_conn_step = 0;
@@ -815,12 +879,55 @@ static void conn_step_tcp(void)
 static void conn_step_online(void)
 {
     uint16_t len;
+    bool received_ipd = false;
 
     /* 1. 非阻塞 IPD 轮询，收到完整帧立即派发给回调 */
-    while (Bsp_ESP_AT_Poll(&g_esp_at, &len)) {
+    if (s_transparent_mode) {
+        uint8_t byte;
+        uint16_t budget = ESP01S_IPD_BUF_SIZE;
+        Bsp_UART_PumpRx(&ESP_Uart_Dev);
+        while (budget-- > 0 && Bsp_UART_ReadByte(&ESP_Uart_Dev, &byte)) {
+            if (s_transparent_rx_len < ESP01S_IPD_BUF_SIZE) {
+                s_esp_ipd_buf[s_transparent_rx_len++] = byte;
+            } else {
+                s_transparent_rx_len = 0;
+                g_esp_at.ipd_overflow_count++;
+            }
+            if (byte == '\n') {
+                if (bytes_contains(s_esp_ipd_buf, s_transparent_rx_len,
+                                   "CLOSED", 6u) ||
+                    bytes_contains(s_esp_ipd_buf, s_transparent_rx_len,
+                                   "WIFI DISCONNECT", 15u)) {
+                    s_transparent_rx_len = 0;
+                    s_transparent_mode = false;
+                    s_tcp_connected = false;
+                    conn_enter_at_init();
+                    return;
+                }
+                if (s_rx_callback != NULL && s_transparent_rx_len > 0) {
+                    s_ipd_dispatch_count++;
+                    s_rx_callback(s_esp_ipd_buf, s_transparent_rx_len);
+                }
+                s_transparent_rx_len = 0;
+                received_ipd = true;
+            }
+        }
+    } else while (Bsp_ESP_AT_Poll(&g_esp_at, &len)) {
+        received_ipd = true;
         if (s_rx_callback != NULL && len > 0) {
             s_ipd_dispatch_count++;
             s_rx_callback(g_esp_at.ipd_buf, len);
+        }
+    }
+
+    /* Do not issue CIPSEND in the same scheduler pass that completed +IPD.
+     * The ESP8266 AT task can still be finishing its unsolicited UART output;
+     * a short quiet window prevents a valid CIPSEND from being silently
+     * discarded while keeping the 5 ms control scheduler non-blocking. */
+    if (received_ipd) {
+        uint32_t quiet_until = Bsp_GetTick() + ESP01S_RX_TO_TX_QUIET_MS;
+        if ((int32_t)(quiet_until - s_tx_next_allowed) > 0) {
+            s_tx_next_allowed = quiet_until;
         }
     }
 
@@ -876,6 +983,8 @@ bool App_ESP01S_Init(App_ESP01S_ProgressCb progress)
     s_progress_cb    = progress;
     s_backoff_idx    = 0;
     s_conn_fail_count = 0;
+    s_transparent_mode = false;
+    s_transparent_rx_len = 0;
     tx_queue_clear();
 
     /* 初始化 ESP UART（UART1 + DMA） */

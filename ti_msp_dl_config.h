@@ -120,21 +120,6 @@ extern "C" {
 #define GPIO_Encoder_Timer_PHB_IOMUX_FUNC             IOMUX_PINCM50_PF_TIMG8_CCP1
 
 
-
-/* Defines for MPU6050_I2C */
-#define MPU6050_I2C_INST                                                    I2C0
-#define MPU6050_I2C_INST_IRQHandler                              I2C0_IRQHandler
-#define MPU6050_I2C_INST_INT_IRQN                                  I2C0_INT_IRQn
-#define GPIO_MPU6050_I2C_SDA_PORT                                          GPIOA
-#define GPIO_MPU6050_I2C_SDA_PIN                                   DL_GPIO_PIN_0
-#define GPIO_MPU6050_I2C_IOMUX_SDA                                (IOMUX_PINCM1)
-#define GPIO_MPU6050_I2C_IOMUX_SDA_FUNC                 IOMUX_PINCM1_PF_I2C0_SDA
-#define GPIO_MPU6050_I2C_SCL_PORT                                          GPIOA
-#define GPIO_MPU6050_I2C_SCL_PIN                                   DL_GPIO_PIN_1
-#define GPIO_MPU6050_I2C_IOMUX_SCL                                (IOMUX_PINCM2)
-#define GPIO_MPU6050_I2C_IOMUX_SCL_FUNC                 IOMUX_PINCM2_PF_I2C0_SCL
-
-
 /* Defines for UART_Debug */
 #define UART_Debug_INST                                                    UART0
 #define UART_Debug_INST_IRQHandler                              UART0_IRQHandler
@@ -167,6 +152,25 @@ extern "C" {
 #define UART_ESP01S_FBRD_32_MHZ_115200_BAUD                                 (23)
 
 
+
+
+/* Defines for ICM_SPI */
+#define ICM_SPI_INST                                                       SPI1
+#define ICM_SPI_INST_IRQHandler                                 SPI1_IRQHandler
+#define ICM_SPI_INST_INT_IRQN                                     SPI1_INT_IRQn
+#define GPIO_ICM_SPI_PICO_PORT                                            GPIOB
+#define GPIO_ICM_SPI_PICO_PIN                                     DL_GPIO_PIN_8
+#define GPIO_ICM_SPI_IOMUX_PICO                                 (IOMUX_PINCM25)
+#define GPIO_ICM_SPI_IOMUX_PICO_FUNC                 IOMUX_PINCM25_PF_SPI1_PICO
+#define GPIO_ICM_SPI_POCI_PORT                                            GPIOB
+#define GPIO_ICM_SPI_POCI_PIN                                     DL_GPIO_PIN_7
+#define GPIO_ICM_SPI_IOMUX_POCI                                 (IOMUX_PINCM24)
+#define GPIO_ICM_SPI_IOMUX_POCI_FUNC                 IOMUX_PINCM24_PF_SPI1_POCI
+/* GPIO configuration for ICM_SPI */
+#define GPIO_ICM_SPI_SCLK_PORT                                            GPIOB
+#define GPIO_ICM_SPI_SCLK_PIN                                     DL_GPIO_PIN_9
+#define GPIO_ICM_SPI_IOMUX_SCLK                                 (IOMUX_PINCM26)
+#define GPIO_ICM_SPI_IOMUX_SCLK_FUNC                 IOMUX_PINCM26_PF_SPI1_SCLK
 
 
 
@@ -218,6 +222,12 @@ extern "C" {
 /* Defines for KEY4: GPIOA.30 with pinCMx 5 on package pin 37 */
 #define Key_PA30_KEY4_PIN                                       (DL_GPIO_PIN_30)
 #define Key_PA30_KEY4_IOMUX                                       (IOMUX_PINCM5)
+/* Port definition for Pin Group ICM_CS */
+#define ICM_CS_PORT                                                      (GPIOB)
+
+/* Defines for CS: GPIOB.6 with pinCMx 23 on package pin 58 */
+#define ICM_CS_CS_PIN                                            (DL_GPIO_PIN_6)
+#define ICM_CS_CS_IOMUX                                          (IOMUX_PINCM23)
 /* Port definition for Pin Group Monitor_Dir */
 #define Monitor_Dir_PORT                                                 (GPIOA)
 
@@ -266,12 +276,6 @@ extern "C" {
 /* Defines for LED2: GPIOB.5 with pinCMx 18 on package pin 53 */
 #define Led_Group_LED2_PIN                                       (DL_GPIO_PIN_5)
 #define Led_Group_LED2_IOMUX                                     (IOMUX_PINCM18)
-/* Defines for LED3: GPIOB.7 with pinCMx 24 on package pin 59 */
-#define Led_Group_LED3_PIN                                       (DL_GPIO_PIN_7)
-#define Led_Group_LED3_IOMUX                                     (IOMUX_PINCM24)
-/* Defines for LED4: GPIOB.9 with pinCMx 26 on package pin 61 */
-#define Led_Group_LED4_PIN                                       (DL_GPIO_PIN_9)
-#define Led_Group_LED4_IOMUX                                     (IOMUX_PINCM26)
 /* Port definition for Pin Group Right_Encoder */
 #define Right_Encoder_PORT                                               (GPIOB)
 
@@ -295,9 +299,9 @@ void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_Monitor_Left_Timer_init(void);
 void SYSCFG_DL_Right_Motor_Timer_init(void);
 void SYSCFG_DL_Encoder_Timer_init(void);
-void SYSCFG_DL_MPU6050_I2C_init(void);
 void SYSCFG_DL_UART_Debug_init(void);
 void SYSCFG_DL_UART_ESP01S_init(void);
+void SYSCFG_DL_ICM_SPI_init(void);
 void SYSCFG_DL_GRAYSCALE_ADC_init(void);
 void SYSCFG_DL_DMA_init(void);
 

@@ -14,7 +14,7 @@
 #include "bsp_uart.h"
 #include "bsp_encoder_motor.h"
 #include "bsp_sw_i2c.h"
-#include "bsp_mpu6050.h"
+#include "bsp_icm42688.h"
 #include "bsp_grayscale.h"
 #include "bsp_esp_at.h"
 

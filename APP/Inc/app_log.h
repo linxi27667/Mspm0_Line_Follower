@@ -63,14 +63,14 @@
 #define APP_TUNING_LOG_D(...)    ((void)0)
 #endif
 
-#if APP_LOG_MPU_ENABLE
-#define APP_MPU_LOG_I(...)       elog_i(__VA_ARGS__)
-#define APP_MPU_LOG_W(...)       elog_w(__VA_ARGS__)
-#define APP_MPU_LOG_E(...)       elog_e(__VA_ARGS__)
+#if APP_LOG_IMU_ENABLE
+#define APP_IMU_LOG_I(...)       elog_i(__VA_ARGS__)
+#define APP_IMU_LOG_W(...)       elog_w(__VA_ARGS__)
+#define APP_IMU_LOG_E(...)       elog_e(__VA_ARGS__)
 #else
-#define APP_MPU_LOG_I(...)       ((void)0)
-#define APP_MPU_LOG_W(...)       ((void)0)
-#define APP_MPU_LOG_E(...)       ((void)0)
+#define APP_IMU_LOG_I(...)       ((void)0)
+#define APP_IMU_LOG_W(...)       ((void)0)
+#define APP_IMU_LOG_E(...)       ((void)0)
 #endif
 
 #if APP_LOG_DIAGNOSTIC_ENABLE

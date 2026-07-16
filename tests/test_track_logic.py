@@ -62,9 +62,11 @@ class TrackLogicTests(unittest.TestCase):
                 h.last_grayscale_tick = UINT32_MAX - 10u;
                 if (Safety_Logic_Check(9u, &h, 500u, 50u, 25u) != SAFETY_LOGIC_OK) return 7;
                 if (Safety_Logic_Check(50u, &h, 500u, 50u, 100u) != SAFETY_LOGIC_GRAYSCALE_EXPIRED) return 8;
-                if (!Safety_Logic_CanEnterRotation(2u)) return 5;
-                if (Safety_Logic_CanEnterRotation(0u) || Safety_Logic_CanEnterRotation(1u) ||
-                    Safety_Logic_CanEnterRotation(3u) || Safety_Logic_CanEnterRotation(4u)) return 6;
+                if (!Safety_Logic_CanEnterRotation(0u) ||
+                    !Safety_Logic_CanEnterRotation(2u)) return 5;
+                if (Safety_Logic_CanEnterRotation(1u) ||
+                    Safety_Logic_CanEnterRotation(3u) ||
+                    Safety_Logic_CanEnterRotation(4u)) return 6;
                 return 0;
             }
             '''
@@ -224,6 +226,23 @@ class TrackLogicTests(unittest.TestCase):
 
             int main(void) {
                 return Track_Rotate_Timeout(20u, UINT32_MAX - 9u, 30u) ? 0 : 1;
+            }
+            '''
+        )
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_imu_health_gate_rejects_uncalibrated_or_invalid_data(self):
+        result = compile_and_run(
+            r'''
+            #include <stdbool.h>
+            #include "TASK/imu_health_logic.h"
+
+            int main(void) {
+                if (Imu_Health_AllowsMotion(false, true, IMU_CAL_DONE)) return 1;
+                if (Imu_Health_AllowsMotion(true, false, IMU_CAL_DONE)) return 2;
+                if (Imu_Health_AllowsMotion(true, true, IMU_CAL_RUNNING)) return 3;
+                if (!Imu_Health_AllowsMotion(true, true, IMU_CAL_DONE)) return 4;
+                return 0;
             }
             '''
         )

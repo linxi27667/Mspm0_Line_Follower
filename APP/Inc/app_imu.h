@@ -1,0 +1,20 @@
+/**
+ * @file    app_imu.h
+ * @brief   ICM42688-P hardware binding and non-blocking IMU services.
+ */
+#ifndef APP_IMU_H
+#define APP_IMU_H
+
+#include <stdbool.h>
+
+#include "bsp_icm42688.h"
+
+extern imu_sensor_t Imu_Sensor;
+
+bool App_Imu_Init(void);
+bool Imu_Read_Data(void);
+void Imu_Calibration_Start(void);
+imu_cal_state_t Imu_Calibration_Update(void);
+bool Imu_Update_Heading(float dt);
+
+#endif /* APP_IMU_H */

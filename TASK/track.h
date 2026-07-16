@@ -7,8 +7,8 @@
  *          turn_output>0=右转(左轮加速) <0=左转(右轮加速)
  *
  *          架构:
- *          BSP层: bsp_grayscale / bsp_pid / bsp_mpu6050 / bsp_encoder_motor
- *          APP层: app_grayscale / app_mpu6050 / app_encoder_motor
+ *          BSP层: bsp_grayscale / bsp_pid / bsp_icm42688 / bsp_encoder_motor
+ *          APP层: app_grayscale / app_imu / app_encoder_motor
  *          TASK层: 本文件 — 只写业务逻辑，不碰任何硬件寄存器
  */
 #ifndef __TRACK_H__
@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include "app_pid.h"
 #include "app_grayscale.h"
-#include "app_mpu6050.h"
+#include "app_imu.h"
 #include "app_encoder_motor.h"
 #include "user_tuning.h"
 

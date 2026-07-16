@@ -103,8 +103,6 @@ static void Enable_GPIO_InputReadback(void)
     /* LED 引脚 */
     IOMUX->SECCFG.PINCM[Led_Group_LED1_IOMUX] |= INE_BIT;
     IOMUX->SECCFG.PINCM[Led_Group_LED2_IOMUX] |= INE_BIT;
-    IOMUX->SECCFG.PINCM[Led_Group_LED3_IOMUX] |= INE_BIT;
-    IOMUX->SECCFG.PINCM[Led_Group_LED4_IOMUX] |= INE_BIT;
 }
 
 /* ================= 外设中断 ISR ================= */
@@ -246,7 +244,7 @@ static void Log_Build_Config(void)
     elog_i("CONFIG", "LOG_VEHICLE=%s", APP_LOG_VEHICLE_ENABLE ? "ON" : "OFF");
     elog_i("CONFIG", "LOG_TRACK=%s", APP_LOG_TRACK_ENABLE ? "ON" : "OFF");
     elog_i("CONFIG", "LOG_TUNING=%s", APP_LOG_TUNING_ENABLE ? "ON" : "OFF");
-    elog_i("CONFIG", "LOG_MPU=%s", APP_LOG_MPU_ENABLE ? "ON" : "OFF");
+    elog_i("CONFIG", "LOG_IMU=%s", APP_LOG_IMU_ENABLE ? "ON" : "OFF");
     elog_i("CONFIG", "LOG_DIAG=%s", APP_LOG_DIAGNOSTIC_ENABLE ? "ON" : "OFF");
 }
 
@@ -345,23 +343,22 @@ static void Diag_PINCM(void)
            (unsigned long)IOMUX->SECCFG.PINCM[IOMUX_PINCM60]);
 }
 
-static void SelfTest_MPU6050(void)
+static void SelfTest_ICM42688(void)
 {
-    elog_i("TEST", "==== MPU6050 Test ====");
-    App_Mpu_Init();
+    elog_i("TEST", "==== ICM42688-P Test ====");
+    (void)App_Imu_Init();
     Bsp_Delay_ms(100);
 
-    if (Mpu_Sensor.gyro_ok) {
-        Mpu_Read_Data();
-        elog_i("TEST", "MPU OK: ax=%.2f ay=%.2f az=%.2f",
-               Mpu_Sensor.accel_x, Mpu_Sensor.accel_y, Mpu_Sensor.accel_z);
-        elog_i("TEST", "MPU OK: gx=%.2f gy=%.2f gz=%.2f",
-               Mpu_Sensor.gyro_x, Mpu_Sensor.gyro_y, Mpu_Sensor.gyro_z);
-        elog_i("TEST", "MPU OK: temp=%.1fC", Mpu_Sensor.temp);
+    if (Imu_Sensor.initialized && Imu_Read_Data()) {
+        elog_i("TEST", "ICM OK: ax=%.2f ay=%.2f az=%.2f",
+               Imu_Sensor.accel_x, Imu_Sensor.accel_y, Imu_Sensor.accel_z);
+        elog_i("TEST", "ICM OK: gx=%.2f gy=%.2f gz=%.2f",
+               Imu_Sensor.gyro_x, Imu_Sensor.gyro_y, Imu_Sensor.gyro_z);
+        elog_i("TEST", "ICM OK: temp=%.1fC", Imu_Sensor.temp);
     } else {
-        elog_e("TEST", "MPU FAIL: gyro_ok=0");
+        elog_e("TEST", "ICM FAIL: init/read error");
     }
-    elog_i("TEST", "==== MPU6050 Done ====");
+    elog_i("TEST", "==== ICM42688-P Done ====");
 }
 
 static void SelfTest_Motor_Encoder(void)
@@ -539,7 +536,7 @@ static void Run_SelfTest(void)
     Diag_PINCM();
     Bsp_Delay_ms(100);
 
-    SelfTest_MPU6050();
+    SelfTest_ICM42688();
     Bsp_Delay_ms(200);
 
     SelfTest_Grayscale();
@@ -610,6 +607,12 @@ static void Main_UpdateGrayscale(uint32_t now)
 static void Main_RunControl(uint32_t now, main_runtime_t *runtime)
 {
     if (!Main_PeriodElapsed(now, &runtime->last_5ms, 5u)) return;
+
+    /* 静止校准独立于电机授权，每个 5 ms 节拍只采一个样本。 */
+    if (Imu_Sensor.calibration_state == IMU_CAL_RUNNING) {
+        (void)Imu_Calibration_Update();
+    }
+
     if (Safety_ControlTick()) {
         Track_Update();
         App_Motor_Speed_PID_Update();
@@ -650,14 +653,14 @@ static void Main_LogVehicleStatus(main_runtime_t *runtime)
         APP_VEHICLE_LOG_I("ROTCTL", "actual=%ld error=%ld rate=%ld output=%ld",
                           (long)(Track.rotate_actual_deg * 10.0f),
                           (long)(Track.rotate_error_deg * 10.0f),
-                          (long)(Mpu_Sensor.gyro_z * 10.0f),
+                          (long)(Imu_Sensor.gyro_z * 10.0f),
                           (long)(Track.turn_output * 10.0f));
     } else if (Track.state == TRACK_STATE_HEADING_HOLD) {
         APP_VEHICLE_LOG_I("HOLDCTL", "target=%ld actual=%ld error=%ld rate=%ld output=%ld",
                           (long)(Track.heading_hold_target * 10.0f),
                           (long)(Track.heading_hold_actual * 10.0f),
                           (long)(Track.heading_hold_error * 10.0f),
-                          (long)(Mpu_Sensor.gyro_z * 10.0f),
+                          (long)(Imu_Sensor.gyro_z * 10.0f),
                           (long)(Track.turn_output * 10.0f));
     }
 
@@ -691,8 +694,11 @@ static void Main_HandleKeyPush(uint8_t key)
 {
     if (key == 0u) {
         if (Safety_GetState() == SAFETY_STATE_READY) {
-            Track_Start();
-            elog_i("CTRL", "Tracking started");
+            if (Track_Start()) {
+                elog_i("CTRL", "Tracking started");
+            } else {
+                elog_w("CTRL", "Start blocked: imu_unavailable");
+            }
         } else {
             elog_w("CTRL", "Start blocked (safety=%s)", Safety_StateName(Safety_GetState()));
         }

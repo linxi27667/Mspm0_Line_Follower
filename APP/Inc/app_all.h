@@ -12,7 +12,7 @@
 #include "app_key.h"
 #include "app_led.h"
 #include "app_sw_i2c.h"
-#include "app_mpu6050.h"
+#include "app_imu.h"
 #include "app_uart.h"
 #include "app_pid.h"
 #include "app_esp01s.h"

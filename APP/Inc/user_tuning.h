@@ -12,7 +12,7 @@
  *
  * ====== 国一/省一方案学习总结(2024电赛H题) ======
  * 1. 陀螺仪: 国一方案都用JY61P/HWT101数字陀螺仪(直接输出角度,无零漂)
- *    我们用MPU6050需积分,瞬时加速度大会漂移,需开机静止校准+PID稳定
+ *    我们用ICM42688-P需积分,需开机静止校准+PID稳定
  * 2. 状态机+航向锁定: 每段路锁定目标航向角,陀螺仪PID走直线
  * 3. 循迹时也保持速度闭环: 灰度只输出差速,速度环保证车速稳定
  * 4. 位置前馈: 编码器累计脉冲数判断到达点(我们用圈数+超时)
@@ -66,7 +66,7 @@
  *   1. 直角弯转不过去→加大KP
  *   2. 转过头→加KD或减小KP
  *   3. 丢线时车跑偏→加大KP
- * 注意: MPU6050有零漂,省一方案用JY61P免校准,我们需开机静止校准
+ * 注意: ICM42688-P需处理零偏,省一方案用JY61P免校准,我们需开机静止校准
  * ================================================================== */
 #ifndef USER_GYRO_PID_KP
 #define USER_GYRO_PID_KP           3.0f    /* 比例增益 */
@@ -237,7 +237,7 @@
 #define USER_ROTATE_PID_BLEND_ZONE_DEG   40.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_MAX_SPEED
-#define USER_ROTATE_PID_FINE_MAX_SPEED    5.0f
+#define USER_ROTATE_PID_FINE_MAX_SPEED    4.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_MIN_SPEED
 #define USER_ROTATE_PID_FINE_MIN_SPEED   3

@@ -89,6 +89,7 @@ engine = get_engine(config)
 
 # 遥测历史（线程安全的双端队列，固定长度）
 telemetry_history = deque(maxlen=config.TELEMETRY_WINDOW)
+telemetry_frame_count = 0
 
 # 当前参数（运行时可改，前端展示+下发给小车）
 current_params = {k: v["default"] for k, v in PARAMS.items()}
@@ -105,7 +106,7 @@ car_log_buffer = deque(maxlen=500)
 
 REQUEST_ERROR_MESSAGES = {
     "not_ready": "当前已有循迹或其他控制任务在运行，请先停止后再旋转",
-    "imu_unavailable": "MPU6050 未连接、未识别或尚未完成静止校准",
+    "imu_unavailable": "ICM42688 未连接、未识别或尚未完成静止校准",
     "safety_rejected": "安全状态机拒绝执行，请检查故障状态和心跳",
     "invalid_angle": "角度无效，范围为 -180 到 180 且不能为 0",
     "invalid cmd": "固件未识别该命令",
@@ -161,9 +162,11 @@ def parse_car_log_line(line: str) -> dict:
 
 def on_telemetry(tele: dict):
     """收到遥测帧"""
+    global telemetry_frame_count
     with state_lock:
         telemetry_history.append(tele)
-        frame_no = len(telemetry_history)
+        telemetry_frame_count += 1
+        frame_no = telemetry_frame_count
         # 同步当前参数（小车端 kp/kd 可能因其他方式改变）
         if "kp" in tele:
             current_params["KP"] = tele["kp"]
@@ -206,20 +209,26 @@ def on_connect(addr):
     socketio.emit("client_status", {"connected": True, "addr": f"{addr[0]}:{addr[1]}"})
     auth_session = secrets.token_hex(8)
     auth_frame = build_auth(config.TUNING_AUTH_TOKEN, session=auth_session)
-    if tcp.send(auth_frame):
-        add_log("INFO", "小车调参认证已发送")
-    else:
-        add_log("ERROR", "小车调参认证发送失败")
     threading.Thread(
-        target=_retry_auth_after_online,
+        target=_send_auth_after_online,
         args=(addr, auth_frame),
         daemon=True,
     ).start()
 
 
-def _retry_auth_after_online(addr, auth_frame: str):
-    """Avoid losing the one-shot auth frame while ESP finishes CIPSTART."""
-    time.sleep(0.5)
+def _send_auth_after_online(addr, auth_frame: str):
+    """Let the ESP finish its first uplink before starting downlink traffic."""
+    time.sleep(3.0)
+    with state_lock:
+        same_client = client_connected and client_addr == addr
+    if not same_client:
+        return
+    if tcp.send(auth_frame):
+        add_log("INFO", "小车调参认证已发送")
+    else:
+        add_log("ERROR", "小车调参认证发送失败")
+
+    time.sleep(2.0)
     with state_lock:
         same_client = client_connected and client_addr == addr
     if same_client and tcp.send(auth_frame):
@@ -252,9 +261,18 @@ def on_car_log(line: str):
 def heartbeat_worker():
     """Keep a running tuning session armed without blocking web or TCP threads."""
     interval_s = config.HEARTBEAT_INTERVAL_MS / 1000.0
+    was_connected = False
+    heartbeat_ready_at = 0.0
     while True:
-        if tcp.is_connected():
+        connected = tcp.is_connected()
+        now = time.monotonic()
+        if connected and not was_connected:
+            # Give the ESP-01S one quiet uplink window after the initial AUTH;
+            # steady-state heartbeat timing remains unchanged.
+            heartbeat_ready_at = now + 6.0
+        if connected and now >= heartbeat_ready_at:
             tcp.send(build_ping(int(time.monotonic() * 1000)))
+        was_connected = connected
         time.sleep(interval_s)
 
 
@@ -399,9 +417,13 @@ def ws_connect():
     }, room=sid)
     socketio.emit("params_update", current_params, room=sid)
     # 推送历史日志
-    for entry in list(log_buffer)[-20:]:
+    for entry in list(log_buffer)[-5:]:
         socketio.emit("log", entry, room=sid)
-    for entry in list(car_log_buffer)[-200:]:
+    # Keep namespace setup bounded.  Replaying hundreds of individual
+    # Socket.IO events can exceed the client's connect timeout after the car
+    # has been online for a while; the remaining history is still available
+    # in the server-side ring and new logs continue streaming live.
+    for entry in list(car_log_buffer)[-5:]:
         socketio.emit("car_log", entry, room=sid)
 
 

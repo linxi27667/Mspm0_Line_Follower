@@ -485,14 +485,14 @@
               <FilePath>..\APP\Inc\app_sw_i2c.h</FilePath>
             </File>
             <File>
-              <FileName>app_mpu6050.c</FileName>
+              <FileName>app_imu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\APP\Src\app_mpu6050.c</FilePath>
+              <FilePath>..\APP\Src\app_imu.c</FilePath>
             </File>
             <File>
-              <FileName>app_mpu6050.h</FileName>
+              <FileName>app_imu.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\APP\Inc\app_mpu6050.h</FilePath>
+              <FilePath>..\APP\Inc\app_imu.h</FilePath>
             </File>
             <File>
               <FileName>app_pid.c</FileName>
@@ -568,6 +568,11 @@
               <FileName>track.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\TASK\track.h</FilePath>
+            </File>
+            <File>
+              <FileName>imu_health_logic.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\imu_health_logic.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -645,14 +650,14 @@
               <FilePath>..\BSP\Inc\bsp_sw_i2c.h</FilePath>
             </File>
             <File>
-              <FileName>bsp_mpu6050.c</FileName>
+              <FileName>bsp_icm42688.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\BSP\Src\bsp_mpu6050.c</FilePath>
+              <FilePath>..\BSP\Src\bsp_icm42688.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_mpu6050.h</FileName>
+              <FileName>bsp_icm42688.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\BSP\Inc\bsp_mpu6050.h</FilePath>
+              <FilePath>..\BSP\Inc\bsp_icm42688.h</FilePath>
             </File>
             <File>
               <FileName>bsp_esp_at.c</FileName>
