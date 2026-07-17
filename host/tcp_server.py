@@ -16,6 +16,7 @@ from protocol import (
     ProtocolError,
     build_auth,
     build_cmd,
+    build_motor_test,
     build_rotate,
     build_set,
     decode_frame,
@@ -478,6 +479,26 @@ class RequestManager:
             self._pending_cmd = f"rotate:{degrees:.1f}"
             self._attempt = 0
         return self._send_reserved(request_id, "rotate")
+
+    def send_motor_test(self) -> bool:
+        """Send the fixed lifted-wheel bench test with ACK/retry handling."""
+        with self._lock:
+            if self._pending_json is not None:
+                logger.warning("request manager: busy, rejecting send_motor_test")
+                return False
+            request_id = self._allocate_id_locked()
+            try:
+                json_str = build_motor_test(request_id=request_id)
+            except (ProtocolError, ValueError) as exc:
+                logger.error("request manager: build_motor_test failed: %s", exc)
+                return False
+            self._pending_json = json_str
+            self._pending_id = request_id
+            self._pending_kind = "cmd"
+            self._pending_params = None
+            self._pending_cmd = "motor_test"
+            self._attempt = 0
+        return self._send_reserved(request_id, "motor_test")
 
     def send_stop_override(self) -> bool:
         """Cancel the pending request locally and send a tracked stop immediately."""

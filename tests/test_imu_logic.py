@@ -158,6 +158,8 @@ class ImuLogicTests(unittest.TestCase):
         )[0]
         self.assertLess(recovery.index("if (motion_active"),
                         recovery.index("App_Imu_Init()"))
+        self.assertLess(recovery.index("IMU_CAL_RUNNING"),
+                        recovery.index("App_Imu_Init()"))
         self.assertIn("Imu_Calibration_Start();", recovery)
 
         main_source = (ROOT / "main.c").read_text(encoding="utf-8")
@@ -264,6 +266,34 @@ class ImuLogicTests(unittest.TestCase):
                 if (!Bsp_Icm42688_Update_Heading(&sensor, 0.005f)) return 5;
                 if (!nearf(sensor.gyro_z, 100.0f, 0.03f)) return 6;
                 if (!nearf(sensor.heading, 0.5f, 0.002f)) return 7;
+                return 0;
+            }
+        ''')
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_calibration_tolerates_transient_invalid_frames_but_is_bounded(self):
+        result = compile_and_run(r'''
+            int main(void)
+            {
+                imu_sensor_t sensor = make_sensor();
+                unsigned i;
+                if (!Bsp_Icm42688_Init_Device(&sensor)) return 1;
+                Bsp_Icm42688_Calibration_Start(&sensor);
+
+                force_transfer_failure = true;
+                for (i = 0; i < ICM42688_CALIB_MAX_READ_FAILURES - 1u; i++) {
+                    if (Bsp_Icm42688_Calibration_Update(&sensor) != IMU_CAL_RUNNING) return 2;
+                }
+                force_transfer_failure = false;
+                if (Bsp_Icm42688_Calibration_Update(&sensor) != IMU_CAL_RUNNING) return 3;
+                if (sensor.calibration_read_failures != 0u) return 4;
+                if (sensor.calibration_sample_count != 1u) return 5;
+
+                force_transfer_failure = true;
+                for (i = 0; i < ICM42688_CALIB_MAX_READ_FAILURES; i++) {
+                    (void)Bsp_Icm42688_Calibration_Update(&sensor);
+                }
+                if (sensor.calibration_state != IMU_CAL_FAILED) return 6;
                 return 0;
             }
         ''')

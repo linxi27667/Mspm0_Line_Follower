@@ -33,6 +33,7 @@
 
 #define ICM42688_CALIB_SAMPLES       200u
 #define ICM42688_CALIB_MAX_STD_DPS   5.0f
+#define ICM42688_CALIB_MAX_READ_FAILURES 20u
 #define ICM42688_GYRO_DEADZONE_DPS   0.05f
 #define ICM42688_GYRO_Z_SIGN         1.0f
 
@@ -82,6 +83,7 @@ typedef struct {
     uint8_t init_power_config;
 
     uint16_t calibration_sample_count;
+    uint8_t calibration_read_failures;
     float calibration_mean;
     float calibration_m2;
 } imu_sensor_t;

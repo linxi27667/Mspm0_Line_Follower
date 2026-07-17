@@ -10,6 +10,14 @@ JS_PATH = HOST_ROOT / "static" / "app.js"
 
 
 class FrontendLayoutCssTests(unittest.TestCase):
+    def test_motor_bench_test_requires_lifted_confirmation(self):
+        html = HTML_PATH.read_text(encoding="utf-8")
+        js = JS_PATH.read_text(encoding="utf-8")
+        self.assertIn('id="btn-motor-test"', html)
+        self.assertIn('id="motor-test-status"', html)
+        self.assertIn('socket.emit("send_motor_test", { lifted: true })', js)
+        self.assertIn("两个驱动轮完全架空", js)
+
     @classmethod
     def setUpClass(cls):
         cls.css = CSS_PATH.read_text(encoding="utf-8")

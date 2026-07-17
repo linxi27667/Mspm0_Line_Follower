@@ -47,11 +47,12 @@ STATE_MAP = {
     "CR": "CROSS",
     "RT": "ROTATE",
     "HH": "HEADING_HOLD",
+    "MT": "MOTOR_TEST",
     "FN": "FINISHED",
 }
 
 VALID_CMDS = {
-    "start", "stop", "whitecal", "blackcal", "rotate",
+    "start", "stop", "whitecal", "blackcal", "rotate", "motor_test",
     "heading_hold_on", "heading_hold_off",
 }
 
@@ -59,6 +60,7 @@ _TELEMETRY_REQUIRED = {"t", "adc", "gz", "el", "er", "le", "po", "st", "kp", "kd
 _TELEMETRY_OPTIONAL = {
     "v", "seq", "ms", "bc", "ki", "gd", "vb", "vs", "vc", "rt", "drop", "cal",
     "tg", "ta", "te", "rr", "hh", "ht", "ha", "he", "hr",
+    "mt", "mph", "mtg", "mlp", "mrp", "mrs",
 }
 _TELEMETRY_PARAM_FIELDS = _SCHEMA_TELEMETRY_FIELDS
 
@@ -255,6 +257,11 @@ def validate_request(obj: dict[str, Any], *, require_id: bool = True) -> dict[st
             if degrees == 0.0:
                 raise ProtocolError("rotate deg must be nonzero")
             clean["deg"] = degrees
+        elif cmd == "motor_test":
+            allowed.add("lifted")
+            if obj.get("lifted") is not True:
+                raise ProtocolError("motor_test requires lifted=true")
+            clean["lifted"] = True
         if set(obj) - allowed:
             raise ProtocolError("request contains unknown fields")
     return clean
@@ -322,6 +329,19 @@ def validate_telemetry(obj: dict[str, Any]) -> dict[str, Any]:
         _require_number("he", obj["he"])
         if not isinstance(obj["hr"], str) or not obj["hr"] or len(obj["hr"]) > 32:
             raise ProtocolError("invalid heading-hold result")
+    motor_test_fields = {"mt", "mph", "mtg", "mlp", "mrp", "mrs"}
+    present_motor_test_fields = motor_test_fields & set(obj)
+    if present_motor_test_fields and present_motor_test_fields != motor_test_fields:
+        raise ProtocolError("motor-test telemetry group is incomplete")
+    if present_motor_test_fields:
+        if obj["mt"] is not True or obj["st"] != "MT":
+            raise ProtocolError("motor test must be active in MT state")
+        _require_int("mph", obj["mph"], 0, 3)
+        _require_int("mtg", obj["mtg"], 0, 40)
+        _require_int("mlp", obj["mlp"], -100, 100)
+        _require_int("mrp", obj["mrp"], -100, 100)
+        if not isinstance(obj["mrs"], str) or not obj["mrs"] or len(obj["mrs"]) > 32:
+            raise ProtocolError("invalid motor-test result")
     return dict(obj)
 
 
@@ -396,6 +416,18 @@ def build_rotate(degrees: float, request_id: int | None = None) -> str:
         "t": "cmd",
         "cmd": "rotate",
         "deg": degrees,
+    }
+    if request_id is not None:
+        obj["id"] = _require_int("id", request_id)
+    return compact_json(validate_request(obj, require_id=request_id is not None))
+
+
+def build_motor_test(request_id: int | None = None) -> str:
+    obj: dict[str, Any] = {
+        "v": PROTOCOL_VERSION,
+        "t": "cmd",
+        "cmd": "motor_test",
+        "lifted": True,
     }
     if request_id is not None:
         obj["id"] = _require_int("id", request_id)

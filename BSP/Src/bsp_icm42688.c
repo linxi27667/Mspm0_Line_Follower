@@ -265,6 +265,7 @@ void Bsp_Icm42688_Calibration_Start(imu_sensor_t *imu)
         return;
     }
     imu->calibration_sample_count = 0u;
+    imu->calibration_read_failures = 0u;
     imu->calibration_mean = 0.0f;
     imu->calibration_m2 = 0.0f;
     imu->gyro_z_offset = 0.0f;
@@ -284,10 +285,17 @@ imu_cal_state_t Bsp_Icm42688_Calibration_Update(imu_sensor_t *imu)
         return imu->calibration_state;
     }
     if (!Bsp_Icm42688_Read_Data(imu)) {
-        imu->calibration_state = IMU_CAL_FAILED;
+        if (imu->calibration_read_failures < UINT8_MAX) {
+            imu->calibration_read_failures++;
+        }
+        if (imu->calibration_read_failures >=
+            ICM42688_CALIB_MAX_READ_FAILURES) {
+            imu->calibration_state = IMU_CAL_FAILED;
+        }
         return imu->calibration_state;
     }
 
+    imu->calibration_read_failures = 0u;
     imu->calibration_sample_count++;
     delta = imu->gyro_z - imu->calibration_mean;
     imu->calibration_mean += delta / (float)imu->calibration_sample_count;

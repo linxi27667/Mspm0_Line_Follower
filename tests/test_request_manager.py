@@ -132,6 +132,16 @@ class RequestManagerConfirmedTests(unittest.TestCase):
         self.assertFalse(rm.is_busy())
         self.assertEqual(len(confirmed_acks), 1)
 
+    def test_send_motor_test_includes_lifted_confirmation(self):
+        tcp = MockTcpServer()
+        rm = RequestManager(tcp)
+
+        self.assertTrue(rm.send_motor_test())
+        self.assertEqual(
+            tcp.sent_frames[0],
+            '{"v":1,"t":"cmd","cmd":"motor_test","lifted":true,"id":1}',
+        )
+
     def test_stop_replaces_pending_rotate_request(self):
         """Stop must not be blocked while a rotate ACK is still pending."""
         tcp = MockTcpServer()

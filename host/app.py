@@ -109,6 +109,8 @@ REQUEST_ERROR_MESSAGES = {
     "imu_unavailable": "ICM42688 未连接、未识别或尚未完成静止校准",
     "safety_rejected": "安全状态机拒绝执行，请检查故障状态和心跳",
     "invalid_angle": "角度无效，范围为 -180 到 180 且不能为 0",
+    "lifted_confirmation_required": "电机测试必须明确确认驱动轮已经架空",
+    "encoder_sign_or_stall": "编码器正转符号错误或车轮未转动",
     "invalid cmd": "固件未识别该命令",
     "not authenticated": "认证尚未完成，请等待小车重新连接",
 }
@@ -471,6 +473,34 @@ def ws_send_rotate(data):
     else:
         add_log("ERROR", "旋转指令发送失败（小车未连接）")
         socketio.emit("rotate_status", {"state": "rejected", "result": "not_connected"})
+
+
+@socketio.on("send_motor_test")
+def ws_send_motor_test(data):
+    """启动固定分档的架空电机测试；浏览器必须明确确认 lifted。"""
+    if not isinstance(data, dict) or data.get("lifted") is not True:
+        add_log("ERROR", "电机测试已拒绝：未确认驱动轮架空")
+        socketio.emit("request_status", {
+            "state": "rejected",
+            "error": "lifted_confirmation_required",
+        })
+        return
+    if req_mgr.is_busy():
+        add_log("WARNING", "上一个请求待确认，请稍后")
+        socketio.emit("request_status", {
+            "state": "rejected",
+            "error": "request_busy",
+        })
+        return
+    if req_mgr.send_motor_test():
+        add_log("WARNING", "架空电机测试已发送：开环符号检查后运行闭环20/30/40档")
+        socketio.emit("request_status", {"state": "pending", "cmd": "motor_test"})
+    else:
+        add_log("ERROR", "电机测试发送失败（小车未连接）")
+        socketio.emit("request_status", {
+            "state": "rejected",
+            "error": "not_connected",
+        })
 
 
 @socketio.on("send_params")

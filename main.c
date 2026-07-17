@@ -621,7 +621,11 @@ static void Main_RunControl(uint32_t now, main_runtime_t *runtime)
         Track_Update();
         App_Motor_Speed_PID_Update();
     } else if (Safety_GetState() == SAFETY_STATE_FAULT &&
-               (Track_Is_Rotating() || Track_Is_Heading_Hold())) {
+               (Track_Is_Rotating() || Track_Is_Heading_Hold() ||
+                Track_Is_Motor_Test())) {
+        if (Track_Is_Motor_Test()) {
+            Track_Abort_Motor_Test(Safety_FaultName(Safety_GetFault()));
+        }
         Track_Abort_Rotation(Safety_FaultName(Safety_GetFault()));
         if (Track_Is_Heading_Hold()) {
             (void)Track_Stop_Heading_Hold();

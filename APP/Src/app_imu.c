@@ -143,7 +143,13 @@ void App_Imu_Recovery_Update(uint32_t now, bool motion_active)
     bool healthy_for_idle = Imu_Sensor.initialized && Imu_Sensor.data_valid &&
         Imu_Sensor.calibration_state != IMU_CAL_FAILED;
 
-    if (motion_active || healthy_for_idle) return;
+    if (motion_active) return;
+    /* 校准器自身会容忍有上限的上电瞬态无效帧；运行期间禁止恢复器抢先复位。 */
+    if (Imu_Sensor.calibration_state == IMU_CAL_RUNNING) return;
+    if (healthy_for_idle) {
+        s_recovery_pending = false;
+        return;
+    }
     if (!s_recovery_pending) {
         App_Imu_Request_Recovery();
         return;
@@ -157,7 +163,6 @@ void App_Imu_Recovery_Update(uint32_t now, bool motion_active)
     APP_IMU_LOG_W("IMU", "[IMU] auto reconnect %u: software reset + reinit",
                   (unsigned)(s_recovery_failures + 1u));
     if (App_Imu_Init()) {
-        s_recovery_failures = 0u;
         Imu_Calibration_Start();
         APP_IMU_LOG_I("IMU", "[IMU] auto reconnect OK; calibration restarted");
         return;
@@ -190,10 +195,15 @@ imu_cal_state_t Imu_Calibration_Update(void)
         Bsp_Icm42688_Calibration_Update(&Imu_Sensor);
 
     if (previous != current && current == IMU_CAL_DONE) {
+        s_recovery_failures = 0u;
+        s_recovery_pending = false;
         APP_IMU_LOG_I("IMU", "[IMU] gyro calibration done: bias=%.3f dps",
                       (double)Imu_Sensor.gyro_z_offset);
     } else if (previous != current && current == IMU_CAL_FAILED) {
-        APP_IMU_LOG_E("IMU", "[IMU] gyro calibration failed");
+        if (s_recovery_failures < UINT8_MAX) s_recovery_failures++;
+        APP_IMU_LOG_E("IMU", "[IMU] gyro calibration failed: samples=%u read_failures=%u",
+                      (unsigned)Imu_Sensor.calibration_sample_count,
+                      (unsigned)Imu_Sensor.calibration_read_failures);
     }
     return current;
 }

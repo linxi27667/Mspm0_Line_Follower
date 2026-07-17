@@ -265,6 +265,28 @@ class TrackLogicTests(unittest.TestCase):
         self.assertIn("LEFT_ENC_PHA_PIN | LEFT_ENC_PHB_PIN", motor_source)
         self.assertIn("RIGHT_ENC_PHA_PIN | RIGHT_ENC_PHB_PIN", motor_source)
 
+    def test_motor_bench_test_is_nonblocking_bounded_and_stoppable(self):
+        track_source = (ROOT / "TASK" / "track.c").read_text(encoding="utf-8")
+        tuning_source = (ROOT / "APP" / "Src" / "app_tuning.c").read_text(
+            encoding="utf-8"
+        )
+        start = track_source.split("bool Track_Start_Motor_Test", 1)[1].split(
+            "bool Track_Is_Motor_Test", 1
+        )[0]
+        handler = track_source.split("static void Track_Handle_Motor_Test", 1)[1].split(
+            "static void Track_Handle_Heading_Hold", 1
+        )[0]
+
+        self.assertIn("Safety_TransitionToBenchTest", start)
+        self.assertIn("App_Motor_Enable_Speed_PID(false);", start)
+        self.assertIn("TRACK_MOTOR_TEST_TIMEOUT_MS", handler)
+        self.assertIn("encoder_sign_or_stall", handler)
+        self.assertIn("App_Motor_Enable_Speed_PID(true);", handler)
+        self.assertNotIn("Bsp_Delay_ms", handler)
+        self.assertIn('strcmp(cmd, "motor_test") == 0', tuning_source)
+        self.assertIn('find_bool(json, "lifted", &lifted)', tuning_source)
+        self.assertIn('Track_Motor_Test_End("stopped")', track_source)
+
     def test_right_angle_heading_lock_requires_angle_and_rate(self):
         result = compile_and_run(
             r'''

@@ -25,6 +25,7 @@ const stateMap = {
     CR: "十字",
     RT: "原地旋转",
     HH: "航向保持",
+    MT: "电机测试",
     FN: "完成",
 };
 
@@ -71,6 +72,35 @@ function updateMotionData(tele) {
     section.hidden = true;
 }
 
+let motorTestRunning = false;
+let motorTestPending = false;
+
+function setMotorTestStatus(text, state = "idle") {
+    const status = document.getElementById("motor-test-status");
+    const startButton = document.getElementById("btn-motor-test");
+    if (!status || !startButton) return;
+    status.textContent = text;
+    status.className = `rotate-status is-${state}`;
+    startButton.disabled = state === "pending" || state === "running";
+}
+
+function updateMotorTestData(tele) {
+    if (tele.st === "MT" && tele.mt === true) {
+        motorTestRunning = true;
+        motorTestPending = false;
+        const mode = tele.mph === 0 ? "开环方向检查" : `闭环第${tele.mph}档`;
+        setMotorTestStatus(
+            `${mode} 目标${tele.mtg} PWM L${tele.mlp}/R${tele.mrp} 编码 L${tele.el}/R${tele.er}`,
+            "running",
+        );
+        return;
+    }
+    if (motorTestRunning) {
+        motorTestRunning = false;
+        setMotorTestStatus("测试已结束，请查看 MOTORTEST 日志", "complete");
+    }
+}
+
 socket.on("telemetry", (tele) => {
     frameCount += 1;
     document.getElementById("frame-counter").textContent = `帧: ${frameCount}`;
@@ -103,6 +133,7 @@ socket.on("telemetry", (tele) => {
     setTelemetryText("tele-vc", tele.vc);
     setTelemetryText("tele-rt", tele.rt, 3);
     updateMotionData(tele);
+    updateMotorTestData(tele);
     document.getElementById("telemetry-raw").textContent = JSON.stringify(tele, null, 2);
 
     updateLinkHealth(tele);
@@ -188,6 +219,18 @@ document.getElementById("btn-whitecal").addEventListener("click", () => sendCmd(
 document.getElementById("btn-blackcal").addEventListener("click", () => sendCmd("blackcal"));
 document.getElementById("btn-reconnect").addEventListener("click", () => sendCmd("reconnect"));
 
+document.getElementById("btn-motor-test").addEventListener("click", () => {
+    const warning = "确认以下条件全部满足：\n\n1. 两个驱动轮完全架空\n2. 车身已经固定\n3. 手和线缆远离车轮\n4. 激光模块已关闭\n\n开始约4.4秒的电机分档测试？";
+    if (!confirm(warning)) return;
+    motorTestPending = true;
+    setMotorTestStatus("等待固件确认", "pending");
+    socket.emit("send_motor_test", { lifted: true });
+});
+
+document.getElementById("btn-motor-test-stop").addEventListener("click", () => {
+    sendCmd("stop");
+});
+
 const rotateControls = [
     document.getElementById("btn-rotate-left"),
     document.getElementById("btn-rotate-right"),
@@ -272,8 +315,18 @@ socket.on("rotate_status", (data) => {
 });
 
 socket.on("request_status", (data) => {
+    if (data.state === "pending" && data.cmd === "motor_test") {
+        motorTestPending = true;
+        setMotorTestStatus("等待固件确认", "pending");
+        return;
+    }
     if (data.state === "pending" && data.cmd === "rotate") return;
     if (data.state === "rejected" || data.state === "timeout") {
+        if (motorTestPending) {
+            motorTestPending = false;
+            const motorDetail = data.message || data.error || "unknown";
+            setMotorTestStatus(`测试请求失败: ${motorDetail}`, "fault");
+        }
         setRotateControlsDisabled(false);
         const detail = data.message || data.error || "unknown";
         setRotateStatus(data.state === "timeout" ? `请求超时: ${detail}` : `已拒绝: ${detail}`, "fault");

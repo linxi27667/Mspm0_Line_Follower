@@ -184,6 +184,30 @@ void Safety_TransitionAfterRotation(void)
     s_health.grayscale_required = false;
 }
 
+bool Safety_TransitionToBenchTest(void)
+{
+    if (s_state != SAFETY_STATE_READY || s_fault != SAFETY_FAULT_NONE) {
+        return false;
+    }
+
+    s_state = SAFETY_STATE_RUNNING;
+    s_health.grayscale_required = false;
+    s_health.last_control_tick = Bsp_GetTick();
+    elog_i("SAFETY", "-> RUNNING (motor bench test)");
+    return true;
+}
+
+void Safety_TransitionAfterBenchTest(void)
+{
+    if (s_state == SAFETY_STATE_FAULT) return;
+
+    Safety_CutMotor();
+    s_state = SAFETY_STATE_READY;
+    s_health.remote_armed = false;
+    s_health.grayscale_required = false;
+    elog_i("SAFETY", "motor bench test ended -> READY");
+}
+
 void Safety_TransitionToFinished(void)
 {
     if (s_state == SAFETY_STATE_FAULT) return;

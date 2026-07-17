@@ -18,6 +18,7 @@ from protocol import (  # noqa: E402
     build_ack,
     build_auth,
     build_cmd,
+    build_motor_test,
     build_rotate,
     build_ping,
     build_set,
@@ -107,6 +108,26 @@ class RequestTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises((ValueError, ProtocolError)):
                     build_rotate(value, request_id=19)
+
+    def test_motor_test_requires_explicit_lifted_confirmation(self):
+        self.assertEqual(
+            json.loads(build_motor_test(request_id=20)),
+            {"v": 1, "t": "cmd", "cmd": "motor_test", "lifted": True, "id": 20},
+        )
+        for request in (
+            {"v": 1, "t": "cmd", "cmd": "motor_test"},
+            {"v": 1, "t": "cmd", "cmd": "motor_test", "lifted": False},
+        ):
+            with self.assertRaises(ProtocolError):
+                validate_request(request)
+
+    def test_motor_test_telemetry_is_a_complete_group(self):
+        sample = telemetry(
+            st="MT", mt=True, mph=2, mtg=30, mlp=31, mrp=29, mrs="running"
+        )
+        self.assertEqual(parse_telemetry(sample), sample)
+        sample.pop("mrp")
+        self.assertIsNone(parse_telemetry(sample))
 
     def test_invalid_parameter_types_and_non_finite_values_are_rejected(self):
         for value in (True, "5", None, math.nan, math.inf, -math.inf):

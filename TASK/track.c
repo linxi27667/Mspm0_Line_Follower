@@ -372,6 +372,88 @@ static void Track_Heading_Hold_End(const char *result)
     }
 }
 
+static void Track_Motor_Test_End(const char *result)
+{
+    APP_TRACK_LOG_I("MOTORTEST", "end result=%s phase=%u target=%d L=%ld R=%ld",
+                    result, Track.motor_test_phase, Track.motor_test_target,
+                    (long)Motor_Left.total_position,
+                    (long)Motor_Right.total_position);
+    Track.motor_test_result = result;
+    Track.motor_test_target = 0;
+    Track.state = TRACK_STATE_IDLE;
+    Track_Motor_Stop_Immediate();
+    if (Safety_GetState() != SAFETY_STATE_FAULT) {
+        Safety_TransitionAfterBenchTest();
+    }
+}
+
+static void Track_Handle_Motor_Test(void)
+{
+    static const int32_t targets[] = {
+        TRACK_MOTOR_TEST_TARGET_LOW,
+        TRACK_MOTOR_TEST_TARGET_MID,
+        TRACK_MOTOR_TEST_TARGET_HIGH
+    };
+    uint32_t now = Bsp_GetTick();
+
+    if (!Safety_AllowsMotorOutput()) {
+        Track_Motor_Test_End("safety_revoked");
+        return;
+    }
+    if (Track_Timeout_Reached(now, Track.motor_test_started_at,
+                              TRACK_MOTOR_TEST_TIMEOUT_MS)) {
+        Track_Motor_Test_End("timeout");
+        return;
+    }
+
+    if (Track.motor_test_phase == 0u) {
+        if (!Track_Timeout_Reached(now, Track.motor_test_stage_started_at,
+                                   TRACK_MOTOR_TEST_SIGN_MS)) {
+            return;
+        }
+
+        int32_t left_delta = Track_EncoderDelta(
+            Motor_Left.total_position, Track.motor_test_left_start);
+        int32_t right_delta = Track_EncoderDelta(
+            Motor_Right.total_position, Track.motor_test_right_start);
+        if (left_delta <= 0 || right_delta <= 0) {
+            APP_TRACK_LOG_W("MOTORTEST", "sign check failed L=%ld R=%ld",
+                            (long)left_delta, (long)right_delta);
+            Track_Motor_Test_End("encoder_sign_or_stall");
+            return;
+        }
+
+        Track.motor_test_phase = 1u;
+        Track.motor_test_stage_started_at = now;
+        Track.motor_test_target = targets[0];
+        Track.left_speed = targets[0];
+        Track.right_speed = targets[0];
+        App_Motor_Enable_Speed_PID(true);
+        Motor_Set_Speed(targets[0]);
+        Motor_Right_Set_Speed(targets[0]);
+        APP_TRACK_LOG_I("MOTORTEST", "phase=1 closed_loop target=%d signL=%ld signR=%ld",
+                        targets[0], (long)left_delta, (long)right_delta);
+        return;
+    }
+
+    if (Track_Timeout_Reached(now, Track.motor_test_stage_started_at,
+                              TRACK_MOTOR_TEST_STAGE_MS)) {
+        if (Track.motor_test_phase >= 3u) {
+            Track_Motor_Test_End("complete");
+            return;
+        }
+        Track.motor_test_phase++;
+        Track.motor_test_stage_started_at = now;
+        Track.motor_test_target = targets[Track.motor_test_phase - 1u];
+        Track.left_speed = Track.motor_test_target;
+        Track.right_speed = Track.motor_test_target;
+        Motor_Set_Speed(Track.motor_test_target);
+        Motor_Right_Set_Speed(Track.motor_test_target);
+        APP_TRACK_LOG_I("MOTORTEST", "phase=%u closed_loop target=%d",
+                        Track.motor_test_phase, Track.motor_test_target);
+    }
+}
+
 static void Track_Handle_Heading_Hold(void)
 {
     if (!Track_Imu_Healthy()) {
@@ -657,6 +739,13 @@ void Track_Init(void)
     Track.heading_hold_actual = 0;
     Track.heading_hold_error = 0;
     Track.heading_hold_result = "idle";
+    Track.motor_test_started_at = 0;
+    Track.motor_test_stage_started_at = 0;
+    Track.motor_test_left_start = 0;
+    Track.motor_test_right_start = 0;
+    Track.motor_test_phase = 0;
+    Track.motor_test_target = 0;
+    Track.motor_test_result = "idle";
     Track.right_angle_confirm = 0;
     Track.corner_heading_settle_confirm = 0;
     Track.line_lost_confirm  = 0;
@@ -748,6 +837,12 @@ void Track_Update(void)
     if (elapsed_ms > 20u) elapsed_ms = 20u;
     float dt = elapsed_ms / 1000.0f;
     last_update_tick = now;
+
+    /* 架空台架测试不依赖IMU或灰度，只使用左右编码器速度闭环。 */
+    if (Track.state == TRACK_STATE_MOTOR_TEST) {
+        Track_Handle_Motor_Test();
+        return;
+    }
 
     /* ② 读取 IMU 并更新航向。任何无效帧都在本控制节拍内撤销输出。 */
     if (Track.use_gyro) {
@@ -945,6 +1040,11 @@ void Track_Stop(void)
         if (clear_fault) Safety_ClearFault();
         return;
     }
+    if (Track.state == TRACK_STATE_MOTOR_TEST) {
+        Track_Motor_Test_End("stopped");
+        if (clear_fault) Safety_ClearFault();
+        return;
+    }
 
     Track.state = TRACK_STATE_FINISHED;
     Track.left_speed  = 0;
@@ -1093,6 +1193,61 @@ float Track_Get_Heading_Hold_Target(void) { return Track.heading_hold_target; }
 float Track_Get_Heading_Hold_Actual(void) { return Track.heading_hold_actual; }
 float Track_Get_Heading_Hold_Error(void) { return Track.heading_hold_error; }
 const char *Track_Get_Heading_Hold_Result(void) { return Track.heading_hold_result; }
+
+bool Track_Start_Motor_Test(void)
+{
+    if ((Track.state != TRACK_STATE_IDLE &&
+         Track.state != TRACK_STATE_FINISHED) ||
+        Safety_GetState() != SAFETY_STATE_READY) {
+        Track.motor_test_result = "not_ready";
+        return false;
+    }
+    if (!Safety_TransitionToBenchTest()) {
+        Track.motor_test_result = "safety_rejected";
+        return false;
+    }
+    if (!Safety_AllowsMotorOutput()) {
+        Safety_TransitionAfterBenchTest();
+        Track.motor_test_result = "safety_rejected";
+        return false;
+    }
+
+    Track.motor_test_started_at = Bsp_GetTick();
+    Track.motor_test_stage_started_at = Track.motor_test_started_at;
+    Track.motor_test_left_start = Motor_Left.total_position;
+    Track.motor_test_right_start = Motor_Right.total_position;
+    Track.motor_test_phase = 0u;
+    Track.motor_test_target = TRACK_MOTOR_TEST_SIGN_PWM;
+    Track.motor_test_result = "running";
+    Track.left_speed = TRACK_MOTOR_TEST_SIGN_PWM;
+    Track.right_speed = TRACK_MOTOR_TEST_SIGN_PWM;
+    Track.turn_output = 0.0f;
+    Track.state = TRACK_STATE_MOTOR_TEST;
+
+    App_Motor_Enable_Speed_PID(false);
+    Motor_Set_Speed(TRACK_MOTOR_TEST_SIGN_PWM);
+    Motor_Right_Set_Speed(TRACK_MOTOR_TEST_SIGN_PWM);
+    APP_TRACK_LOG_I("MOTORTEST", "start phase=0 open_loop pwm=%d timeout=%lu",
+                    TRACK_MOTOR_TEST_SIGN_PWM,
+                    (unsigned long)TRACK_MOTOR_TEST_TIMEOUT_MS);
+    return true;
+}
+
+bool Track_Is_Motor_Test(void)
+{
+    return Track.state == TRACK_STATE_MOTOR_TEST;
+}
+
+void Track_Abort_Motor_Test(const char *result)
+{
+    if (Track.state == TRACK_STATE_MOTOR_TEST) {
+        Track_Motor_Test_End(result != NULL ? result : "safety_fault");
+    }
+}
+
+uint8_t Track_Get_Motor_Test_Phase(void) { return Track.motor_test_phase; }
+int32_t Track_Get_Motor_Test_Target(void) { return Track.motor_test_target; }
+const char *Track_Get_Motor_Test_Result(void) { return Track.motor_test_result; }
 
 void Track_Set_Circles(uint8_t n)
 {

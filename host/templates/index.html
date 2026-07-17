@@ -160,6 +160,18 @@
                             <button id="btn-reconnect">重连</button>
                         </div>
 
+                        <div class="rotate-card motor-test-card">
+                            <div class="rotate-card-head">
+                                <h3>架空电机测试</h3>
+                                <span id="motor-test-status" class="rotate-status">待命</span>
+                            </div>
+                            <div class="button-grid two">
+                                <button id="btn-motor-test" class="btn-primary">开始分档测试</button>
+                                <button id="btn-motor-test-stop" class="btn-danger">立即停止</button>
+                            </div>
+                            <p class="rotate-hint">仅限驱动轮完全架空：先以PWM 20验证编码器方向，再闭环运行20/30/40三档，全程约4.4秒。</p>
+                        </div>
+
                         <div class="rotate-card">
                             <div class="rotate-card-head">
                                 <h3>原地旋转</h3>

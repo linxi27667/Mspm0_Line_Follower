@@ -69,6 +69,7 @@ static const char *state_abbr(track_state_t st)
     case TRACK_STATE_CROSS:       return "CR";
     case TRACK_STATE_ROTATE:      return "RT";
     case TRACK_STATE_HEADING_HOLD:return "HH";
+    case TRACK_STATE_MOTOR_TEST:  return "MT";
     case TRACK_STATE_FINISHED:    return "FN";
     default:                      return "??";
     }
@@ -132,6 +133,30 @@ static bool find_str(const char *json, const char *key, char *out, uint8_t out_s
         }
         out[i] = '\0';
         return (*value == '"');
+    }
+    return false;
+}
+
+static bool find_bool(const char *json, const char *key, bool *out)
+{
+    char pattern[16];
+    const char *p;
+
+    (void)snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+    p = strstr(json, pattern);
+    if (p == NULL) return false;
+    p += strlen(pattern);
+    while (*p == ' ' || *p == '\t') p++;
+    if (*p != ':') return false;
+    p++;
+    while (*p == ' ' || *p == '\t') p++;
+    if (strncmp(p, "true", 4u) == 0) {
+        *out = true;
+        return true;
+    }
+    if (strncmp(p, "false", 5u) == 0) {
+        *out = false;
+        return true;
     }
     return false;
 }
@@ -281,6 +306,7 @@ static bool apply_cmd(const char *json, const char **error)
 {
     char cmd[24];
     float degrees;
+    bool lifted;
 
     *error = "unknown cmd";
     if (!find_str(json, "cmd", cmd, sizeof(cmd))) {
@@ -313,6 +339,23 @@ static bool apply_cmd(const char *json, const char **error)
         APP_TUNING_LOG_I(LOG_TAG, "cmd blackcal");
         Track_Calibrate_Black();
         Safety_TryAdvanceAfterCalibration();
+        return true;
+    } else if (strcmp(cmd, "motor_test") == 0) {
+        if (!find_bool(json, "lifted", &lifted) || !lifted) {
+            *error = "lifted_confirmation_required";
+            return false;
+        }
+        if (Safety_GetState() != SAFETY_STATE_READY ||
+            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "safety_not_ready";
+            return false;
+        }
+        if (!Track_Start_Motor_Test()) {
+            Safety_DisarmRemoteMotion();
+            *error = Track_Get_Motor_Test_Result();
+            return false;
+        }
+        APP_TUNING_LOG_I(LOG_TAG, "cmd motor_test lifted=1");
         return true;
     } else if (strcmp(cmd, "rotate") == 0) {
         if (!find_num(json, "deg", &degrees) || !isfinite(degrees)) {
@@ -531,10 +574,21 @@ void App_Tuning_Poll(void)
 
     /* 组包遥测 JSON (10Hz, 带扩展字段)
      * 必需字段: t/adc/gz/el/er/le/po/st/kp/kd
-     * 可选字段: v/seq/ms/bc/ki/gd/vb/vs/vc/rt/drop/cal/tg/ta/te/rr
+     * 可选字段: v/seq/ms/bc/ki/gd/vb/vs/vc/rt/drop/cal及运动诊断字段
      */
     char motion_json[128] = "";
-    if (Track_Is_Heading_Hold()) {
+    if (Track_Is_Motor_Test()) {
+        int test_n = snprintf(motion_json, sizeof(motion_json),
+            ",\"mt\":true,\"mph\":%u,\"mtg\":%d,\"mlp\":%ld,\"mrp\":%ld,\"mrs\":\"%s\"",
+            Track_Get_Motor_Test_Phase(),
+            Track_Get_Motor_Test_Target(),
+            (long)Motor_Left.current_pwm,
+            (long)Motor_Right.current_pwm,
+            Track_Get_Motor_Test_Result());
+        if (test_n < 0 || test_n >= (int)sizeof(motion_json)) {
+            motion_json[0] = '\0';
+        }
+    } else if (Track_Is_Heading_Hold()) {
         int hold_n = snprintf(motion_json, sizeof(motion_json),
             ",\"hh\":true,\"ht\":%.2f,\"ha\":%.2f,\"he\":%.2f,\"hr\":\"%s\"",
             (double)Track_Get_Heading_Hold_Target(),

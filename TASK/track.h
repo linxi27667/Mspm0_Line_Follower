@@ -94,6 +94,15 @@
 
 #define TRACK_ROTATE_DONE_ERR_DEG USER_ROTATE_DONE_ERR_DEG
 
+/* --- 架空电机台架测试（固定流程，避免远程任意PWM） --- */
+#define TRACK_MOTOR_TEST_SIGN_MS       800u
+#define TRACK_MOTOR_TEST_STAGE_MS     1200u
+#define TRACK_MOTOR_TEST_TIMEOUT_MS   5200u
+#define TRACK_MOTOR_TEST_SIGN_PWM       20
+#define TRACK_MOTOR_TEST_TARGET_LOW     20
+#define TRACK_MOTOR_TEST_TARGET_MID     30
+#define TRACK_MOTOR_TEST_TARGET_HIGH    40
+
 #include "track_logic.h"
 
 /* ============================================================
@@ -134,6 +143,15 @@ typedef struct {
     float    heading_hold_actual;
     float    heading_hold_error;
     const char *heading_hold_result;
+
+    /* --- 架空电机台架测试 --- */
+    uint32_t motor_test_started_at;
+    uint32_t motor_test_stage_started_at;
+    int32_t  motor_test_left_start;
+    int32_t  motor_test_right_start;
+    uint8_t  motor_test_phase;
+    int32_t  motor_test_target;
+    const char *motor_test_result;
 
     /* --- 直角弯道多帧确认 --- */
     uint8_t  right_angle_confirm;   /* 直角弯连续确认计数 */
@@ -200,6 +218,12 @@ float Track_Get_Heading_Hold_Target(void);
 float Track_Get_Heading_Hold_Actual(void);
 float Track_Get_Heading_Hold_Error(void);
 const char *Track_Get_Heading_Hold_Result(void);
+bool Track_Start_Motor_Test(void);
+bool Track_Is_Motor_Test(void);
+void Track_Abort_Motor_Test(const char *result);
+uint8_t Track_Get_Motor_Test_Phase(void);
+int32_t Track_Get_Motor_Test_Target(void);
+const char *Track_Get_Motor_Test_Result(void);
 void Track_Check_RightAngle_Completion(void); /* 正方形直角计圈检查 */
 void Track_Set_Circles(uint8_t n);      /* 设置目标圈数 */
 void Track_Set_Speed(int32_t base_speed); /* 设置基础速度 */

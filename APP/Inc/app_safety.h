@@ -50,6 +50,8 @@ void Safety_TransitionToReady(void);
 void Safety_TransitionToRunning(void);
 bool Safety_TransitionToRotation(void);  /* IMU 原地旋转：允许从 BOOT/READY 进入 */
 void Safety_TransitionAfterRotation(void); /* 旋转结束后切断电机并返回 READY */
+bool Safety_TransitionToBenchTest(void); /* 仅READY可进入，灰度健康检查关闭 */
+void Safety_TransitionAfterBenchTest(void);
 void Safety_TransitionToFinished(void);
 void Safety_EnterFault(safety_fault_t fault);
 void Safety_ClearFault(void);  /* 人工确认后清除故障，电机保持关闭 */
