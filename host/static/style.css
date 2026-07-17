@@ -399,33 +399,89 @@ button:disabled {
     overflow: auto;
 }
 
+.param-guide {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: #171912;
+}
+
+.param-guide h3 {
+    margin: 0 0 8px;
+    color: var(--amber);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.param-guide p {
+    margin: 0 0 6px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.param-guide p:last-child {
+    margin-bottom: 0;
+}
+
+.param-guide code {
+    padding: 0 4px;
+    border-radius: 3px;
+    background: #10110d;
+    color: var(--cyan);
+    font-size: 11px;
+}
+
+.param-guide-order {
+    color: var(--text) !important;
+}
+
 .param-row {
     display: grid;
-    grid-template-columns: 92px minmax(120px, 1fr) 72px;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 0;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 10px 0;
     border-bottom: 1px solid var(--line-soft);
 }
 
-.param-row label {
+.param-head {
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .param-name {
     color: var(--cyan);
     font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 .param-desc {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.param-range {
     color: var(--faint);
     font-size: 11px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+.param-controls {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) 72px;
+    align-items: center;
+    gap: 8px;
+}
+
+.param-help {
+    margin: 0;
+    color: var(--faint);
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 .param-slider {
@@ -903,8 +959,16 @@ button:disabled {
         min-height: 760px;
     }
 
-    .param-row {
-        grid-template-columns: 82px minmax(100px, 1fr) 68px;
+    .param-controls {
+        grid-template-columns: minmax(100px, 1fr) 68px;
+    }
+
+    .param-head {
+        grid-template-columns: auto 1fr;
+    }
+
+    .param-range {
+        grid-column: 1 / -1;
     }
 
     .button-grid {

@@ -91,14 +91,14 @@
                         <section class="data-section">
                             <h3>当前参数镜像</h3>
                             <dl class="telemetry-data-grid compact">
-                                <div><dt>KP</dt><dd id="tele-kp">--</dd></div>
-                                <div><dt>KI</dt><dd id="tele-ki">--</dd></div>
-                                <div><dt>KD</dt><dd id="tele-kd">--</dd></div>
-                                <div><dt>阻尼</dt><dd id="tele-gd">--</dd></div>
-                                <div><dt>基础PWM</dt><dd id="tele-vb">--</dd></div>
-                                <div><dt>直线PWM</dt><dd id="tele-vs">--</dd></div>
-                                <div><dt>弯道PWM</dt><dd id="tele-vc">--</dd></div>
-                                <div><dt>直角阈值</dt><dd id="tele-rt">--</dd></div>
+                                <div title="循迹比例P：偏线纠正力度"><dt>KP 比例</dt><dd id="tele-kp">--</dd></div>
+                                <div title="循迹积分I：通常保持0"><dt>KI 积分</dt><dd id="tele-ki">--</dd></div>
+                                <div title="循迹微分D：抑制左右摆"><dt>KD 微分</dt><dd id="tele-kd">--</dd></div>
+                                <div title="陀螺仪角速度阻尼"><dt>GDAMP</dt><dd id="tele-gd">--</dd></div>
+                                <div title="启动基础PWM"><dt>VBASE</dt><dd id="tele-vb">--</dd></div>
+                                <div title="直道目标PWM"><dt>VSTR</dt><dd id="tele-vs">--</dd></div>
+                                <div title="偏线/弯道目标PWM"><dt>VCUR</dt><dd id="tele-vc">--</dd></div>
+                                <div title="直角最少黑通道数"><dt>RATHR</dt><dd id="tele-rt">--</dd></div>
                             </dl>
                         </section>
                     </div>
@@ -130,22 +130,50 @@
                 </div>
                 <div class="control-grid">
                     <div id="param-list" class="param-list">
+                        <div class="param-guide">
+                            <h3>这些参数在干什么</h3>
+                            <p>
+                                循迹闭环：灰度偏差 <code>le</code>
+                                → 线 PID（KP/KI/KD）得到转向
+                                → 再减 <code>GDAMP × 陀螺仪Z</code> 抑制抖动
+                                → 左右轮 ≈ 基础PWM ± 转向。
+                            </p>
+                            <p>
+                                速度：启动用 VBASE；跑起来后按偏差在
+                                VSTR（直道快）与 VCUR（偏线慢）之间插值。
+                                RATHR 只决定“够不够黑”才认方形拐角，不进 PID。
+                            </p>
+                            <p class="param-guide-order">
+                                建议顺序：先 VBASE/VSTR/VCUR 不飞车
+                                → 再 KP → 再 KD → 最后 GDAMP；
+                                KI 保持 0；RATHR 首轮保持 4.0。
+                                改完点「应用参数」，不会自动下发。
+                            </p>
+                        </div>
                         {% for name, info in params.items() %}
                         <div class="param-row" data-name="{{ name }}">
-                            <label title="{{ info.desc }}">
+                            <div class="param-head">
                                 <span class="param-name">{{ name }}</span>
                                 <span class="param-desc">{{ info.desc }}</span>
-                            </label>
-                            <input type="range" class="param-slider"
-                                   min="{{ info.min }}" max="{{ info.max }}"
-                                   step="{{ info.step }}"
-                                   value="{{ current[name] }}"
-                                   data-name="{{ name }}">
-                            <input type="number" class="param-input"
-                                   min="{{ info.min }}" max="{{ info.max }}"
-                                   step="{{ info.step }}"
-                                   value="{{ current[name] }}"
-                                   data-name="{{ name }}">
+                                <span class="param-range">{{ info.min }} ~ {{ info.max }}</span>
+                            </div>
+                            <div class="param-controls">
+                                <input type="range" class="param-slider"
+                                       min="{{ info.min }}" max="{{ info.max }}"
+                                       step="{{ info.step }}"
+                                       value="{{ current[name] }}"
+                                       data-name="{{ name }}"
+                                       title="{{ info.help }}">
+                                <input type="number" class="param-input"
+                                       min="{{ info.min }}" max="{{ info.max }}"
+                                       step="{{ info.step }}"
+                                       value="{{ current[name] }}"
+                                       data-name="{{ name }}"
+                                       title="{{ info.help }}">
+                            </div>
+                            {% if info.help %}
+                            <p class="param-help">{{ info.help }}</p>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>

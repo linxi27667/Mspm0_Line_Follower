@@ -232,25 +232,25 @@
 #define USER_ROTATE_PID_KD_RATE         0.08f  /* wheel-speed / (degree/second) */
 #endif
 #ifndef USER_ROTATE_PID_MAX_SPEED
-#define USER_ROTATE_PID_MAX_SPEED       16.0f
+#define USER_ROTATE_PID_MAX_SPEED        8.0f  /* 实车防滑档：约束原地旋转峰值角速度 */
 #endif
 #ifndef USER_ROTATE_PID_MIN_SPEED
-#define USER_ROTATE_PID_MIN_SPEED       8
+#define USER_ROTATE_PID_MIN_SPEED       5
 #endif
 #ifndef USER_ROTATE_PID_COAST_OUTPUT
 #define USER_ROTATE_PID_COAST_OUTPUT    2.4f
 #endif
 #ifndef USER_ROTATE_PID_FINE_ZONE_DEG
-#define USER_ROTATE_PID_FINE_ZONE_DEG    20.0f
+#define USER_ROTATE_PID_FINE_ZONE_DEG    25.0f
 #endif
 #ifndef USER_ROTATE_PID_BLEND_ZONE_DEG
-#define USER_ROTATE_PID_BLEND_ZONE_DEG   40.0f
+#define USER_ROTATE_PID_BLEND_ZONE_DEG   60.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_MAX_SPEED
-#define USER_ROTATE_PID_FINE_MAX_SPEED    4.0f
+#define USER_ROTATE_PID_FINE_MAX_SPEED    3.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_MIN_SPEED
-#define USER_ROTATE_PID_FINE_MIN_SPEED   3
+#define USER_ROTATE_PID_FINE_MIN_SPEED   2
 #endif
 #ifndef USER_ROTATE_DONE_ERR_DEG
 #define USER_ROTATE_DONE_ERR_DEG          3.0f

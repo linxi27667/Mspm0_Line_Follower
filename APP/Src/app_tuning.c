@@ -315,9 +315,14 @@ static bool apply_cmd(const char *json, const char **error)
     }
     if (strcmp(cmd, "start") == 0) {
         APP_TUNING_LOG_I(LOG_TAG, "cmd start");
-        if (Safety_GetState() != SAFETY_STATE_READY ||
-            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
-            *error = "safety_not_ready";
+        if (Safety_GetState() != SAFETY_STATE_READY) {
+            *error = (Safety_GetState() == SAFETY_STATE_BOOT ||
+                      Safety_GetState() == SAFETY_STATE_CALIBRATING)
+                   ? "grayscale_not_ready" : "motion_busy";
+            return false;
+        }
+        if (!Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "link_not_ready";
             return false;
         }
         if (!Track_Start()) {
@@ -345,9 +350,13 @@ static bool apply_cmd(const char *json, const char **error)
             *error = "lifted_confirmation_required";
             return false;
         }
-        if (Safety_GetState() != SAFETY_STATE_READY ||
-            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
-            *error = "safety_not_ready";
+        if (Safety_GetState() != SAFETY_STATE_BOOT &&
+            Safety_GetState() != SAFETY_STATE_READY) {
+            *error = "motion_busy";
+            return false;
+        }
+        if (!Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "link_not_ready";
             return false;
         }
         if (!Track_Start_Motor_Test()) {
@@ -368,10 +377,13 @@ static bool apply_cmd(const char *json, const char **error)
         APP_TUNING_LOG_I(LOG_TAG, "cmd rotate link-test accepted=%d", (int)degrees);
         return true;
 #else
-        if ((Safety_GetState() != SAFETY_STATE_BOOT &&
-             Safety_GetState() != SAFETY_STATE_READY) ||
-            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
-            *error = "safety_not_ready";
+        if (Safety_GetState() != SAFETY_STATE_BOOT &&
+            Safety_GetState() != SAFETY_STATE_READY) {
+            *error = "motion_busy";
+            return false;
+        }
+        if (!Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "link_not_ready";
             return false;
         }
         if (!Track_Start_Rotation(degrees)) {
@@ -383,10 +395,13 @@ static bool apply_cmd(const char *json, const char **error)
         return true;
 #endif
     } else if (strcmp(cmd, "heading_hold_on") == 0) {
-        if ((Safety_GetState() != SAFETY_STATE_BOOT &&
-             Safety_GetState() != SAFETY_STATE_READY) ||
-            !Safety_ArmRemoteMotion(Bsp_GetTick())) {
-            *error = "safety_not_ready";
+        if (Safety_GetState() != SAFETY_STATE_BOOT &&
+            Safety_GetState() != SAFETY_STATE_READY) {
+            *error = "motion_busy";
+            return false;
+        }
+        if (!Safety_ArmRemoteMotion(Bsp_GetTick())) {
+            *error = "link_not_ready";
             return false;
         }
         if (!Track_Start_Heading_Hold()) {

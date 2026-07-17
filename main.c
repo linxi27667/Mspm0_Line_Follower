@@ -620,15 +620,19 @@ static void Main_RunControl(uint32_t now, main_runtime_t *runtime)
     if (Safety_ControlTick()) {
         Track_Update();
         App_Motor_Speed_PID_Update();
-    } else if (Safety_GetState() == SAFETY_STATE_FAULT &&
-               (Track_Is_Rotating() || Track_Is_Heading_Hold() ||
-                Track_Is_Motor_Test())) {
+    } else if (Safety_GetState() == SAFETY_STATE_FAULT) {
+        const char *reason = Safety_FaultName(Safety_GetFault());
         if (Track_Is_Motor_Test()) {
-            Track_Abort_Motor_Test(Safety_FaultName(Safety_GetFault()));
-        }
-        Track_Abort_Rotation(Safety_FaultName(Safety_GetFault()));
-        if (Track_Is_Heading_Hold()) {
+            Track_Abort_Motor_Test(reason);
+        } else if (Track_Is_Rotating()) {
+            Track_Abort_Rotation(reason);
+        } else if (Track_Is_Heading_Hold()) {
             (void)Track_Stop_Heading_Hold();
+        } else {
+            Track_Stop();
+        }
+        if (Safety_GetState() == SAFETY_STATE_FAULT) {
+            Safety_ClearFault();
         }
     }
 }

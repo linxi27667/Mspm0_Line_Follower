@@ -287,6 +287,36 @@ class TrackLogicTests(unittest.TestCase):
         self.assertIn('find_bool(json, "lifted", &lifted)', tuning_source)
         self.assertIn('Track_Motor_Test_End("stopped")', track_source)
 
+    def test_motion_rejections_are_specific_and_faults_auto_recover(self):
+        tuning_source = (ROOT / "APP" / "Src" / "app_tuning.c").read_text(
+            encoding="utf-8"
+        )
+        safety_source = (ROOT / "APP" / "Src" / "app_safety.c").read_text(
+            encoding="utf-8"
+        )
+        main_source = (ROOT / "main.c").read_text(encoding="utf-8")
+        motor_start = (ROOT / "TASK" / "track.c").read_text(
+            encoding="utf-8"
+        ).split("bool Track_Start_Motor_Test", 1)[1].split(
+            "bool Track_Is_Motor_Test", 1
+        )[0]
+
+        self.assertNotIn("safety_not_ready", tuning_source)
+        self.assertIn('"grayscale_not_ready"', tuning_source)
+        self.assertIn('"link_not_ready"', tuning_source)
+        self.assertIn('"motion_busy"', tuning_source)
+        self.assertIn("SAFETY_STATE_BOOT", motor_start)
+        self.assertIn('elog_w("MOTION", "motion stopped: %s (auto recovery)"',
+                      safety_source)
+        self.assertIn("Safety_ClearFault();", main_source)
+
+        common_header = (ROOT / "APP" / "Inc" / "app_common.h").read_text(
+            encoding="utf-8"
+        )
+        host_config = (ROOT / "host" / "config.py").read_text(encoding="utf-8")
+        self.assertIn("APP_TUNING_HEARTBEAT_TIMEOUT_MS   1500u", common_header)
+        self.assertIn("HEARTBEAT_INTERVAL_MS = 250", host_config)
+
     def test_right_angle_heading_lock_requires_angle_and_rate(self):
         result = compile_and_run(
             r'''
@@ -505,6 +535,16 @@ class TrackLogicTests(unittest.TestCase):
             '''
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_manual_rotation_uses_low_slip_speed_envelope(self):
+        tuning = (ROOT / "APP" / "Inc" / "user_tuning.h").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("USER_ROTATE_PID_MAX_SPEED        8.0f", tuning)
+        self.assertIn("USER_ROTATE_PID_MIN_SPEED       5", tuning)
+        self.assertIn("USER_ROTATE_PID_FINE_ZONE_DEG    25.0f", tuning)
+        self.assertIn("USER_ROTATE_PID_BLEND_ZONE_DEG   60.0f", tuning)
+        self.assertIn("USER_RIGHT_ANGLE_PIVOT_MAX_PWM    40", tuning)
 
     def test_rotation_requires_twenty_continuous_settle_frames(self):
         result = compile_and_run(

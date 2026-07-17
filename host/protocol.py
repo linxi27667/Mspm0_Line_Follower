@@ -33,6 +33,7 @@ PARAMS: dict[str, dict[str, Any]] = {
         "max": p["max"],
         "default": p["default"],
         "desc": p["desc"],
+        "help": p.get("help", ""),
         "step": p["step"],
     }
     for p in PARAM_SCHEMA

@@ -1196,9 +1196,12 @@ const char *Track_Get_Heading_Hold_Result(void) { return Track.heading_hold_resu
 
 bool Track_Start_Motor_Test(void)
 {
+    safety_state_t safety_state = Safety_GetState();
+
     if ((Track.state != TRACK_STATE_IDLE &&
          Track.state != TRACK_STATE_FINISHED) ||
-        Safety_GetState() != SAFETY_STATE_READY) {
+        (safety_state != SAFETY_STATE_BOOT &&
+         safety_state != SAFETY_STATE_READY)) {
         Track.motor_test_result = "not_ready";
         return false;
     }

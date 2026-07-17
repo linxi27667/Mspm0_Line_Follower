@@ -81,6 +81,14 @@ static const char *s_fault_names[] = {
     "LINE_LOST_TIMEOUT"
 };
 
+static bool Safety_FaultIsUserVisible(safety_fault_t fault)
+{
+    return fault == SAFETY_FAULT_GRAYSCALE_EXPIRED ||
+           fault == SAFETY_FAULT_CALIBRATION_INCOMPLETE ||
+           fault == SAFETY_FAULT_SENSOR_ABNORMAL ||
+           fault == SAFETY_FAULT_LINE_LOST_TIMEOUT;
+}
+
 /* ============================================================
  * 初始化与状态转换
  * ============================================================ */
@@ -186,7 +194,8 @@ void Safety_TransitionAfterRotation(void)
 
 bool Safety_TransitionToBenchTest(void)
 {
-    if (s_state != SAFETY_STATE_READY || s_fault != SAFETY_FAULT_NONE) {
+    if ((s_state != SAFETY_STATE_BOOT && s_state != SAFETY_STATE_READY) ||
+        s_fault != SAFETY_FAULT_NONE) {
         return false;
     }
 
@@ -202,10 +211,11 @@ void Safety_TransitionAfterBenchTest(void)
     if (s_state == SAFETY_STATE_FAULT) return;
 
     Safety_CutMotor();
-    s_state = SAFETY_STATE_READY;
+    s_state = s_calibration_complete ? SAFETY_STATE_READY : SAFETY_STATE_BOOT;
     s_health.remote_armed = false;
     s_health.grayscale_required = false;
-    elog_i("SAFETY", "motor bench test ended -> READY");
+    elog_i("SAFETY", "motor bench test ended -> %s",
+           Safety_StateName(s_state));
 }
 
 void Safety_TransitionToFinished(void)
@@ -225,23 +235,36 @@ void Safety_EnterFault(safety_fault_t fault)
 
     s_state = SAFETY_STATE_FAULT;
     s_fault = fault;
+    s_health.remote_armed = false;
     Safety_CutMotor();
-    elog_e("SAFETY", "-> FAULT: %s", Safety_FaultName(fault));
+    if (Safety_FaultIsUserVisible(fault)) {
+        elog_e("SAFETY", "-> FAULT: %s", Safety_FaultName(fault));
+    } else {
+        elog_w("MOTION", "motion stopped: %s (auto recovery)",
+               Safety_FaultName(fault));
+    }
 }
 
 void Safety_ClearFault(void)
 {
+    safety_fault_t recovered_fault;
+
     if (s_state != SAFETY_STATE_FAULT) return;
 
+    recovered_fault = s_fault;
     s_fault = SAFETY_FAULT_NONE;
-    s_state = SAFETY_STATE_READY;
+    s_state = s_calibration_complete ? SAFETY_STATE_READY : SAFETY_STATE_BOOT;
     s_health.remote_armed = false;
     s_health.grayscale_required = false;
     s_health.encoder_left_ok = true;
     s_health.encoder_right_ok = true;
     s_health.sensor_abnormal = false;
     s_health.last_control_tick = Bsp_GetTick();
-    elog_i("SAFETY", "fault cleared -> READY");
+    if (Safety_FaultIsUserVisible(recovered_fault)) {
+        elog_i("SAFETY", "auto recovered -> %s", Safety_StateName(s_state));
+    } else {
+        elog_i("MOTION", "auto recovered -> %s", Safety_StateName(s_state));
+    }
 }
 
 /* ============================================================

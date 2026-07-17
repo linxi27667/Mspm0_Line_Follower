@@ -150,6 +150,14 @@ class ProtocolParamsTests(unittest.TestCase):
                     places=6,
                 )
                 self.assertEqual(proto_entry["desc"], schema_entry["desc"])
+                self.assertEqual(
+                    proto_entry.get("help", ""),
+                    schema_entry.get("help", ""),
+                )
+                self.assertTrue(
+                    schema_entry.get("help"),
+                    f"{name}: help text is required for the host UI",
+                )
 
 
 if __name__ == "__main__":
