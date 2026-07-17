@@ -44,17 +44,17 @@
 
 /* 日志分类开关：0 时对应类别在编译期移除，不占 RTT 或 ESP 日志带宽。 */
 /* 常用：按看到的 RTT 日志行选择开关。*/
-#define APP_LOG_GRAY_ADC_ENABLE           0  /* 每秒 8 路 ADC 原始值：ADC_Ch0 ... ADC_Ch7 */
-#define APP_LOG_GRAY_STATE_ENABLE         0  /* 每秒 Digital、BlackCount、Cal；灰度初始化和 ADC 超时 */
+#define APP_LOG_GRAY_ADC_ENABLE           1  /* 首轮循迹：每秒输出8路ADC，供ESP日志分析阈值 */
+#define APP_LOG_GRAY_STATE_ENABLE         1  /* 灰度初始化/异常；仅循迹运动时周期输出 Digital、BlackCount、Cal */
 #define APP_LOG_ROTATE_ENABLE             1  /* 原地旋转：拒绝原因、开始、结束结果和最终角度 */
 
 /* 高级：定位通信、驱动或循迹状态机问题时再打开。*/
-#define APP_LOG_ESP01S_ENABLE             1  /* ESP AT/WiFi/TCP 状态；关闭后 ESP 链路和网页命令仍工作 */
-#define APP_LOG_VEHICLE_ENABLE            1  /* 车辆/电机/编码器周期状态 */
-#define APP_LOG_TRACK_ENABLE              0  /* 循迹状态、校准、丢线、直角和十字 */
+#define APP_LOG_ESP01S_ENABLE             0  /* ESP AT/WiFi/TCP 状态；关闭后 ESP 链路和网页命令仍工作 */
+#define APP_LOG_VEHICLE_ENABLE            1  /* 仅运动时输出车辆/电机/编码器周期状态 */
+#define APP_LOG_TRACK_ENABLE              1  /* 循迹状态、校准、丢线、直角和十字 */
 #define APP_LOG_TUNING_ENABLE             1  /* 认证、命令、参数与协议诊断 */
-#define APP_LOG_IMU_ENABLE                1  /* ICM42688 初始化与静止校准 */
-#define APP_LOG_DIAGNOSTIC_ENABLE         1  /* 自检、I	OMUX、GPIO 等诊断 */
+#define APP_LOG_IMU_ENABLE                1  /* ICM42688 初始化与静止校准，不周期刷运行数据 */
+#define APP_LOG_DIAGNOSTIC_ENABLE         1  /* 手动自检、比例标定、IOMUX、GPIO 等诊断 */
 
 /* 循迹、PID、速度和远程参数仍集中于此文件，供上位机一致性测试读取。 */
 #include "user_tuning.h"

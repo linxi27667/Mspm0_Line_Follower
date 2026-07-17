@@ -201,3 +201,11 @@ void Bsp_Grayscale_Calibrate_Black(bsp_grayscale_t *gs)
     gs->calibrated = 1;
     gs->black_calibrated = 1;  /* 标记黑色已手动校准 */
 }
+
+bool Bsp_Grayscale_Calibration_Valid(const bsp_grayscale_t *gs,
+                                     uint16_t minimum_contrast)
+{
+    if (gs == NULL || !gs->calibrated || !gs->black_calibrated) return false;
+    return Bsp_Grayscale_ContrastValid8(gs->white, gs->black,
+                                        minimum_contrast);
+}

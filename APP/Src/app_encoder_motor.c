@@ -1,8 +1,7 @@
 /**
  * @file    app_encoder_motor.c
  * @brief   霍尔编码器电机硬件绑定实现（MSPM0G3507）
- * @note    左编码器: 硬件QEI (TIMG8)
- *          右编码器: GPIO中断计数 (PB12=PHA, PB13=PHB)
+ * @note    左右编码器: GPIO双相双边沿4x正交解码
  *          速度PID: 前馈(目标速度) + PID修正，级联位置PID
  */
 #include "app_encoder_motor.h"
@@ -12,16 +11,21 @@
 #include "app_safety.h"
 #include "motor_speed_logic.h"
 #include "encoder_health_logic.h"
+#include "encoder_quadrature_logic.h"
 #include <elog.h>
 
-/* ================= 右编码器中断计数 ================= */
+/* ================= 编码器中断计数 ================= */
+volatile int32_t g_left_enc_count  = 0;
 volatile int32_t g_right_enc_count = 0;
+static int32_t   s_left_enc_last   = 0;
 static int32_t   s_right_enc_last  = 0;
+static uint8_t   s_left_enc_state;
+static uint8_t   s_right_enc_state;
 
 /* ================= 速度PID ================= */
 static bsp_pid_t s_left_speed_pid;
 static bsp_pid_t s_right_speed_pid;
-/* 国一方案: 左右编码器分辨率不同 (左 QEI 4x / 右 GPIO 2x), 必须分别标定 scale */
+/* 左右电机和编码器安装差异仍需分别标定scale。 */
 static float     s_speed_scale_left  = MOTOR_SPEED_SCALE_LEFT_DEFAULT;
 static float     s_speed_scale_right = MOTOR_SPEED_SCALE_RIGHT_DEFAULT;
 static float     s_left_speed_filtered;
@@ -42,12 +46,6 @@ static void HW_Motor_Init(bsp_motor_t *motor)
     DL_TimerG_enableClock(motor->pwm_timer);
     DL_TimerG_startCounter(motor->pwm_timer);
 
-    /* 编码器定时器可能为NULL(右电机使用GPIO中断) */
-    if (motor->enc_timer != NULL) {
-        DL_TimerG_enableClock(motor->enc_timer);
-        DL_TimerG_startCounter(motor->enc_timer);
-    }
-
     motor->Gpio_Config();
 }
 
@@ -63,29 +61,25 @@ static void HW_Pwm_Write(void *timer, uint32_t channel, uint32_t duty)
     DL_TimerG_setCaptureCompareValue((GPTIMER_Regs *)timer, duty, (DL_TIMER_CC_INDEX)channel);
 }
 
-/* 左电机编码器读取 — 硬件QEI
- * 实测: 正转时 QEI 计数递减 (delta<0), 反转时递增 (delta>0)。
- * 取反 delta 使正转=正数, 反转=负数, 与右编码器方向一致。 */
+/* 左电机编码器读取 — GPIO 4x正交累计值差分。 */
 static int32_t HW_Enc_Read_Left(void *enc_timer)
 {
-    static uint32_t last_count = 0;
     static bool first_read = true;
+    (void)enc_timer;
 
-    uint32_t current_count = DL_Timer_getTimerCount((GPTIMER_Regs *)enc_timer) & 0xFFFF;
-
+    int32_t current = g_left_enc_count;
     if (first_read) {
-        last_count = current_count;
+        s_left_enc_last = current;
         first_read = false;
         return 0;
     }
 
-    int16_t delta = (int16_t)(current_count - last_count);
-    last_count = current_count;
-    return -(int32_t)delta;  /* 取反: QEI 方向与电机正转相反 */
+    int32_t delta = current - s_left_enc_last;
+    s_left_enc_last = current;
+    return delta;
 }
 
-/* 右电机编码器读取 — GPIO中断计数差值
- * 修复: 增加 first_read 保护，避免首次调用返回累计大值导致 PID 误差尖峰 */
+/* 右电机编码器读取 — GPIO 4x正交累计值差分。 */
 static int32_t HW_Enc_Read_Right(void *enc_timer)
 {
     (void)enc_timer;  /* 右编码器不使用定时器 */
@@ -110,7 +104,7 @@ bsp_motor_t Motor_Left = {
     .dir_pin2   = {MOTOR_LEFT_DIR2_PORT, MOTOR_LEFT_DIR2_PIN},
     .pwm_timer  = MOTOR_LEFT_PWM_TIMER,
     .pwm_channel = MOTOR_LEFT_PWM_CHANNEL,
-    .enc_timer  = MOTOR_LEFT_ENC_TIMER,
+    .enc_timer  = NULL,
     .use_speed_pid = false,
 
     .Gpio_Config = HW_GPIO_Config,
@@ -125,7 +119,7 @@ bsp_motor_t Motor_Right = {
     .dir_pin2   = {MOTOR_RIGHT_DIR2_PORT, MOTOR_RIGHT_DIR2_PIN},
     .pwm_timer  = MOTOR_RIGHT_PWM_TIMER,
     .pwm_channel = MOTOR_RIGHT_PWM_CHANNEL,
-    .enc_timer  = NULL,  /* 右编码器使用GPIO中断，不使用定时器 */
+    .enc_timer  = NULL,
     .use_speed_pid = false,
 
     .Gpio_Config = HW_GPIO_Config,
@@ -135,21 +129,35 @@ bsp_motor_t Motor_Right = {
     .Enc_Read    = HW_Enc_Read_Right
 };
 
-/* ================= 3. 右编码器GPIO中断处理 ================= */
+/* ================= 3. 编码器GPIO中断处理 ================= */
 
-void Right_Encoder_IRQHandler(void)
+static uint8_t HW_Encoder_Read_State(GPIO_Regs *port, uint32_t pha_pin,
+                                     uint32_t phb_pin)
 {
-    /* 原子读取 PHA+PHB (单次 DIN 寄存器读取), 避免两次 readPins 间编码器
-     * 位置变化导致方向误判。实测: 分两次读取时反转方向计数异常。 */
-    uint32_t din = RIGHT_ENC_PHA_PORT->DIN31_0;
-    uint8_t pha = (din & RIGHT_ENC_PHA_PIN) ? 1 : 0;
-    uint8_t phb = (din & RIGHT_ENC_PHB_PIN) ? 1 : 0;
+    uint32_t din = port->DIN31_0;
+    uint8_t pha = (din & pha_pin) ? 1u : 0u;
+    uint8_t phb = (din & phb_pin) ? 1u : 0u;
+    return (uint8_t)((pha << 1u) | phb);
+}
 
-    /* PHA与PHB异相=正转(递增)，同相=反转(递减) */
-    if (pha ^ phb) {
-        g_right_enc_count++;
-    } else {
-        g_right_enc_count--;
+void Encoder_GPIO_IRQHandler(uint32_t pending_pins)
+{
+    if ((pending_pins & (LEFT_ENC_PHA_PIN | LEFT_ENC_PHB_PIN)) != 0u) {
+        uint8_t current = HW_Encoder_Read_State(LEFT_ENC_PHA_PORT,
+                                                LEFT_ENC_PHA_PIN,
+                                                LEFT_ENC_PHB_PIN);
+        int8_t delta = Encoder_Quadrature_Delta(s_left_enc_state, current);
+        g_left_enc_count += (int32_t)delta * LEFT_ENC_FORWARD_SIGN;
+        s_left_enc_state = current;
+    }
+
+    if ((pending_pins & (RIGHT_ENC_PHA_PIN | RIGHT_ENC_PHB_PIN)) != 0u) {
+        uint8_t current = HW_Encoder_Read_State(RIGHT_ENC_PHA_PORT,
+                                                RIGHT_ENC_PHA_PIN,
+                                                RIGHT_ENC_PHB_PIN);
+        int8_t delta = Encoder_Quadrature_Delta(s_right_enc_state, current);
+        g_right_enc_count += (int32_t)delta * RIGHT_ENC_FORWARD_SIGN;
+        s_right_enc_state = current;
     }
 }
 
@@ -160,16 +168,15 @@ void Right_Encoder_IRQHandler(void)
  * @note    前馈: target_speed 直接作为基础PWM
  *          PID修正: 根据编码器反馈修正PWM，消除左右电机机械差异
  *          最终PWM = target_speed + PID_correction
- *          scale: 左右独立的速度比例尺 (国一方案: 编码器分辨率不同)
+ *          scale: 左右独立的速度比例尺（覆盖电机与安装差异）
  */
 static void Speed_PID_Update_Single(bsp_motor_t *motor, bsp_pid_t *pid,
                                     float scale, float *filtered_encoder)
 {
     if (motor == NULL || pid == NULL || filtered_encoder == NULL) return;
-    if (!motor->use_speed_pid) return;
-
-    /* 读取编码器速度 */
+    /* Encoder monitoring remains active in direct-PWM tracking mode. */
     Bsp_Motor_Update_Status(motor);
+    if (!motor->use_speed_pid) return;
 
     *filtered_encoder = Motor_Speed_LowPass(*filtered_encoder,
                                              (float)motor->encoder_speed,
@@ -338,9 +345,18 @@ void App_Motor_Init(void)
     Bsp_Motor_Init_Device(&Motor_Left);
     Bsp_Motor_Init_Device(&Motor_Right);
 
-    /* 使能右编码器GPIO中断 NVIC
-     * 注: SysConfig 生成的 SYSCFG_DL_GPIO_init 已调用
-     * DL_GPIO_setLowerPinsPolarity + enableInterrupt，此处仅需 NVIC 使能 */
+    g_left_enc_count = 0;
+    g_right_enc_count = 0;
+    s_left_enc_last = 0;
+    s_right_enc_last = 0;
+    s_left_enc_state = HW_Encoder_Read_State(LEFT_ENC_PHA_PORT,
+                                             LEFT_ENC_PHA_PIN,
+                                             LEFT_ENC_PHB_PIN);
+    s_right_enc_state = HW_Encoder_Read_State(RIGHT_ENC_PHA_PORT,
+                                              RIGHT_ENC_PHA_PIN,
+                                              RIGHT_ENC_PHB_PIN);
+
+    /* SysConfig已配置四个双边沿输入，此处仅使能GPIOB中断。 */
     NVIC_EnableIRQ(GPIOB_INT_IRQn);
 
     /* 初始化速度PID */

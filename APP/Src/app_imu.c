@@ -5,18 +5,26 @@
 #include "app_imu.h"
 
 #include "app_common.h"
+#include "imu_recovery_logic.h"
 #include "app_log.h"
 #include "bsp_common.h"
 #include "ti_msp_dl_config.h"
 
-#define IMU_SPI_TRANSACTION_TIMEOUT_MS 1u
+#define IMU_SPI_TRANSFER_TIMEOUT_MS 5u
+#define IMU_POWER_STABILIZE_MS      20u
+#define IMU_INIT_ATTEMPTS           3u
+#define IMU_INIT_RETRY_DELAY_MS     20u
 
-static uint32_t s_transaction_started_at;
+static uint32_t s_transfer_started_at;
+static uint32_t s_recovery_scheduled_at;
+static uint32_t s_recovery_delay_ms;
+static uint8_t s_recovery_failures;
+static bool s_recovery_pending;
 
 static bool HW_Spi_Timed_Out(void)
 {
-    return (uint32_t)(Bsp_GetTick() - s_transaction_started_at) >=
-           IMU_SPI_TRANSACTION_TIMEOUT_MS;
+    return (uint32_t)(Bsp_GetTick() - s_transfer_started_at) >=
+           IMU_SPI_TRANSFER_TIMEOUT_MS;
 }
 
 static void HW_Spi_Flush_Rx(void)
@@ -32,7 +40,6 @@ static void HW_Imu_Cs_Write(bool high)
         DL_GPIO_setPins(ICM_CS_PORT, ICM_CS_CS_PIN);
     } else {
         HW_Spi_Flush_Rx();
-        s_transaction_started_at = Bsp_GetTick();
         DL_GPIO_clearPins(ICM_CS_PORT, ICM_CS_CS_PIN);
     }
 }
@@ -42,20 +49,27 @@ static bool HW_Imu_Spi_Transfer(uint8_t tx, uint8_t *rx)
     if (rx == NULL) {
         return false;
     }
+    s_transfer_started_at = Bsp_GetTick();
     while (DL_SPI_isTXFIFOFull(ICM_SPI_INST)) {
         if (HW_Spi_Timed_Out()) {
+            APP_IMU_LOG_E("IMU", "[IMU] SPI timeout: wait=tx_fifo tx=0x%02X",
+                          (unsigned)tx);
             return false;
         }
     }
     DL_SPI_transmitData8(ICM_SPI_INST, tx);
     while (DL_SPI_isRXFIFOEmpty(ICM_SPI_INST)) {
         if (HW_Spi_Timed_Out()) {
+            APP_IMU_LOG_E("IMU", "[IMU] SPI timeout: wait=rx_fifo tx=0x%02X",
+                          (unsigned)tx);
             return false;
         }
     }
     *rx = DL_SPI_receiveData8(ICM_SPI_INST);
     while (DL_SPI_isBusy(ICM_SPI_INST)) {
         if (HW_Spi_Timed_Out()) {
+            APP_IMU_LOG_E("IMU", "[IMU] SPI timeout: wait=busy tx=0x%02X",
+                          (unsigned)tx);
             return false;
         }
     }
@@ -78,17 +92,79 @@ imu_sensor_t Imu_Sensor = {
 
 bool App_Imu_Init(void)
 {
-    bool ok;
+    bool ok = false;
+    uint8_t attempt;
 
     HW_Imu_Cs_Write(true);
     HW_Spi_Flush_Rx();
-    ok = Bsp_Icm42688_Init_Device(&Imu_Sensor);
+    Bsp_Delay_ms(IMU_POWER_STABILIZE_MS);
+    for (attempt = 1u; attempt <= IMU_INIT_ATTEMPTS; attempt++) {
+        ok = Bsp_Icm42688_Init_Device(&Imu_Sensor);
+        if (ok) break;
+
+        APP_IMU_LOG_W("IMU", "[IMU] init attempt %u/%u failed: stage=%s who=0x%02X",
+                      (unsigned)attempt, (unsigned)IMU_INIT_ATTEMPTS,
+                      Bsp_Icm42688_Init_Result_Name(Imu_Sensor.init_result),
+                      (unsigned)Imu_Sensor.init_who_am_i);
+        HW_Imu_Cs_Write(true);
+        HW_Spi_Flush_Rx();
+        if (attempt < IMU_INIT_ATTEMPTS) {
+            Bsp_Delay_ms(IMU_INIT_RETRY_DELAY_MS);
+        }
+    }
     if (ok) {
-        APP_IMU_LOG_I("IMU", "[IMU] ICM42688-P init OK: SPI1 mode3 1MHz, gyro=+-500dps ODR=500Hz");
+        APP_IMU_LOG_I("IMU", "[IMU] ICM42688-P init OK: attempt=%u SPI1 mode3 1MHz, gyro=+-500dps ODR=500Hz",
+                      (unsigned)attempt);
     } else {
-        APP_IMU_LOG_E("IMU", "[IMU] ICM42688-P init failed: WHO/config/SPI error");
+        APP_IMU_LOG_E("IMU", "[IMU] init failed: stage=%s who=0x%02X expected=0x%02X accel=0x%02X gyro=0x%02X power=0x%02X",
+                      Bsp_Icm42688_Init_Result_Name(Imu_Sensor.init_result),
+                      (unsigned)Imu_Sensor.init_who_am_i,
+                      (unsigned)ICM42688_WHO_AM_I_VALUE,
+                      (unsigned)Imu_Sensor.init_accel_config,
+                      (unsigned)Imu_Sensor.init_gyro_config,
+                      (unsigned)Imu_Sensor.init_power_config);
     }
     return ok;
+}
+
+void App_Imu_Request_Recovery(void)
+{
+    if (s_recovery_pending) return;
+
+    s_recovery_scheduled_at = Bsp_GetTick();
+    s_recovery_delay_ms = Imu_Recovery_BackoffMs(s_recovery_failures);
+    s_recovery_pending = true;
+    APP_IMU_LOG_W("IMU", "[IMU] recovery scheduled in %lu ms",
+                  (unsigned long)s_recovery_delay_ms);
+}
+
+void App_Imu_Recovery_Update(uint32_t now, bool motion_active)
+{
+    bool healthy_for_idle = Imu_Sensor.initialized && Imu_Sensor.data_valid &&
+        Imu_Sensor.calibration_state != IMU_CAL_FAILED;
+
+    if (motion_active || healthy_for_idle) return;
+    if (!s_recovery_pending) {
+        App_Imu_Request_Recovery();
+        return;
+    }
+    if (!Imu_Recovery_Due(now, s_recovery_scheduled_at,
+                          s_recovery_delay_ms)) {
+        return;
+    }
+
+    s_recovery_pending = false;
+    APP_IMU_LOG_W("IMU", "[IMU] auto reconnect %u: software reset + reinit",
+                  (unsigned)(s_recovery_failures + 1u));
+    if (App_Imu_Init()) {
+        s_recovery_failures = 0u;
+        Imu_Calibration_Start();
+        APP_IMU_LOG_I("IMU", "[IMU] auto reconnect OK; calibration restarted");
+        return;
+    }
+
+    if (s_recovery_failures < UINT8_MAX) s_recovery_failures++;
+    App_Imu_Request_Recovery();
 }
 
 bool Imu_Read_Data(void)
@@ -99,6 +175,10 @@ bool Imu_Read_Data(void)
 void Imu_Calibration_Start(void)
 {
     Bsp_Icm42688_Calibration_Start(&Imu_Sensor);
+    if (Imu_Sensor.calibration_state != IMU_CAL_RUNNING) {
+        APP_IMU_LOG_E("IMU", "[IMU] gyro calibration skipped: initialization unavailable");
+        return;
+    }
     APP_IMU_LOG_I("IMU", "[IMU] gyro calibration start: keep car still, samples=%u",
                   ICM42688_CALIB_SAMPLES);
 }

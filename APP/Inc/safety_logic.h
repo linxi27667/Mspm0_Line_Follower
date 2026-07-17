@@ -34,6 +34,13 @@ static inline bool Safety_Logic_CanEnterRotation(uint8_t state)
     return state == 0u || state == 2u; /* BOOT or READY */
 }
 
+static inline bool Safety_Logic_FinishedHoldElapsed(uint32_t now,
+                                                     uint32_t finished_at,
+                                                     uint32_t hold_ms)
+{
+    return (uint32_t)(now - finished_at) >= hold_ms;
+}
+
 static inline safety_logic_result_t Safety_Logic_Check(
     uint32_t now, const safety_health_t *health,
     uint32_t heartbeat_timeout, uint32_t grayscale_timeout,

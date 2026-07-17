@@ -36,49 +36,43 @@
 /* --- 直角弯道检测 --- */
 #define TRACK_RIGHT_ANGLE_THRESHOLD       USER_RIGHT_ANGLE_THRESHOLD
 #define TRACK_RIGHT_ANGLE_CONFIRM_FRAMES  USER_RIGHT_ANGLE_CONFIRM_FRAMES
+#define TRACK_RIGHT_ANGLE_ARM_DELAY       USER_RIGHT_ANGLE_ARM_DELAY
 #define TRACK_RIGHT_ANGLE_TIMEOUT         USER_RIGHT_ANGLE_TIMEOUT
-#define TRACK_RIGHT_ANGLE_DONE_ERR        USER_RIGHT_ANGLE_DONE_ERR
-/* 国一方案: 直角弯多条件触发 (单一条件漏检率高)
- * - ERROR_INTEGRAL: 误差累积超限 (弯道持续大误差说明弯很急)
- * - GYRO_RATE: 角速度超限 (车体快速旋转说明进入急弯)
- * 任一条件 + 原始 S0/S7 条件满足即触发, 覆盖黑线没摆到外侧/弯前误差不足的漏检场景 */
-#define TRACK_RIGHT_ANGLE_ERROR_INTEGRAL  USER_RIGHT_ANGLE_ERROR_INTEGRAL
-#define TRACK_RIGHT_ANGLE_GYRO_RATE       USER_RIGHT_ANGLE_GYRO_RATE
 #define TRACK_RIGHT_ANGLE_TARGET_ANGLE    USER_RIGHT_ANGLE_TARGET_ANGLE
-#define TRACK_RIGHT_ANGLE_MIN_EXIT_ANGLE  USER_RIGHT_ANGLE_MIN_EXIT_ANGLE
-#define TRACK_RIGHT_ANGLE_EXIT_CENTER_MIN USER_RIGHT_ANGLE_EXIT_CENTER_MIN
-#define TRACK_RIGHT_ANGLE_EXIT_BLACK_MIN  USER_RIGHT_ANGLE_EXIT_BLACK_MIN
-#define TRACK_RIGHT_ANGLE_EXIT_BLACK_MAX  USER_RIGHT_ANGLE_EXIT_BLACK_MAX
+#define TRACK_RIGHT_ANGLE_APPROACH_SPEED    USER_RIGHT_ANGLE_APPROACH_SPEED
+#define TRACK_RIGHT_ANGLE_STOP_MS           USER_RIGHT_ANGLE_STOP_MS
+#define TRACK_RIGHT_ANGLE_RETRIGGER_DELAY   USER_RIGHT_ANGLE_RETRIGGER_DELAY
+#define TRACK_RIGHT_ANGLE_TURN_LIMIT        USER_RIGHT_ANGLE_TURN_LIMIT
+#define TRACK_RIGHT_ANGLE_DONE_ERROR        USER_RIGHT_ANGLE_DONE_ERROR
+#define TRACK_RIGHT_ANGLE_DONE_RATE         USER_RIGHT_ANGLE_DONE_RATE
+#define TRACK_RIGHT_ANGLE_DONE_FRAMES       USER_RIGHT_ANGLE_DONE_FRAMES
+#define TRACK_RIGHT_ANGLE_CAPTURE_SPEED     USER_RIGHT_ANGLE_CAPTURE_SPEED
+#define TRACK_RIGHT_ANGLE_CAPTURE_TURN_LIMIT USER_RIGHT_ANGLE_CAPTURE_TURN_LIMIT
+#define TRACK_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES USER_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES
+#define TRACK_RIGHT_ANGLE_PIVOT_MIN_PWM      USER_RIGHT_ANGLE_PIVOT_MIN_PWM
+#define TRACK_RIGHT_ANGLE_PIVOT_MAX_PWM      USER_RIGHT_ANGLE_PIVOT_MAX_PWM
 
 /* --- LINE_FOLLOW 陀螺仪角速度阻尼 (国一方案核心) ---
  * 直行时用陀螺仪角速度作阻尼项, 抑制灰度传感器噪声引起的左右抖动
- * 公式: turn_output = line_pid_output - GYRO_DAMP * gyro_z
+ * 本车极性: turn_output = line_pid_output + GYRO_DAMP * gyro_z
  * 调参: 直道抖动→加大(0.15→0.3), 弯道跟踪迟钝→减小(0.15→0.08) */
 #define TRACK_LINE_FOLLOW_GYRO_DAMP       USER_LINE_FOLLOW_GYRO_DAMP
 
-/* --- 十字路口检测 --- */
-#define TRACK_CROSS_MIN_BLACK             USER_CROSS_MIN_BLACK
-#define TRACK_CROSS_PASS_MS               300u
-
-/* --- 起点线检测 --- */
-#define TRACK_START_LINE_MIN_BLACK        USER_START_LINE_MIN_BLACK
-#define TRACK_START_LINE_HOLD_MS          250u
-
 /* --- 丢线检测 --- */
 #define TRACK_LINE_LOST_MAX_BLACK         1
-#define TRACK_LINE_LOST_TIMEOUT           USER_LINE_LOST_TIMEOUT
-#define TRACK_LINE_LOST_GAIN              USER_LINE_LOST_GAIN
 #define TRACK_LINE_LOST_CONFIRM_FRAMES    5     /* 连续5帧全白才确认丢线(抗干扰) */
 
 /* --- 变速策略 --- */
 #define TRACK_SPEED_STRAIGHT              USER_TRACK_SPEED_STRAIGHT
 #define TRACK_SPEED_CURVE                 USER_TRACK_SPEED_CURVE
-#define TRACK_SPEED_SWITCH_ERR            1.0f
 #define TRACK_SPEED_RAMP_STEP             USER_TRACK_SPEED_RAMP_STEP
 /* 国一方案: 连续曲率变速 (替代二档跳变)
  * error=0 → SPEED_STRAIGHT, |error|>=CURVE_ERROR_MAX → SPEED_CURVE, 中间线性插值
  * 效果: 进弯平滑减速不甩出, 出弯平滑加速不慢 */
 #define TRACK_CURVE_ERROR_MAX             USER_TRACK_CURVE_ERROR_MAX
+#define TRACK_INVALID_HOLD_FRAMES         USER_TRACK_INVALID_HOLD_FRAMES
+#define TRACK_INVALID_STOP_FRAMES         USER_TRACK_INVALID_STOP_FRAMES
+#define TRACK_GRAYSCALE_MIN_CAL_CONTRAST   USER_GRAYSCALE_MIN_CAL_CONTRAST
 
 /* --- 电机差速 --- */
 #define TRACK_MOTOR_INNER_MIN             USER_TRACK_MOTOR_INNER_MIN
@@ -86,8 +80,6 @@
 #define TRACK_MOTOR_SPEED_MIN             (-100)
 
 /* --- 偏差计算 --- */
-#define TRACK_ERROR_MIN_DENOM             0.01f
-
 /* --- 默认参数 --- */
 #define TRACK_DEFAULT_BASE_SPEED          USER_TRACK_BASE_SPEED
 #define TRACK_DEFAULT_CIRCLES             USER_TRACK_CIRCLES
@@ -100,13 +92,6 @@
 #define TRACK_LINE_PID_OLIMIT    USER_LINE_PID_OLIMIT
 #define TRACK_LINE_PID_DERIV_ALPHA USER_LINE_PID_DERIV_ALPHA
 
-/* 陀螺仪PID默认参数 */
-#define TRACK_GYRO_PID_KP        USER_GYRO_PID_KP
-#define TRACK_GYRO_PID_KI        USER_GYRO_PID_KI
-#define TRACK_GYRO_PID_KD        USER_GYRO_PID_KD
-#define TRACK_GYRO_PID_ILIMIT    USER_GYRO_PID_ILIMIT
-#define TRACK_GYRO_PID_OLIMIT    USER_GYRO_PID_OLIMIT
-
 #define TRACK_ROTATE_DONE_ERR_DEG USER_ROTATE_DONE_ERR_DEG
 
 #include "track_logic.h"
@@ -118,21 +103,21 @@ typedef struct {
     /* --- 偏差计算 --- */
     float    error;                 /* 加权偏差 */
     float    last_error;            /* 上次偏差 */
-    float    error_accum;           /* 误差累积积分(直角弯检测用, 衰减式) */
 
     /* --- 状态机 --- */
     track_state_t state;
-    track_state_t last_state;
-    float    target_heading;        /* 丢线时的目标航向 */
     float    right_angle_target;    /* 直角弯道目标角度 */
     float    right_angle_entry_heading; /* 进入直角弯时的航向 */
-    float    right_angle_direction; /* 直角弯方向: +1右转, -1左转 */
     uint32_t state_timer;           /* 当前状态进入时刻(ms) */
-    uint32_t line_lost_count;       /* 丢线持续时间(ms) */
+    uint32_t tracking_started_at;   /* 本次循迹启动时刻 */
+    uint32_t last_corner_completed_at; /* 最近一次有效出弯时刻 */
+    uint32_t corner_started_at;     /* 本次直角状态机总起点 */
+    track_corner_phase_t corner_phase;
+    track_line_type_t line_type;
+    uint8_t  line_mask;
 
     /* --- 陀螺仪辅助 (国一方案) --- */
     float    gyro_rate;             /* 当前Z轴角速度(deg/s), LINE_FOLLOW阻尼用 */
-    float    heading_baseline;      /* 直行基准航向(进入LINE_FOLLOW时锁定, 备用) */
 
     /* --- 远程原地旋转（相对航向闭环） --- */
     float    rotate_heading_baseline;
@@ -152,10 +137,15 @@ typedef struct {
 
     /* --- 直角弯道多帧确认 --- */
     uint8_t  right_angle_confirm;   /* 直角弯连续确认计数 */
+    uint8_t  corner_heading_settle_confirm; /* 90度航向稳定确认计数 */
     uint8_t  line_lost_confirm;     /* 丢线连续确认计数 */
+    uint8_t  invalid_line_confirm;  /* 无效线型连续确认计数 */
+    uint8_t  centered_history;      /* 入角前正常居中连续帧 */
+    uint8_t  capture_confirm;       /* 转后正常线连续捕获帧 */
 
-    /* --- 起点线防重复计数 --- */
-    bool     start_line_armed;      /* true=可检测起点线, false=需等黑线消失后重新武装 */
+    /* --- 编码器距离前探 --- */
+    int32_t  corner_left_start;
+    int32_t  corner_right_start;
 
     /* --- 圈数 --- */
     uint8_t  target_circles;
@@ -164,8 +154,6 @@ typedef struct {
 
     /* --- PID（使用BSP层 bsp_pid_t） --- */
     bsp_pid_t line_pid;             /* 循迹位置PID */
-    bsp_pid_t gyro_pid;             /* 陀螺仪航向PID */
-
     /* --- 输出 --- */
     float    turn_output;           /* 转向量(正=右转,负=左转) */
     int32_t  left_speed;            /* 左电机速度 */
@@ -182,6 +170,7 @@ typedef struct {
     /* --- 配置 --- */
     bool     use_gyro;              /* 是否启用陀螺仪融合 */
     bool     use_motor;             /* 是否输出到电机 */
+    bool     use_speed_pid;         /* 普通循迹是否启用左右轮速PI */
 } track_t;
 
 /* ============================================================
@@ -195,6 +184,7 @@ extern track_t Track;
 void Track_Init(void);                  /* 初始化所有硬件+状态 */
 void Track_Update(void);                /* 主循环调用，非阻塞，内部5ms周期 */
 bool Track_Start(void);                 /* 启动循迹，Safety 拒绝时返回 false */
+const char *Track_Get_Start_Result(void); /* 最近一次启动结果，供ACK返回 */
 void Track_Stop(void);                  /* 停止循迹 */
 bool Track_Start_Rotation(float target_deg); /* READY状态开始相对角度原地旋转 */
 bool Track_Is_Rotating(void);

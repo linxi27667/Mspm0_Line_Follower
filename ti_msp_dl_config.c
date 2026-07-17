@@ -42,7 +42,6 @@
 
 DL_TimerG_backupConfig gMonitor_Left_TimerBackup;
 DL_TimerG_backupConfig gRight_Motor_TimerBackup;
-DL_TimerG_backupConfig gEncoder_TimerBackup;
 DL_SPI_backupConfig gICM_SPIBackup;
 
 /*
@@ -57,7 +56,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_SYSCTL_init();
     SYSCFG_DL_Monitor_Left_Timer_init();
     SYSCFG_DL_Right_Motor_Timer_init();
-    SYSCFG_DL_Encoder_Timer_init();
     SYSCFG_DL_UART_Debug_init();
     SYSCFG_DL_UART_ESP01S_init();
     SYSCFG_DL_ICM_SPI_init();
@@ -66,7 +64,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     /* Ensure backup structures have no valid state */
 	gMonitor_Left_TimerBackup.backupRdy 	= false;
 	gRight_Motor_TimerBackup.backupRdy 	= false;
-	gEncoder_TimerBackup.backupRdy 	= false;
 
 	gICM_SPIBackup.backupRdy 	= false;
 
@@ -81,7 +78,6 @@ SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
 
 	retStatus &= DL_TimerG_saveConfiguration(Monitor_Left_Timer_INST, &gMonitor_Left_TimerBackup);
 	retStatus &= DL_TimerG_saveConfiguration(Right_Motor_Timer_INST, &gRight_Motor_TimerBackup);
-	retStatus &= DL_TimerG_saveConfiguration(Encoder_Timer_INST, &gEncoder_TimerBackup);
 	retStatus &= DL_SPI_saveConfiguration(ICM_SPI_INST, &gICM_SPIBackup);
 
     return retStatus;
@@ -94,7 +90,6 @@ SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
 
 	retStatus &= DL_TimerG_restoreConfiguration(Monitor_Left_Timer_INST, &gMonitor_Left_TimerBackup, false);
 	retStatus &= DL_TimerG_restoreConfiguration(Right_Motor_Timer_INST, &gRight_Motor_TimerBackup, false);
-	retStatus &= DL_TimerG_restoreConfiguration(Encoder_Timer_INST, &gEncoder_TimerBackup, false);
 	retStatus &= DL_SPI_restoreConfiguration(ICM_SPI_INST, &gICM_SPIBackup);
 
     return retStatus;
@@ -106,7 +101,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_GPIO_reset(GPIOB);
     DL_TimerG_reset(Monitor_Left_Timer_INST);
     DL_TimerG_reset(Right_Motor_Timer_INST);
-    DL_TimerG_reset(Encoder_Timer_INST);
     DL_UART_Main_reset(UART_Debug_INST);
     DL_UART_Main_reset(UART_ESP01S_INST);
     DL_SPI_reset(ICM_SPI_INST);
@@ -117,7 +111,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_GPIO_enablePower(GPIOB);
     DL_TimerG_enablePower(Monitor_Left_Timer_INST);
     DL_TimerG_enablePower(Right_Motor_Timer_INST);
-    DL_TimerG_enablePower(Encoder_Timer_INST);
     DL_UART_Main_enablePower(UART_Debug_INST);
     DL_UART_Main_enablePower(UART_ESP01S_INST);
     DL_SPI_enablePower(ICM_SPI_INST);
@@ -133,9 +126,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_enableOutput(GPIO_Monitor_Left_Timer_C0_PORT, GPIO_Monitor_Left_Timer_C0_PIN);
     DL_GPIO_initPeripheralOutputFunction(GPIO_Right_Motor_Timer_C0_IOMUX,GPIO_Right_Motor_Timer_C0_IOMUX_FUNC);
     DL_GPIO_enableOutput(GPIO_Right_Motor_Timer_C0_PORT, GPIO_Right_Motor_Timer_C0_PIN);
-
-    DL_GPIO_initPeripheralInputFunction(GPIO_Encoder_Timer_PHA_IOMUX,GPIO_Encoder_Timer_PHA_IOMUX_FUNC);
-    DL_GPIO_initPeripheralInputFunction(GPIO_Encoder_Timer_PHB_IOMUX,GPIO_Encoder_Timer_PHB_IOMUX_FUNC);
 
     DL_GPIO_initPeripheralOutputFunction(
         GPIO_UART_Debug_IOMUX_TX, GPIO_UART_Debug_IOMUX_TX_FUNC);
@@ -202,6 +192,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
 
+    DL_GPIO_initDigitalInputFeatures(Left_Encoder_PHA_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_initDigitalInputFeatures(Left_Encoder_PHB_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
     DL_GPIO_clearPins(GPIOA, Monitor_Dir_Monitor_AIN1_PIN |
 		Monitor_Dir_Monitor_AIN2_PIN |
 		Grayscale_ADDR_A_AD0_PIN |
@@ -224,9 +222,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		Right_Motor_Dir_AIN2_PIN |
 		Led_Group_LED1_PIN |
 		Led_Group_LED2_PIN);
-    DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_12_EDGE_RISE_FALL);
-    DL_GPIO_clearInterruptStatus(GPIOB, Right_Encoder_PHA_PIN);
-    DL_GPIO_enableInterrupt(GPIOB, Right_Encoder_PHA_PIN);
+    DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_12_EDGE_RISE_FALL |
+		DL_GPIO_PIN_13_EDGE_RISE_FALL);
+    DL_GPIO_setUpperPinsPolarity(GPIOB, DL_GPIO_PIN_21_EDGE_RISE_FALL |
+		DL_GPIO_PIN_22_EDGE_RISE_FALL);
+    DL_GPIO_clearInterruptStatus(GPIOB, Right_Encoder_PHA_PIN |
+		Right_Encoder_PHB_PIN | Left_Encoder_PHA_PIN | Left_Encoder_PHB_PIN);
+    DL_GPIO_enableInterrupt(GPIOB, Right_Encoder_PHA_PIN |
+		Right_Encoder_PHB_PIN | Left_Encoder_PHA_PIN | Left_Encoder_PHB_PIN);
 
 }
 
@@ -324,29 +327,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_Right_Motor_Timer_init(void) {
     DL_TimerG_setCCPDirection(Right_Motor_Timer_INST , DL_TIMER_CC0_OUTPUT );
 
 }
-
-
-static const DL_TimerG_ClockConfig gEncoder_TimerClockConfig = {
-    .clockSel = DL_TIMER_CLOCK_BUSCLK,
-    .divideRatio = DL_TIMER_CLOCK_DIVIDE_1,
-    .prescale = 0U
-};
-
-
-SYSCONFIG_WEAK void SYSCFG_DL_Encoder_Timer_init(void) {
-
-    DL_TimerG_setClockConfig(
-        Encoder_Timer_INST, (DL_TimerG_ClockConfig *) &gEncoder_TimerClockConfig);
-
-    DL_TimerG_configQEI(Encoder_Timer_INST, DL_TIMER_QEI_MODE_2_INPUT,
-        DL_TIMER_CC_INPUT_INV_NOINVERT, DL_TIMER_CC_0_INDEX);
-    DL_TimerG_configQEI(Encoder_Timer_INST, DL_TIMER_QEI_MODE_2_INPUT,
-        DL_TIMER_CC_INPUT_INV_NOINVERT, DL_TIMER_CC_1_INDEX);
-    DL_TimerG_setLoadValue(Encoder_Timer_INST, 65535);
-    DL_TimerG_enableClock(Encoder_Timer_INST);
-    DL_TimerG_startCounter(Encoder_Timer_INST);
-}
-
 
 
 static const DL_UART_Main_ClockConfig gUART_DebugClockConfig = {

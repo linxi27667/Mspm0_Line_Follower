@@ -41,9 +41,6 @@ class Config:
     # AI 分析取最近 N 帧（100 帧 = 1 秒）
     AI_ANALYZE_FRAMES = 100
 
-    # 前端图表显示点数
-    CHART_POINTS = 200
-
     @classmethod
     def load(cls):
         """从 host_config.json 加载配置（覆盖默认值）
@@ -76,5 +73,4 @@ class Config:
             "GLM_MODEL": self.GLM_MODEL,
             "TELEMETRY_WINDOW": self.TELEMETRY_WINDOW,
             "AI_ANALYZE_FRAMES": self.AI_ANALYZE_FRAMES,
-            "CHART_POINTS": self.CHART_POINTS,
         }

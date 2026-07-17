@@ -146,3 +146,9 @@ void Grayscale_Calibrate_Black(void)
 {
     Bsp_Grayscale_Calibrate_Black(&Grayscale_Sensor);
 }
+
+bool Grayscale_Calibration_Valid(uint16_t minimum_contrast)
+{
+    return Bsp_Grayscale_Calibration_Valid(&Grayscale_Sensor,
+                                           minimum_contrast);
+}

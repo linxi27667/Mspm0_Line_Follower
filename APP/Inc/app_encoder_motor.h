@@ -12,7 +12,6 @@
 /* ============ 左电机硬件配置 ============ */
 #define MOTOR_LEFT_PWM_TIMER        Monitor_Left_Timer_INST
 #define MOTOR_LEFT_PWM_CHANNEL      GPIO_Monitor_Left_Timer_C0_IDX
-#define MOTOR_LEFT_ENC_TIMER        Encoder_Timer_INST
 #define MOTOR_LEFT_DIR1_PORT        Monitor_Dir_PORT
 #define MOTOR_LEFT_DIR1_PIN         Monitor_Dir_Monitor_AIN1_PIN
 #define MOTOR_LEFT_DIR2_PORT        Monitor_Dir_PORT
@@ -26,14 +25,22 @@
 #define MOTOR_RIGHT_DIR2_PORT       Right_Motor_Dir_PORT
 #define MOTOR_RIGHT_DIR2_PIN        Right_Motor_Dir_AIN2_PIN
 
-/* ============ 右编码器硬件配置（GPIO中断方式） ============
- * MSPM0G3507仅有一个硬件QEI(TIMG8)，已被左编码器占用
- * 右编码器使用GPIO中断计数: PB12=PHA(双沿中断), PB13=PHB
+/* ============ 编码器硬件配置（统一GPIO 4x正交解码） ============
+ * MSPM0G3507只有TIMG8支持硬件QEI，无法提供两路硬件QEI。
+ * 左右编码器均由PHA/PHB双边沿中断驱动同一正交状态机。
  */
+#define LEFT_ENC_PHA_PORT           Left_Encoder_PORT
+#define LEFT_ENC_PHA_PIN            Left_Encoder_PHA_PIN
+#define LEFT_ENC_PHB_PORT           Left_Encoder_PORT
+#define LEFT_ENC_PHB_PIN            Left_Encoder_PHB_PIN
 #define RIGHT_ENC_PHA_PORT          Right_Encoder_PORT
 #define RIGHT_ENC_PHA_PIN           Right_Encoder_PHA_PIN
 #define RIGHT_ENC_PHB_PORT          Right_Encoder_PORT
 #define RIGHT_ENC_PHB_PIN           Right_Encoder_PHB_PIN
+
+/* 保持现有接线下“车轮正转=正计数”的符号约定。 */
+#define LEFT_ENC_FORWARD_SIGN       (-1)
+#define RIGHT_ENC_FORWARD_SIGN      (1)
 
 /* ============ 速度PID参数 ============
  * 级联控制: 位置PID(循迹) → 目标速度 → 速度PID → PWM
@@ -46,8 +53,7 @@
  *   校准方法: 设 PWM=50, 测 encoder_speed, scale = encoder_speed / 50
  *   注意: 未校准时 scale=1.0, encoder_speed 被直接当作速度单位,
  *         闭环性能不可靠。需实车标定后调用 App_Motor_Calibrate_Scale()。
- *   左编码器(QEI 4x)与右编码器(GPIO 2x)分辨率不同,
- *         必须分别为左右设置不同 scale (典型 scale_right约为0.5 * scale_left)。
+ *   左右均为GPIO 4x正交解码，但电机、磁环和安装差异仍要求独立scale。
  *
  * integral_sep: 积分分离阈值, 误差超过此值时不累加积分
  *   作用: 启动/急停时避免积分饱和导致超调
@@ -80,7 +86,8 @@
 extern bsp_motor_t Motor_Left;
 extern bsp_motor_t Motor_Right;
 
-/* 右编码器计数器（由GPIO中断维护） */
+/* 左右编码器计数器（由GPIO双相双边沿中断维护） */
+extern volatile int32_t g_left_enc_count;
 extern volatile int32_t g_right_enc_count;
 
 void App_Motor_Init(void);
@@ -106,7 +113,7 @@ void App_Motor_Set_Speed_Scale_Right(float scale);
  * 标定后把打印的 Scale 值写入 main.c 的 USER_MOTOR_SPEED_SCALE_LEFT/RIGHT */
 void App_Motor_Calibrate_Scale(void);
 
-/* 右编码器GPIO中断回调（在main.c的GROUP1 ISR中调用） */
-void Right_Encoder_IRQHandler(void);
+/* 编码器GPIO中断回调（在main.c的GROUP1 ISR中调用） */
+void Encoder_GPIO_IRQHandler(uint32_t pending_pins);
 
 #endif /* APP_ENCODER_MOTOR_H */

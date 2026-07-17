@@ -71,37 +71,96 @@ static int16_t Bsp_Icm42688_Make_Int16(uint8_t high, uint8_t low)
     return (int16_t)(((uint16_t)high << 8) | (uint16_t)low);
 }
 
+const char *Bsp_Icm42688_Init_Result_Name(icm42688_init_result_t result)
+{
+    switch (result) {
+    case ICM42688_INIT_OK: return "ok";
+    case ICM42688_INIT_INVALID_ARGUMENT: return "invalid_argument";
+    case ICM42688_INIT_WHO_READ_FAILED: return "who_read_failed";
+    case ICM42688_INIT_WHO_MISMATCH: return "who_mismatch";
+    case ICM42688_INIT_RESET_WRITE_FAILED: return "reset_write_failed";
+    case ICM42688_INIT_RESET_TIMEOUT: return "reset_timeout";
+    case ICM42688_INIT_WHO_AFTER_RESET_READ_FAILED: return "who_after_reset_read_failed";
+    case ICM42688_INIT_WHO_AFTER_RESET_MISMATCH: return "who_after_reset_mismatch";
+    case ICM42688_INIT_CONFIG_WRITE_FAILED: return "config_write_failed";
+    case ICM42688_INIT_CONFIG_READ_FAILED: return "config_read_failed";
+    case ICM42688_INIT_CONFIG_MISMATCH: return "config_mismatch";
+    default: return "unknown";
+    }
+}
+
 bool Bsp_Icm42688_Init_Device(imu_sensor_t *imu)
 {
     uint8_t who = 0u;
+    uint8_t int_status = 0u;
     uint8_t accel_config = 0u;
     uint8_t gyro_config = 0u;
     uint8_t power_config = 0u;
+    uint8_t attempt;
+    bool reset_done = false;
+    bool who_read = false;
 
-    if (imu == NULL || imu->Spi_Transfer == NULL || imu->Cs_Write == NULL) {
+    if (imu == NULL) {
         return false;
     }
 
     imu->initialized = false;
     imu->data_valid = false;
     imu->calibration_state = IMU_CAL_IDLE;
+    imu->init_result = ICM42688_INIT_INVALID_ARGUMENT;
+    imu->init_who_am_i = 0u;
+    imu->init_accel_config = 0u;
+    imu->init_gyro_config = 0u;
+    imu->init_power_config = 0u;
     imu->gyro_z_offset = 0.0f;
     imu->heading = 0.0f;
+
+    if (imu->Spi_Transfer == NULL || imu->Cs_Write == NULL) {
+        return false;
+    }
     imu->Cs_Write(true);
 
-    if (!Bsp_Icm42688_Read_Register(imu, ICM42688_WHO_AM_I, &who) ||
-        who != ICM42688_WHO_AM_I_VALUE) {
+    if (!Bsp_Icm42688_Read_Register(imu, ICM42688_WHO_AM_I, &who)) {
+        imu->init_result = ICM42688_INIT_WHO_READ_FAILED;
+        return false;
+    }
+    imu->init_who_am_i = who;
+    if (who != ICM42688_WHO_AM_I_VALUE) {
+        imu->init_result = ICM42688_INIT_WHO_MISMATCH;
         return false;
     }
     if (!Bsp_Icm42688_Write_Register(imu, ICM42688_REG_BANK_SEL, 0u) ||
         !Bsp_Icm42688_Write_Register(imu, ICM42688_DEVICE_CONFIG, 0x01u)) {
+        imu->init_result = ICM42688_INIT_RESET_WRITE_FAILED;
         return false;
     }
-    if (imu->Delay_ms != NULL) {
-        imu->Delay_ms(100u);
+    for (attempt = 0u; attempt < ICM42688_RESET_POLL_ATTEMPTS; attempt++) {
+        if (imu->Delay_ms != NULL) {
+            imu->Delay_ms(ICM42688_RESET_POLL_MS);
+        }
+        if (Bsp_Icm42688_Read_Register(imu, ICM42688_INT_STATUS,
+                                       &int_status) &&
+            (int_status & ICM42688_RESET_DONE_MASK) != 0u) {
+            reset_done = true;
+        }
+        if (Bsp_Icm42688_Read_Register(imu, ICM42688_WHO_AM_I, &who)) {
+            who_read = true;
+            imu->init_who_am_i = who;
+            if (reset_done && who == ICM42688_WHO_AM_I_VALUE) {
+                break;
+            }
+        }
     }
-    if (!Bsp_Icm42688_Read_Register(imu, ICM42688_WHO_AM_I, &who) ||
-        who != ICM42688_WHO_AM_I_VALUE) {
+    if (!reset_done) {
+        imu->init_result = ICM42688_INIT_RESET_TIMEOUT;
+        return false;
+    }
+    if (!who_read) {
+        imu->init_result = ICM42688_INIT_WHO_AFTER_RESET_READ_FAILED;
+        return false;
+    }
+    if (who != ICM42688_WHO_AM_I_VALUE) {
+        imu->init_result = ICM42688_INIT_WHO_AFTER_RESET_MISMATCH;
         return false;
     }
     if (!Bsp_Icm42688_Write_Register(imu, ICM42688_REG_BANK_SEL, 0u) ||
@@ -111,25 +170,40 @@ bool Bsp_Icm42688_Init_Device(imu_sensor_t *imu)
                                      ICM42688_GYRO_CONFIG_VALUE) ||
         !Bsp_Icm42688_Write_Register(imu, ICM42688_PWR_MGMT0,
                                      ICM42688_PWR_MGMT0_VALUE)) {
+        imu->init_result = ICM42688_INIT_CONFIG_WRITE_FAILED;
         return false;
     }
     if (imu->Delay_ms != NULL) {
         imu->Delay_ms(1u);
     }
     if (!Bsp_Icm42688_Read_Register(imu, ICM42688_ACCEL_CONFIG0,
-                                    &accel_config) ||
-        !Bsp_Icm42688_Read_Register(imu, ICM42688_GYRO_CONFIG0,
-                                    &gyro_config) ||
-        !Bsp_Icm42688_Read_Register(imu, ICM42688_PWR_MGMT0,
-                                    &power_config) ||
-        accel_config != ICM42688_ACCEL_CONFIG_VALUE ||
+                                    &accel_config)) {
+        imu->init_result = ICM42688_INIT_CONFIG_READ_FAILED;
+        return false;
+    }
+    imu->init_accel_config = accel_config;
+    if (!Bsp_Icm42688_Read_Register(imu, ICM42688_GYRO_CONFIG0,
+                                    &gyro_config)) {
+        imu->init_result = ICM42688_INIT_CONFIG_READ_FAILED;
+        return false;
+    }
+    imu->init_gyro_config = gyro_config;
+    if (!Bsp_Icm42688_Read_Register(imu, ICM42688_PWR_MGMT0,
+                                    &power_config)) {
+        imu->init_result = ICM42688_INIT_CONFIG_READ_FAILED;
+        return false;
+    }
+    imu->init_power_config = power_config;
+    if (accel_config != ICM42688_ACCEL_CONFIG_VALUE ||
         gyro_config != ICM42688_GYRO_CONFIG_VALUE ||
         (power_config & 0x0Fu) != ICM42688_PWR_MGMT0_VALUE) {
+        imu->init_result = ICM42688_INIT_CONFIG_MISMATCH;
         return false;
     }
 
     imu->initialized = true;
     imu->data_valid = true;
+    imu->init_result = ICM42688_INIT_OK;
     return true;
 }
 

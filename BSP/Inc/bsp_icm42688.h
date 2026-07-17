@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #define ICM42688_DEVICE_CONFIG       0x11u
+#define ICM42688_INT_STATUS          0x2Du
 #define ICM42688_TEMP_DATA1          0x1Du
 #define ICM42688_ACCEL_DATA_X1       0x1Fu
 #define ICM42688_ACCEL_DATA_Y1       0x21u
@@ -22,6 +23,9 @@
 #define ICM42688_WHO_AM_I            0x75u
 #define ICM42688_REG_BANK_SEL        0x76u
 #define ICM42688_WHO_AM_I_VALUE      0x47u
+#define ICM42688_RESET_DONE_MASK     0x10u
+#define ICM42688_RESET_POLL_ATTEMPTS 10u
+#define ICM42688_RESET_POLL_MS       10u
 
 #define ICM42688_ACCEL_CONFIG_VALUE  0x4Fu
 #define ICM42688_GYRO_CONFIG_VALUE   0x4Fu
@@ -38,6 +42,20 @@ typedef enum {
     IMU_CAL_DONE,
     IMU_CAL_FAILED
 } imu_cal_state_t;
+
+typedef enum {
+    ICM42688_INIT_OK = 0,
+    ICM42688_INIT_INVALID_ARGUMENT,
+    ICM42688_INIT_WHO_READ_FAILED,
+    ICM42688_INIT_WHO_MISMATCH,
+    ICM42688_INIT_RESET_WRITE_FAILED,
+    ICM42688_INIT_RESET_TIMEOUT,
+    ICM42688_INIT_WHO_AFTER_RESET_READ_FAILED,
+    ICM42688_INIT_WHO_AFTER_RESET_MISMATCH,
+    ICM42688_INIT_CONFIG_WRITE_FAILED,
+    ICM42688_INIT_CONFIG_READ_FAILED,
+    ICM42688_INIT_CONFIG_MISMATCH
+} icm42688_init_result_t;
 
 typedef struct {
     bool (*Spi_Transfer)(uint8_t tx, uint8_t *rx);
@@ -57,6 +75,11 @@ typedef struct {
     bool initialized;
     bool data_valid;
     imu_cal_state_t calibration_state;
+    icm42688_init_result_t init_result;
+    uint8_t init_who_am_i;
+    uint8_t init_accel_config;
+    uint8_t init_gyro_config;
+    uint8_t init_power_config;
 
     uint16_t calibration_sample_count;
     float calibration_mean;
@@ -64,6 +87,7 @@ typedef struct {
 } imu_sensor_t;
 
 bool Bsp_Icm42688_Init_Device(imu_sensor_t *imu);
+const char *Bsp_Icm42688_Init_Result_Name(icm42688_init_result_t result);
 bool Bsp_Icm42688_Read_Data(imu_sensor_t *imu);
 void Bsp_Icm42688_Calibration_Start(imu_sensor_t *imu);
 imu_cal_state_t Bsp_Icm42688_Calibration_Update(imu_sensor_t *imu);

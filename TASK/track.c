@@ -3,7 +3,7 @@
  * @brief   灰度PID循迹任务调度实现（TASK层 — 纯业务逻辑）
  * @note    数据流:
  *          Grayscale_Update → data_ready → Track_Calc_Error → PID → 差速 → Motor
- *          Imu_Update_Heading → heading → 丢线辅助/直角弯道
+ *          Imu_Update_Heading → heading → 直角弯原地旋转
  *
  *          本文件不直接操作任何硬件寄存器，全部通过 BSP/APP 层 API 调用
  */
@@ -16,19 +16,12 @@
 #include <math.h>
 
 /* ============================================================
- * 常量
- * ============================================================ */
-
-/* 八路传感器权重: S0(-3.5) ... S7(+3.5) */
-static const float s_weights[8] = {
-    -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f
-};
-
-/* ============================================================
  * 全局对象
  * ============================================================ */
 
 track_t Track = {0};
+static const char *s_track_start_result = "idle";
+static void Track_Motor_Stop_Immediate(void);
 
 static bool Track_Imu_Healthy(void)
 {
@@ -38,45 +31,41 @@ static bool Track_Imu_Healthy(void)
            isfinite(Imu_Sensor.heading) && isfinite(Imu_Sensor.gyro_z);
 }
 
+static uint8_t Track_GrayscaleMask(void)
+{
+    uint8_t mask = 0u;
+    for (uint8_t i = 0; i < BSP_GRAY_CHANNEL_NUM; i++) {
+        if (Grayscale_Sensor.digital[i]) mask |= (uint8_t)(1u << i);
+    }
+    return mask;
+}
+
 /* ============================================================
- * 内部函数：偏差计算（模拟量差比和 — 连续精度）
+ * 内部函数：偏差计算（数字灰度固定权重）
  * ============================================================ */
 
-static void Track_Calc_Error(void)
+static uint8_t Track_CornerMinBlack(void)
 {
-    /* 保存上次偏差 */
+    uint8_t corner_min_black = (uint8_t)(Track.right_angle_threshold + 0.5f);
+    if (corner_min_black < 4u) corner_min_black = 4u;
+    if (corner_min_black > BSP_GRAY_CHANNEL_NUM) {
+        corner_min_black = BSP_GRAY_CHANNEL_NUM;
+    }
+    return corner_min_black;
+}
+
+static track_line_observation_t Track_ObserveLine(void)
+{
+    return Track_ClassifyLine8(Track_GrayscaleMask(), Track.error,
+                               Track_CornerMinBlack());
+}
+
+static void Track_Calc_Error(track_line_observation_t observation)
+{
+    if (observation.type != TRACK_LINE_NORMAL) return;
+
     Track.last_error = Track.error;
-
-    /* 模拟量差比和（归一化值，连续精度）
-     * 左侧权重为负，右侧权重为正
-     * norm[i] = 1 表示黑线，0 表示白色
-     * error = Σ(weight[i] × norm[i]) / Σ(norm[i])
-     *
-     * 国一方案增强: 最近黑通道(norm最大)权重 ×1.5, 提升急弯响应速度 10-20%
-     * 量纲不变(仍是-3.5~+3.5), 仅增大最黑通道在加权平均中的占比 */
-    uint8_t max_idx = 0;
-    float max_norm = -1.0f;
-    for (uint8_t i = 0; i < BSP_GRAY_CHANNEL_NUM; i++) {
-        if (Grayscale_Sensor.norm[i] > max_norm) {
-            max_norm = Grayscale_Sensor.norm[i];
-            max_idx = i;
-        }
-    }
-
-    float weighted_sum = 0;
-    float total_weight = 0;
-
-    for (uint8_t i = 0; i < BSP_GRAY_CHANNEL_NUM; i++) {
-        float n = Grayscale_Sensor.norm[i];
-        if (i == max_idx) n *= 1.5f;  /* 最近通道高权重, 提升响应 */
-        weighted_sum += s_weights[i] * n;
-        total_weight  += n;
-    }
-
-    if (total_weight > TRACK_ERROR_MIN_DENOM) {
-        Track.error = weighted_sum / total_weight;
-    }
-    /* 全白时保持上次 error 不变，由状态机处理 */
+    Track.error = observation.error;
 }
 
 /* ============================================================
@@ -112,122 +101,111 @@ static void Track_Update_Speed(void)
  * 内部函数：赛道元素检测
  * ============================================================ */
 
-static void Track_Detect_Pattern(void)
+static bool Track_ApproachCalibrationValid(void)
 {
+    return USER_ENCODER_LEFT_COUNTS_PER_MM > 0.0f &&
+           USER_ENCODER_RIGHT_COUNTS_PER_MM > 0.0f &&
+           (USER_SENSOR_TO_AXLE_MM + USER_RIGHT_ANGLE_DETECT_COMP_MM) > 0.0f;
+}
+
+static void Track_Detect_Pattern(track_line_observation_t observation)
+{
+    uint8_t digital_mask = Track.line_mask;
+
     if (Track.state != TRACK_STATE_LINE_FOLLOW) {
         Track.right_angle_confirm = 0;
         Track.line_lost_confirm = 0;
+        Track.invalid_line_confirm = 0;
         return;
     }
 
-    /* --- 起点线检测（≥6路黑） — 必须在十字路口之前检测 ---
-     * 修复1: 原代码先检测十字(中4路黑+外侧白)，起点线(6路黑)会满足
-     *        十字条件被误判为十字路口，导致圈数计数失效。
-     * 修复2: 添加 start_line_armed 标志，起点线必须先消失再出现才重新计数，
-     *        避免慢速通过时一条起点线被记多圈。 */
-    if (Track.start_line_armed &&
-        Grayscale_Sensor.black_count >= TRACK_START_LINE_MIN_BLACK) {
-        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.target_heading = Imu_Sensor.heading;
-            Track.state = TRACK_STATE_START_LINE;
-            Track.state_timer = Bsp_GetTick();
-            Track.start_line_armed = false;  /* 需等黑线消失后重新武装 */
-            APP_TRACK_LOG_I("TRACK", "LINE_FOLLOW -> START_LINE (bc=%d)",
-                   Grayscale_Sensor.black_count);
-        }
+    if (observation.type == TRACK_LINE_NORMAL) {
+        Track.centered_history = Track_UpdateConfirmFrames(
+            Track.centered_history, Track_Abs_Float(observation.error) <= 0.75f);
+        Track.right_angle_confirm = 0u;
+        Track.line_lost_confirm = 0u;
+        Track.invalid_line_confirm = 0u;
         return;
     }
 
-    /* 起点线未检测到时，若黑通道数降到阈值以下，重新武装起点线检测 */
-    if (!Track.start_line_armed &&
-        Grayscale_Sensor.black_count < TRACK_START_LINE_MIN_BLACK) {
-        Track.start_line_armed = true;
-    }
+    if (observation.type == TRACK_LINE_LEFT_CORNER) {
+        Track.right_angle_confirm = Track_UpdateCornerConfirm(
+            Track.right_angle_confirm, Track.centered_history, true);
+        Track.line_lost_confirm = 0u;
+        Track.invalid_line_confirm = 0u;
 
-    /* --- 十字路口检测 --- */
-    /* 中间4路(S2~S5)全黑 + 外侧至少1路白 + 非起点线(黑通道<6) */
-    uint8_t mid_black = 0;
-    for (uint8_t i = 2; i <= 5; i++) {
-        if (Grayscale_Sensor.digital[i]) mid_black++;
-    }
-    uint8_t outer_white = (!Grayscale_Sensor.digital[0] || !Grayscale_Sensor.digital[7]) ? 1 : 0;
-
-    if (mid_black >= TRACK_CROSS_MIN_BLACK && outer_white &&
-        Grayscale_Sensor.black_count < TRACK_START_LINE_MIN_BLACK) {
-        if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-            Track.state = TRACK_STATE_CROSS;
-            Track.state_timer = Bsp_GetTick();
-            APP_TRACK_LOG_I("TRACK", "LINE_FOLLOW -> CROSS (bc=%d)",
-                   Grayscale_Sensor.black_count);
-            return;
-        }
-    }
-
-    /* --- 直角弯道检测（国一方案: 多条件多帧确认） ---
-     * 单一条件漏检率高, 国一方案必有多条件冗余:
-     *   条件1 cond_outer: 原始 S0/S7 黑 + 大误差 (黑线摆到外侧)
-     *   条件2 cond_accum: 误差累积超限 (弯道持续大误差, 说明弯很急)
-     *   条件3 cond_rate:  角速度超限 (车体快速旋转, 说明进入急弯)
-     * 任一条件持续满足 CONFIRM_FRAMES 帧即触发, 覆盖:
-     *   - 黑线没摆到外侧 (cond_outer 漏) → cond_accum/cond_rate 兜底
-     *   - 弯前误差不足 (cond_outer 漏)   → cond_rate 兜底 */
-    {
-        bool cond_outer = (Grayscale_Sensor.digital[0] || Grayscale_Sensor.digital[7]) &&
-                          (Track.error > Track.right_angle_threshold ||
-                           Track.error < -Track.right_angle_threshold);
-        bool cond_accum = (Track.error_accum > TRACK_RIGHT_ANGLE_ERROR_INTEGRAL ||
-                           Track.error_accum < -TRACK_RIGHT_ANGLE_ERROR_INTEGRAL);
-        bool cond_rate  = (Track.gyro_rate > TRACK_RIGHT_ANGLE_GYRO_RATE ||
-                           Track.gyro_rate < -TRACK_RIGHT_ANGLE_GYRO_RATE);
-
+        {
         bool gyro_available = Track.use_gyro && Track_Imu_Healthy();
+        uint32_t now = Bsp_GetTick();
+        bool initial_delay_done = Track_Timeout_Reached(
+            now, Track.tracking_started_at, TRACK_RIGHT_ANGLE_ARM_DELAY);
+        bool retrigger_delay_done = Track.right_angle_count == 0u ||
+            Track_Timeout_Reached(now, Track.last_corner_completed_at,
+                                  TRACK_RIGHT_ANGLE_RETRIGGER_DELAY);
+        bool corner_armed = initial_delay_done && retrigger_delay_done;
 
-        if (gyro_available && (cond_outer || cond_accum || cond_rate)) {
-            Track.right_angle_confirm++;
-            if (Track.right_angle_confirm >= TRACK_RIGHT_ANGLE_CONFIRM_FRAMES) {
-                if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-                    Track.last_state = TRACK_STATE_LINE_FOLLOW;
-                    /* 旋转方向: 根据 last_error 符号 (黑线最后偏哪边就往哪边转)
-                     * 用 last_error 比 error 更稳定 (进入弯道瞬间 error 可能跳变) */
-                    float direction = Track_RightAngle_Direction(
-                        Track.error, Track.last_error, Track.gyro_rate);
-                    Track.right_angle_direction = direction;
-                    Track.right_angle_entry_heading = Imu_Sensor.heading;
-                    Track.right_angle_target =
-                        Imu_Sensor.heading + direction * TRACK_RIGHT_ANGLE_TARGET_ANGLE;
-                    Track.state = TRACK_STATE_RIGHT_ANGLE;
-                    Track.state_timer = Bsp_GetTick();
-                    Track.right_angle_confirm = 0;
-                    Pid_Reset(&Track.gyro_pid);
-                    APP_TRACK_LOG_I("TRACK", "LINE_FOLLOW -> RIGHT_ANGLE (err=%d accum=%d rate=%d target=%d)",
-                           (int)Track.error, (int)Track.error_accum, (int)Track.gyro_rate,
-                           (int)Track.right_angle_target);
-                    Track.error_accum = 0;  /* 清零累积, 避免出弯后重复触发 */
+        if (gyro_available && corner_armed &&
+            Track.right_angle_confirm >= TRACK_RIGHT_ANGLE_CONFIRM_FRAMES) {
+                if (!Track_ApproachCalibrationValid()) {
+                    Track.state = TRACK_STATE_FINISHED;
+                    Track_Motor_Stop_Immediate();
+                    Safety_TransitionToFinished();
+                    APP_TRACK_LOG_W("TRACK", "CORNER_FAIL reason=approach_cal_missing mask=0x%02X cpmL=%d cpmR=%d mm=%d",
+                                    digital_mask,
+                                    (int)(USER_ENCODER_LEFT_COUNTS_PER_MM * 1000.0f),
+                                    (int)(USER_ENCODER_RIGHT_COUNTS_PER_MM * 1000.0f),
+                                    (int)((USER_SENSOR_TO_AXLE_MM + USER_RIGHT_ANGLE_DETECT_COMP_MM) * 10.0f));
+                    return;
                 }
-            }
-        } else {
-            /* 条件不满足，重置确认计数 */
-            Track.right_angle_confirm = 0;
+                Track.right_angle_entry_heading = Imu_Sensor.heading;
+                Track.right_angle_target = Imu_Sensor.heading;
+                App_Motor_Enable_Speed_PID(true);
+                Track.corner_left_start = Motor_Left.total_position;
+                Track.corner_right_start = Motor_Right.total_position;
+                Track.state = TRACK_STATE_RIGHT_ANGLE;
+                Track.corner_phase = TRACK_CORNER_APPROACH;
+                Track.corner_started_at = now;
+                Track.state_timer = now;
+                Track.right_angle_confirm = 0;
+                Track.corner_heading_settle_confirm = 0;
+                Track.capture_confirm = 0;
+                Track.line_lost_confirm = 0;
+                Track.centered_history = 0;
+                APP_TRACK_LOG_I("TRACK", "CORNER_ENTER mask=0x%02X err=%d enc=%ld,%ld entry=%d target_mm=%d",
+                       digital_mask, (int)(Track.error * 1000.0f),
+                       (long)Track.corner_left_start,
+                       (long)Track.corner_right_start,
+                       (int)Track.right_angle_entry_heading,
+                       (int)((USER_SENSOR_TO_AXLE_MM + USER_RIGHT_ANGLE_DETECT_COMP_MM) * 10.0f));
+                return;
         }
+        }
+        return;
     }
 
-    /* --- 丢线检测（多帧确认，抗瞬时干扰） --- */
-    if (Grayscale_Sensor.black_count < TRACK_LINE_LOST_MAX_BLACK) {
-        Track.line_lost_confirm++;
+    Track.centered_history = 0u;
+    Track.right_angle_confirm = 0u;
+    if (observation.type == TRACK_LINE_LOST) {
+        Track.invalid_line_confirm = 0u;
+        Track.line_lost_confirm = Track_UpdateConfirmFrames(
+            Track.line_lost_confirm, true);
         if (Track.line_lost_confirm >= TRACK_LINE_LOST_CONFIRM_FRAMES) {
-            if (Track.state == TRACK_STATE_LINE_FOLLOW) {
-                Track.last_state = TRACK_STATE_LINE_FOLLOW;
-                Track.target_heading = Imu_Sensor.heading;
-                Track.state = TRACK_STATE_LINE_LOST;
-                Track.line_lost_count = 0;
-                Track.state_timer = Bsp_GetTick();
-                Pid_Reset(&Track.gyro_pid);  /* 进入丢线时复位 gyro_pid 防积分突跳 */
-                APP_TRACK_LOG_W("TRACK", "LINE_FOLLOW -> LINE_LOST (hdg=%d)",
-                       (int)Imu_Sensor.heading);
-            }
+            Track.state = TRACK_STATE_LINE_LOST;
+            Track.state_timer = Bsp_GetTick();
+            APP_TRACK_LOG_W("TRACK", "LINE_FAIL reason=lost mask=0x%02X err=%d",
+                            digital_mask, (int)(Track.error * 1000.0f));
         }
     } else {
-        Track.line_lost_confirm = 0;
+        Track.line_lost_confirm = 0u;
+        Track.invalid_line_confirm = Track_UpdateConfirmFrames(
+            Track.invalid_line_confirm, true);
+        if (Track.invalid_line_confirm >= TRACK_INVALID_STOP_FRAMES) {
+            Track.state = TRACK_STATE_LINE_LOST;
+            Track.state_timer = Bsp_GetTick();
+            APP_TRACK_LOG_W("TRACK", "LINE_FAIL reason=invalid mask=0x%02X err=%d frames=%d",
+                            digital_mask, (int)(Track.error * 1000.0f),
+                            Track.invalid_line_confirm);
+        }
     }
 }
 
@@ -240,6 +218,8 @@ static void Track_Motor_Stop_Immediate(void)
     Track.right_speed = 0;
     Track.turn_output = 0;
     if (Track.use_motor) {
+        Motor_Set_Speed(0);
+        Motor_Right_Set_Speed(0);
         App_Motor_Enable_Speed_PID(false);
         Bsp_Motor_Write_Pwm(&Motor_Left, 0);
         Bsp_Motor_Write_Pwm(&Motor_Right, 0);
@@ -425,141 +405,165 @@ static void Track_Handle_Heading_Hold(void)
  * 内部函数：状态处理
  * ============================================================ */
 
-/* 起点线处理：计数圈数 */
-static void Track_Handle_StartLine(void)
-{
-    uint32_t now = Bsp_GetTick();
-
-    /* 起点线持续超过阈值视为有效过线 */
-    if (Track_Timeout_Reached(now, Track.state_timer,
-                              TRACK_START_LINE_HOLD_MS)) {
-        Track.current_circle++;
-        if (Track.current_circle >= Track.target_circles) {
-            Track.state = TRACK_STATE_FINISHED;
-            Track_Motor_Stop_Immediate();   /* 立即停车(安全) */
-            Safety_TransitionToFinished();  /* 通知 Safety 持续切断 */
-        APP_TRACK_LOG_I("TRACK", "FINISHED! circles=%d/%d", Track.current_circle, Track.target_circles);
-        } else {
-            Track.state = TRACK_STATE_LINE_FOLLOW;
-        APP_TRACK_LOG_I("TRACK", "Circle %d/%d completed", Track.current_circle, Track.target_circles);
-        }
-        return;
-    }
-
-    /* 起点线消失（black_count 降到阈值以下）也退出 */
-    if (Grayscale_Sensor.black_count < TRACK_START_LINE_MIN_BLACK) {
-        Track.state = TRACK_STATE_LINE_FOLLOW;
-        return;
-    }
-
-    /* 起点线期间保持直行 */
-    Track.turn_output = 0;
-}
-
-/* 丢线处理：用陀螺仪维持航向
- * 国一方案参考: 丢线时锁定航向角直行,用编码器脉冲数判断是否到达下一段
- * 我们方案: 陀螺仪PID维持航向 + last_error方向修正 + 超时停车
- * 国一方案恢复条件: black_count>=2 (单点噪声不恢复, 避免误恢复到错误位置) */
+/* 方形赛道外围全白。确认丢线后不再搜索，立即停车。 */
 static void Track_Handle_LineLost(void)
 {
-    uint32_t now = Bsp_GetTick();
-    Track.line_lost_count = (uint32_t)(now - Track.state_timer);
-
-    if (Track.use_gyro && Track_Imu_Healthy()) {
-        /* 修复: 统一用完整 PID(含 D 项)而非仅 P 控制，与直角弯道策略一致。
-         * Pid_Compute 内部 error = target - feedback = target_heading - heading */
-        Track.turn_output = Pid_Compute(&Track.gyro_pid,
-                                        Track.target_heading,
-                                        Imu_Sensor.heading);
-    } else {
-        /* 无陀螺仪时: 用上次误差方向修正(last_error符号=方向记忆),逐渐衰减 */
-        float decay = 1.0f - (float)Track.line_lost_count / TRACK_LINE_LOST_TIMEOUT;
-        if (decay < 0.3f) decay = 0.3f;  /* 最低保留30%修正 */
-        Track.turn_output = Track.last_error * TRACK_LINE_LOST_GAIN * decay;
-    }
-
-    /* 丢线超时停车 */
-    if (Track_Timeout_Reached(now, Track.state_timer,
-                              TRACK_LINE_LOST_TIMEOUT)) {
-        Track.state = TRACK_STATE_FINISHED;
-        Track_Motor_Stop_Immediate();   /* 立即停车(安全) */
-        APP_TRACK_LOG_W("TRACK", "LINE_LOST timeout -> FINISHED");
-        return;
-    }
-
-    /* 重新检测到线，恢复循迹 (国一方案: black_count>=2 才恢复, 防单点噪声误恢复)
-     * last_error 符号天然保留丢线前方向, Track_Calc_Error 全白时不更新 error */
-    if (Grayscale_Sensor.black_count >= 2) {
-        Track.state = TRACK_STATE_LINE_FOLLOW;
-        Pid_Reset(&Track.line_pid);
-        Track.line_lost_confirm = 0;    /* 修复: 复位确认计数，避免立即重入 LINE_LOST */
-        APP_TRACK_LOG_I("TRACK", "LINE_LOST -> LINE_FOLLOW (recovered, bc=%d)",
-               Grayscale_Sensor.black_count);
-    }
+    Track.state = TRACK_STATE_FINISHED;
+    Track_Motor_Stop_Immediate();
+    Safety_TransitionToFinished();
+    APP_TRACK_LOG_W("TRACK", "LINE_LOST -> FINISHED (auto READY in 1s)");
 }
 
 /* 直角弯道处理：陀螺仪精确旋转90度 */
-static void Track_Handle_RightAngle(void)
+static void Track_Handle_RightAngle(track_line_observation_t observation)
 {
     uint32_t now = Bsp_GetTick();
+    int32_t left_delta = Track_EncoderDelta(Motor_Left.total_position,
+                                            Track.corner_left_start);
+    int32_t right_delta = Track_EncoderDelta(Motor_Right.total_position,
+                                             Track.corner_right_start);
+    float target_mm = USER_SENSOR_TO_AXLE_MM +
+                      USER_RIGHT_ANGLE_DETECT_COMP_MM;
 
     if (!Track.use_gyro || !Track_Imu_Healthy()) {
-        Track.state = (Grayscale_Sensor.black_count >= 2)
-                    ? TRACK_STATE_LINE_FOLLOW
-                    : TRACK_STATE_LINE_LOST;
-        Track.state_timer = now;
-        Track.line_lost_count = 0;
-        Pid_Reset(&Track.line_pid);
-        Pid_Reset(&Track.gyro_pid);
+        Track.state = TRACK_STATE_FINISHED;
+        Track_Motor_Stop_Immediate();
+        Safety_NotifySensorAbnormal();
         APP_TRACK_LOG_W("TRACK", "RIGHT_ANGLE aborted: gyro unavailable");
         return;
+    }
+
+    if (Track.corner_phase == TRACK_CORNER_APPROACH &&
+        Track_EncoderDistanceReached(
+            Motor_Left.total_position, Motor_Right.total_position,
+            Track.corner_left_start, Track.corner_right_start,
+            USER_ENCODER_LEFT_COUNTS_PER_MM,
+            USER_ENCODER_RIGHT_COUNTS_PER_MM, target_mm)) {
+        Track.corner_phase = TRACK_CORNER_STOP;
+        Track.state_timer = now;
+        Track.base_speed = 0;
+        Track.target_speed = 0;
+        Track.turn_output = 0.0f;
+        APP_TRACK_LOG_I("TRACK", "CORNER_STOP mask=0x%02X enc_d=%ld,%ld entry=%d actual=%d",
+                        Track.line_mask, (long)left_delta, (long)right_delta,
+                        (int)Track.right_angle_entry_heading,
+                        (int)Imu_Sensor.heading);
+    }
+
+    if (Track.corner_phase == TRACK_CORNER_STOP &&
+        Track_Timeout_Reached(now, Track.state_timer,
+                              TRACK_RIGHT_ANGLE_STOP_MS)) {
+        Track.right_angle_entry_heading = Imu_Sensor.heading;
+        Track.right_angle_target = Imu_Sensor.heading +
+                                   TRACK_RIGHT_ANGLE_TARGET_ANGLE;
+        Track.corner_phase = TRACK_CORNER_PIVOT;
+        Track.state_timer = now;
+        Track.corner_heading_settle_confirm = 0;
+        APP_TRACK_LOG_I("TRACK", "CORNER_PIVOT mask=0x%02X enc_d=%ld,%ld entry=%d target=%d actual=%d",
+                        Track.line_mask, (long)left_delta, (long)right_delta,
+                        (int)Track.right_angle_entry_heading,
+                        (int)Track.right_angle_target,
+                        (int)Imu_Sensor.heading);
     }
 
     float angle_error = Track.right_angle_target - Imu_Sensor.heading;
     float turned_abs = Track_Abs_Float(Imu_Sensor.heading -
                                        Track.right_angle_entry_heading);
-    uint8_t center_black = 0;
-    for (uint8_t i = 2; i <= 5; i++) {
-        if (Grayscale_Sensor.digital[i]) center_black++;
+    if (Track.corner_phase == TRACK_CORNER_PIVOT) {
+        Track.corner_heading_settle_confirm = Track_UpdateConfirmFrames(
+            Track.corner_heading_settle_confirm,
+            Track_RightAngle_HeadingSettled(angle_error,
+                                            Imu_Sensor.gyro_z));
+        if (Track.corner_heading_settle_confirm >=
+            TRACK_RIGHT_ANGLE_DONE_FRAMES) {
+            Track.corner_phase = TRACK_CORNER_CAPTURE;
+            Track.state_timer = now;
+            Track.capture_confirm = 0u;
+            APP_TRACK_LOG_I("TRACK", "CORNER_CAPTURE mask=0x%02X enc_d=%ld,%ld target=%d actual=%d err=%d rate=%d",
+                            Track.line_mask, (long)left_delta,
+                            (long)right_delta, (int)Track.right_angle_target,
+                            (int)Imu_Sensor.heading, (int)angle_error,
+                            (int)Imu_Sensor.gyro_z);
+        }
     }
 
-    /* 方形赛道直角弯中强制低速，避免入弯速度继承直道速度 */
-    Track.target_speed = Track.speed_curve;
-    if (Track.base_speed > Track.speed_curve) {
-        Track.base_speed = Track.speed_curve;
+    if (Track.corner_phase == TRACK_CORNER_APPROACH) {
+        Track.target_speed = TRACK_RIGHT_ANGLE_APPROACH_SPEED;
+        Track.base_speed = TRACK_RIGHT_ANGLE_APPROACH_SPEED;
+        Track.turn_output = Track_ClampTurn(
+            Track_RightAngle_PivotTurn(
+                Track.right_angle_entry_heading - Imu_Sensor.heading,
+                Imu_Sensor.gyro_z, USER_ROTATE_PID_KP,
+                USER_ROTATE_PID_KD_RATE,
+                TRACK_RIGHT_ANGLE_CAPTURE_TURN_LIMIT),
+            TRACK_RIGHT_ANGLE_CAPTURE_TURN_LIMIT);
+    } else if (Track.corner_phase == TRACK_CORNER_STOP) {
+        Track.target_speed = 0;
+        Track.base_speed = 0;
+        Track.turn_output = 0.0f;
+    } else if (Track.corner_phase == TRACK_CORNER_PIVOT) {
+        int32_t pivot_pwm = Track_RightAngle_PivotPwm(
+            angle_error, Imu_Sensor.gyro_z,
+            USER_ROTATE_PID_KP, USER_ROTATE_PID_KD_RATE,
+            TRACK_RIGHT_ANGLE_PIVOT_MIN_PWM,
+            TRACK_RIGHT_ANGLE_PIVOT_MAX_PWM);
+        Track.target_speed = 0;
+        Track.base_speed = 0;
+        Track.turn_output = (float)-pivot_pwm;
+    } else {
+        Track.target_speed = TRACK_RIGHT_ANGLE_CAPTURE_SPEED;
+        Track.base_speed = TRACK_RIGHT_ANGLE_CAPTURE_SPEED;
+        Track.turn_output = Track_ClampTurn(
+            Track_RightAngle_PivotTurn(
+                angle_error, Imu_Sensor.gyro_z,
+                USER_ROTATE_PID_KP, USER_ROTATE_PID_KD_RATE,
+                TRACK_RIGHT_ANGLE_CAPTURE_TURN_LIMIT),
+            TRACK_RIGHT_ANGLE_CAPTURE_TURN_LIMIT);
     }
 
-    Track.turn_output = Pid_Compute(&Track.gyro_pid,
-                                     Track.right_angle_target,
-                                     Imu_Sensor.heading);
-
-    /* 转过最小角度后, 中间通道重新捕到线即可提前退出; 接近目标角兜底退出 */
-    if (Track_RightAngle_ShouldExit(turned_abs, angle_error, center_black,
-                                    Grayscale_Sensor.black_count)) {
+    if (Track.corner_phase == TRACK_CORNER_CAPTURE) {
+        Track.capture_confirm = Track_UpdateConfirmFrames(
+            Track.capture_confirm,
+            Track_CaptureLineValid(observation, 1.0f));
+    }
+    if (Track.corner_phase == TRACK_CORNER_CAPTURE &&
+        Track.capture_confirm >= TRACK_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES) {
         Track.state = TRACK_STATE_LINE_FOLLOW;
+        Track.error = observation.error;
+        Track.last_error = observation.error;
         Pid_Reset(&Track.line_pid);
-        Track.error_accum = 0;
         Track.right_angle_confirm = 0;
-        Track.right_angle_count++;  /* 正方形计圈: 直角完成计数 */
+        Track.corner_heading_settle_confirm = 0;
+        Track.capture_confirm = 0;
+        Track.invalid_line_confirm = 0;
+        Track.line_lost_confirm = 0;
+        Track.centered_history = 0;
+        Track.last_corner_completed_at = now;
+        Track.right_angle_count++;
+        App_Motor_Enable_Speed_PID(Track.use_speed_pid);
         Track_Check_RightAngle_Completion();
-        APP_TRACK_LOG_I("TRACK", "RIGHT_ANGLE -> LINE_FOLLOW (turn=%d err=%d center=%d bc=%d ra=%d)",
-               (int)turned_abs, (int)angle_error, center_black,
-               Grayscale_Sensor.black_count, Track.right_angle_count);
+        APP_TRACK_LOG_I("TRACK", "CORNER_DONE mask=0x%02X enc_d=%ld,%ld target=%d actual=%d err=%d turn=%d ra=%d",
+                        Track.line_mask, (long)left_delta, (long)right_delta,
+                        (int)Track.right_angle_target,
+                        (int)Imu_Sensor.heading, (int)angle_error,
+                        (int)turned_abs, Track.right_angle_count);
         return;
     }
 
-    /* 超时保护 */
-    if (Track_Timeout_Reached(now, Track.state_timer,
+    if (Track_Timeout_Reached(now, Track.corner_started_at,
                               TRACK_RIGHT_ANGLE_TIMEOUT)) {
-        Track.state = TRACK_STATE_LINE_FOLLOW;
-        Pid_Reset(&Track.line_pid);
-        Track.error_accum = 0;
+        Track.state = TRACK_STATE_FINISHED;
+        Track_Motor_Stop_Immediate();
+        Safety_TransitionToFinished();
         Track.right_angle_confirm = 0;
-        Track.right_angle_count++;  /* 超时退出也计数(已完成转向) */
-        Track_Check_RightAngle_Completion();
-        APP_TRACK_LOG_W("TRACK", "RIGHT_ANGLE timeout -> LINE_FOLLOW (turn=%d err=%d center=%d bc=%d ra=%d)",
-               (int)turned_abs, (int)angle_error, center_black,
-               Grayscale_Sensor.black_count, Track.right_angle_count);
+        Track.corner_heading_settle_confirm = 0;
+        Track.capture_confirm = 0;
+        APP_TRACK_LOG_W("TRACK", "CORNER_FAIL reason=timeout phase=%d mask=0x%02X enc_d=%ld,%ld target=%d actual=%d err=%d rate=%d ra=%d",
+                        Track.corner_phase, Track.line_mask,
+                        (long)left_delta, (long)right_delta,
+                        (int)Track.right_angle_target,
+                        (int)Imu_Sensor.heading, (int)angle_error,
+                        (int)Imu_Sensor.gyro_z, Track.right_angle_count);
     }
 }
 
@@ -568,7 +572,8 @@ static void Track_Handle_RightAngle(void)
 void Track_Check_RightAngle_Completion(void)
 {
     uint16_t target_total = (uint16_t)Track.target_circles * 4u;
-    if (Track.right_angle_count >= target_total) {
+    if (Track_CornersComplete(Track.right_angle_count,
+                              Track.target_circles)) {
         Track.current_circle = Track.target_circles;
         Track.state = TRACK_STATE_FINISHED;
         Track_Motor_Stop_Immediate();
@@ -579,32 +584,16 @@ void Track_Check_RightAngle_Completion(void)
         return;
     }
     /* 每4个直角更新圈数（用于遥测显示） */
-    Track.current_circle = (uint8_t)(Track.right_angle_count / 4u);
-}
-
-/* 十字路口处理：保持当前方向直行通过 */
-static void Track_Handle_Cross(void)
-{
-    uint32_t now = Bsp_GetTick();
-    uint32_t elapsed = (uint32_t)(now - Track.state_timer);
-
-    /* 十字路口期间保持直行（turn_output=0） */
-    Track.turn_output = 0;
-
-    /* 通过计数超过阈值，视为已通过 */
-    if (elapsed >= TRACK_CROSS_PASS_MS) {
-        Track.state = TRACK_STATE_LINE_FOLLOW;
-    }
-
-    /* 如果检测到全白（偏离十字），也退出 */
-    if (Grayscale_Sensor.black_count < 1 && elapsed > 50u) {
-        Track.state = TRACK_STATE_LINE_FOLLOW;
-    }
+    Track.current_circle = Track_CirclesFromCorners(
+        Track.right_angle_count, Track.target_circles);
 }
 
 /* 差速输出到电机（内侧电机最低速度限制） */
 static void Track_Motor_Output(void)
 {
+    bool pivot_turn = Track.state == TRACK_STATE_RIGHT_ANGLE &&
+                      Track.corner_phase == TRACK_CORNER_PIVOT;
+
     /* 双重保险: Track 状态机 + Safety 授权
      * Safety_AllowsMotorOutput() 是唯一权威授权 */
     if (!Track_State_Allows_Motor(Track.state) ||
@@ -619,8 +608,10 @@ static void Track_Motor_Output(void)
     /* 内侧电机最低速度限制（不允许反转，避免急转抖动）
      * 修复: 原代码双 if 互斥条件在两轮都低于 MIN 时均不执行，
      * 导致内侧电机可反转。改为分别钳位。 */
-    if (Track.left_speed  < TRACK_MOTOR_INNER_MIN) Track.left_speed  = TRACK_MOTOR_INNER_MIN;
-    if (Track.right_speed < TRACK_MOTOR_INNER_MIN) Track.right_speed = TRACK_MOTOR_INNER_MIN;
+    if (!pivot_turn && (Track.left_speed != 0 || Track.right_speed != 0)) {
+        if (Track.left_speed  < TRACK_MOTOR_INNER_MIN) Track.left_speed  = TRACK_MOTOR_INNER_MIN;
+        if (Track.right_speed < TRACK_MOTOR_INNER_MIN) Track.right_speed = TRACK_MOTOR_INNER_MIN;
+    }
 
     /* 电机速度限幅 */
     if (Track.left_speed >  TRACK_MOTOR_SPEED_MAX) Track.left_speed  =  TRACK_MOTOR_SPEED_MAX;
@@ -643,17 +634,17 @@ void Track_Init(void)
     /* 状态机清零 */
     Track.error              = 0;
     Track.last_error         = 0;
-    Track.error_accum        = 0;
     Track.state              = TRACK_STATE_IDLE;
-    Track.last_state         = TRACK_STATE_IDLE;
-    Track.target_heading     = 0;
     Track.right_angle_target = 0;
     Track.right_angle_entry_heading = 0;
-    Track.right_angle_direction = 0;
     Track.state_timer        = 0;
-    Track.line_lost_count    = 0;
+    Track.tracking_started_at = 0;
+    Track.last_corner_completed_at = 0;
+    Track.corner_started_at = 0;
+    Track.corner_phase       = TRACK_CORNER_APPROACH;
+    Track.line_type          = TRACK_LINE_LOST;
+    Track.line_mask          = 0u;
     Track.gyro_rate          = 0;
-    Track.heading_baseline   = 0;
     Track.rotate_heading_baseline = 0;
     Track.rotate_target_deg  = 0;
     Track.rotate_actual_deg  = 0;
@@ -667,8 +658,13 @@ void Track_Init(void)
     Track.heading_hold_error = 0;
     Track.heading_hold_result = "idle";
     Track.right_angle_confirm = 0;
+    Track.corner_heading_settle_confirm = 0;
     Track.line_lost_confirm  = 0;
-    Track.start_line_armed   = true;  /* 初始可检测起点线 */
+    Track.invalid_line_confirm = 0;
+    Track.centered_history   = 0;
+    Track.capture_confirm    = 0;
+    Track.corner_left_start  = 0;
+    Track.corner_right_start = 0;
     Track.target_circles     = TRACK_DEFAULT_CIRCLES;
     Track.current_circle     = 0;
     Track.right_angle_count  = 0;
@@ -679,6 +675,7 @@ void Track_Init(void)
     Track.target_speed       = TRACK_DEFAULT_BASE_SPEED;
     Track.use_gyro           = true;
     Track.use_motor          = true;
+    Track.use_speed_pid      = USER_TRACK_SPEED_PID_ENABLE != 0;
 
     /* AI 调参运行时可调参数初始化（从宏默认值载入） */
     Track.gyro_damp             = TRACK_LINE_FOLLOW_GYRO_DAMP;
@@ -692,14 +689,12 @@ void Track_Init(void)
              TRACK_LINE_PID_ILIMIT, TRACK_LINE_PID_OLIMIT);
     Track.line_pid.deriv_alpha = TRACK_LINE_PID_DERIV_ALPHA;  /* 不完全微分 */
 
-    Pid_Init(&Track.gyro_pid,
-             TRACK_GYRO_PID_KP, TRACK_GYRO_PID_KI, TRACK_GYRO_PID_KD,
-             TRACK_GYRO_PID_ILIMIT, TRACK_GYRO_PID_OLIMIT);
-    Track.gyro_pid.deriv_alpha = 0.4f;  /* 修复: 启用微分滤波，抑制陀螺仪噪声 */
-
     App_Grayscale_Init();
-    (void)App_Imu_Init();
-    Imu_Calibration_Start();
+    if (App_Imu_Init()) {
+        Imu_Calibration_Start();
+    } else {
+        App_Imu_Request_Recovery();
+    }
     App_Motor_Init();
 
     /* ====== 灰度校准策略: 自动校准白色(一次) + 手动K4校准黑色 ======
@@ -732,8 +727,7 @@ void Track_Init(void)
     }
     Grayscale_Sensor.calibrated = 1;
 
-    /* 启用速度PID闭环（编码器反馈修正PWM） */
-    /* Safety owns motor authorization; startup must leave both bridges off. */
+    /* 启动阶段保持电桥关闭；Track_Start 根据配置启用轮速PI。 */
     App_Motor_Enable_Speed_PID(false);
     Bsp_Motor_Write_Pwm(&Motor_Left, 0);
     Bsp_Motor_Write_Pwm(&Motor_Right, 0);
@@ -741,6 +735,7 @@ void Track_Init(void)
 
 void Track_Update(void)
 {
+    track_line_observation_t observation;
     /* Safety_ControlTick() 已在外部 5ms 节拍调用并授权，
      * 本函数仅在 motor_allowed=true 时被调用。
      * 灰度扫描已由 main.c 顶层 Grayscale_Update() 推进。 */
@@ -793,23 +788,28 @@ void Track_Update(void)
         }
     }
     if (abnormal_count >= 6 && Track.state == TRACK_STATE_LINE_FOLLOW) {
-        APP_TRACK_LOG_W("TRACK", "SENSOR ABNORMAL (abnormal=%d) -> notify Safety", abnormal_count);
+        APP_TRACK_LOG_W("TRACK", "SENSOR_BAD n=%d A=%u,%u,%u,%u,%u,%u,%u,%u",
+                        abnormal_count,
+                        Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
+                        Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
+                        Grayscale_Sensor.analog[4], Grayscale_Sensor.analog[5],
+                        Grayscale_Sensor.analog[6], Grayscale_Sensor.analog[7]);
         Safety_NotifySensorAbnormal();
         return;  /* Safety 下个 tick 会切断电机 */
     }
 
-    /* ⑤ 计算偏差 */
-    Track_Calc_Error();
+    observation = Track_ObserveLine();
+    Track.line_mask = Track_GrayscaleMask();
+    Track.line_type = observation.type;
 
-    /* ⑤.5 误差累积积分 (直角弯检测用, 衰减式)
-     * 连续大误差累积, 小误差衰减, 用于检测急弯 */
-    Track.error_accum = Track.error_accum * 0.9f + Track.error;
+    /* 正常连续线才更新位置误差。无效线型仅保持上一有效误差1帧。 */
+    Track_Calc_Error(observation);
 
     /* ⑥ 变速策略 */
     Track_Update_Speed();
 
     /* ⑦ 检测赛道元素 */
-    Track_Detect_Pattern();
+    Track_Detect_Pattern(observation);
 
     /* ⑧ 状态机处理 */
     switch (Track.state) {
@@ -817,21 +817,22 @@ void Track_Update(void)
         /* 国一方案: LINE_FOLLOW 串级混合控制
          * 主控: 灰度 PID 输出位置转向量 (line_turn)
          * 阻尼: 陀螺仪角速度抑制灰度传感器噪声引起的左右抖动 (gyro_damp)
-         * 极性: 右转时 gyro_z>0, 阻尼项 -gyro_damp*gyro_z 抑制右转, 反之亦然
+         * 极性: 实测左转 gyro_z>0，而左转差速输出<0，因此阻尼项取正号
          * 效果: 直行稳(抖动被阻尼), 弯道灵(角速度小阻尼小不影响跟踪)
          * IMU 失效时由本节拍入口立即停车，禁止使用陈旧航向。 */
-        {
+        if (Track.invalid_line_confirm > TRACK_INVALID_HOLD_FRAMES) {
+            Track.target_speed = 0;
+            Track.base_speed = 0;
+            Track.turn_output = 0.0f;
+        } else {
             float line_turn = Pid_Compute(&Track.line_pid, Track.error, 0.0f);
-            float gyro_damp = 0.0f;
-            if (Track.use_gyro && Track_Imu_Healthy()) {
-                gyro_damp = Track.gyro_rate * Track.gyro_damp;
-            }
-            Track.turn_output = line_turn - gyro_damp;
+            float damping = (Track.use_gyro && Track_Imu_Healthy())
+                          ? Track.gyro_damp : 0.0f;
+            Track.turn_output = Track_ClampTurn(
+                Track_LineTurn_WithGyroDamping(
+                    line_turn, Track.gyro_rate, damping),
+                TRACK_RIGHT_ANGLE_TURN_LIMIT);
         }
-        break;
-
-    case TRACK_STATE_START_LINE:
-        Track_Handle_StartLine();
         break;
 
     case TRACK_STATE_LINE_LOST:
@@ -839,11 +840,7 @@ void Track_Update(void)
         break;
 
     case TRACK_STATE_RIGHT_ANGLE:
-        Track_Handle_RightAngle();
-        break;
-
-    case TRACK_STATE_CROSS:
-        Track_Handle_Cross();
+        Track_Handle_RightAngle(observation);
         break;
 
     default:
@@ -864,49 +861,88 @@ void Track_Update(void)
 
 bool Track_Start(void)
 {
+    uint8_t start_mask = Track_GrayscaleMask();
+
+    s_track_start_result = "rejected";
     if (!Track_Imu_Healthy()) {
+        s_track_start_result = "imu_unavailable";
         APP_TRACK_LOG_W("TRACK", "Start rejected: imu_unavailable");
         return false;
     }
 
-    /* 检查黑色校准状态,未校准时警告(允许启动但循迹不可靠) */
     if (!Grayscale_Sensor.black_calibrated) {
-        APP_TRACK_LOG_W("TRACK", "WARNING: Black NOT calibrated! Place car on black line and press K4");
+        s_track_start_result = "calibration_incomplete";
+        APP_TRACK_LOG_W("TRACK", "Start rejected: calibration_incomplete");
+        return false;
+    }
+
+    if (!Grayscale_Calibration_Valid(TRACK_GRAYSCALE_MIN_CAL_CONTRAST)) {
+        s_track_start_result = "calibration_contrast_low";
+        APP_TRACK_LOG_W("TRACK", "Start rejected: calibration_contrast_low min=%u",
+                        TRACK_GRAYSCALE_MIN_CAL_CONTRAST);
+        return false;
+    }
+
+    if (!Track_StartPatternValid(start_mask)) {
+        s_track_start_result = "invalid_start_pattern";
+        APP_TRACK_LOG_W("TRACK", "Start rejected: invalid_start_pattern mask=0x%02X bc=%d",
+                        start_mask, Grayscale_Sensor.black_count);
+        return false;
     }
 
     /* Safety 授权进入 RUNNING（校准未完成会被 Safety 拒绝） */
     Safety_TransitionToRunning();
     if (!Safety_AllowsMotorOutput()) {
+        s_track_start_result = "safety_rejected";
         APP_TRACK_LOG_W("TRACK", "Start blocked by Safety (state=%s)",
                Safety_StateName(Safety_GetState()));
         return false;
     }
 
     Track.state = TRACK_STATE_LINE_FOLLOW;
+    Track.tracking_started_at = Bsp_GetTick();
     Track.current_circle = 0;
     Track.right_angle_count = 0;
     Track.right_angle_confirm = 0;
+    Track.corner_heading_settle_confirm = 0;
     Track.line_lost_confirm = 0;
-    Track.start_line_armed = true;
+    Track.invalid_line_confirm = 0;
+    Track.centered_history = 0;
+    Track.capture_confirm = 0;
+    Track.line_mask = start_mask;
+    Track.line_type = TRACK_LINE_NORMAL;
+    Track.corner_phase = TRACK_CORNER_APPROACH;
+    Track.last_corner_completed_at = 0;
     Pid_Reset(&Track.line_pid);
-    Pid_Reset(&Track.gyro_pid);
     if (Track.use_motor) {
-        App_Motor_Enable_Speed_PID(true);
+        Motor_Set_Speed(0);
+        Motor_Right_Set_Speed(0);
+        App_Motor_Enable_Speed_PID(Track.use_speed_pid);
     }
-    APP_TRACK_LOG_I("TRACK", "Tracking started (circles=%d speed=%d black_cal=%d)",
+    APP_TRACK_LOG_I("TRACK", "Tracking started (circles=%d speed=%d black_cal=%d wheel_pi=%d)",
            Track.target_circles, Track.base_speed,
-           Grayscale_Sensor.black_calibrated);
+           Grayscale_Sensor.black_calibrated, Track.use_speed_pid ? 1 : 0);
+    s_track_start_result = "started";
     return true;
+}
+
+const char *Track_Get_Start_Result(void)
+{
+    return s_track_start_result;
 }
 
 void Track_Stop(void)
 {
+    bool clear_fault = Safety_GetState() == SAFETY_STATE_FAULT;
+
     if (Track.state == TRACK_STATE_ROTATE) {
         Track_Rotate_End("stopped");
+        if (clear_fault) Safety_ClearFault();
         return;
     }
     if (Track.state == TRACK_STATE_HEADING_HOLD) {
         Track_Heading_Hold_End("stopped");
+        if (clear_fault) Safety_ClearFault();
         return;
     }
 
@@ -919,13 +955,22 @@ void Track_Stop(void)
          * 不写 PWM；而 Track_Update 在 FINISHED 状态直接 return，
          * 速度 PID 永远不会再执行 → 电机保持最后一次 PWM 持续运转。
          * 必须切开环 + 直写 PWM=0 才能真正停车。 */
+        Motor_Set_Speed(0);
+        Motor_Right_Set_Speed(0);
         App_Motor_Enable_Speed_PID(false);
         Bsp_Motor_Write_Pwm(&Motor_Left, 0);
         Bsp_Motor_Write_Pwm(&Motor_Right, 0);
     }
-    /* 通知 Safety 进入 FINISHED 态（持续切断电机） */
-    Safety_TransitionToFinished();
-    APP_TRACK_LOG_I("TRACK", "Tracking stopped (state=FINISHED)");
+    if (clear_fault) {
+        /* K2/stop 是人工确认：清除锁定故障，但保持电机关闭和 Track
+         * FINISHED。再次运动仍必须重新通过 start 的全部校验。 */
+        Safety_ClearFault();
+    } else {
+        Safety_TransitionToFinished();
+        Safety_TransitionToReady();
+    }
+    APP_TRACK_LOG_I("TRACK", "Tracking stopped (state=FINISHED safety=%s)",
+                    Safety_StateName(Safety_GetState()));
 }
 
 bool Track_Start_Rotation(float target_deg)
@@ -969,7 +1014,6 @@ bool Track_Start_Rotation(float target_deg)
     Track.state = TRACK_STATE_ROTATE;
     Track.left_speed = 0;
     Track.right_speed = 0;
-    Pid_Reset(&Track.gyro_pid);
     if (Track.use_motor) {
         Motor_Set_Speed(0);
         Motor_Right_Set_Speed(0);
@@ -1020,7 +1064,6 @@ bool Track_Start_Heading_Hold(void)
     Track.state = TRACK_STATE_HEADING_HOLD;
     Track.left_speed = 0;
     Track.right_speed = 0;
-    Pid_Reset(&Track.gyro_pid);
     if (Track.use_motor) {
         Motor_Set_Speed(0);
         Motor_Right_Set_Speed(0);

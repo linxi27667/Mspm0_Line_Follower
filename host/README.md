@@ -12,7 +12,7 @@ PC 端上位机，对接 MSPM0 循迹小车固件（ESP-01S WiFi 透传），实
 └─────────────┘   set/cmd      └──────────┘               └──────┬──────┘
                                                                      │
                                                           ┌──────────┴──────────┐
-                                                          │  浏览器 (Chart.js)  │
+                                                           │  浏览器实时数据台   │
                                                           │  + LocalRuleEngine  │
                                                           │  + GLM API (可选)   │
                                                           └─────────────────────┘
@@ -27,8 +27,8 @@ PC 端上位机，对接 MSPM0 循迹小车固件（ESP-01S WiFi 透传），实
 | `tuning_engine.py` | 调参引擎（LocalRuleEngine 6 条规则 + GlmEngine GLM-4-Flash） |
 | `config.py` | 配置类（端口/窗口/AI 分析帧数等） |
 | `app.py` | Flask + SocketIO 主程序 |
-| `templates/index.html` | Web 界面（深色主题，4 个 Chart.js 图表 + 参数面板） |
-| `static/app.js` | 前端逻辑（SocketIO 客户端 + 图表更新 + 参数收发） |
+| `templates/index.html` | Web 界面（原始遥测数据台 + 参数面板） |
+| `static/app.js` | 前端逻辑（SocketIO 客户端 + 数据更新 + 参数收发） |
 | `static/style.css` | 深色主题样式 |
 | `simulator.py` | 小车端模拟器（无实车验证用，100Hz 遥测 + 接收参数/指令） |
 | `requirements.txt` | Python 依赖 |
@@ -102,10 +102,10 @@ python simulator.py
 | `KI` | 0~5 | 0.0 | 循迹积分增益 |
 | `KD` | 0~20 | 1.0 | 循迹微分增益 |
 | `GDAMP` | 0~1 | 0.15 | 陀螺仪阻尼系数 |
-| `VBASE` | 0~100 | 40 | 基础速度 |
-| `VSTR` | 0~100 | 50 | 直道速度 |
-| `VCUR` | 0~100 | 30 | 弯道速度 |
-| `RATHR` | 0.5~10 | 2.5 | 直角弯检测阈值 |
+| `VBASE` | 0~100 | 35 | 基础 PWM 百分比 |
+| `VSTR` | 0~100 | 40 | 直道 PWM 百分比 |
+| `VCUR` | 0~100 | 30 | 弯道 PWM 百分比 |
+| `RATHR` | 0.5~10 | 4.0 | 直角弯检测阈值 |
 
 ## AI 调参
 
@@ -154,8 +154,7 @@ python simulator.py
   "GLM_API_KEY": "",
   "GLM_MODEL": "glm-4-flash",
   "TELEMETRY_WINDOW": 500,
-  "AI_ANALYZE_FRAMES": 100,
-  "CHART_POINTS": 200
+  "AI_ANALYZE_FRAMES": 100
 }
 ```
 
@@ -186,4 +185,4 @@ Web 默认只监听本机。确需从局域网访问时，显式设置 `WEB_HOST
 - ✅ LocalRuleEngine 震荡规则触发（建议 KD +50%）
 - ✅ 参数下发端到端（上位机 → TCP → 模拟器接收）
 - ✅ 控制指令下发（start/stop/whitecal/blackcal/reconnect）
-- ✅ 浏览器实时波形（4 个 Chart.js 图表）
+- ✅ 浏览器逐帧显示 MCU 遥测字段和原始 JSON

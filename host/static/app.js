@@ -1,7 +1,5 @@
 "use strict";
 
-const config = JSON.parse(document.getElementById("config-data").textContent);
-const CHART_POINTS = config.CHART_POINTS || 200;
 const MAX_CAR_LOGS = 500;
 
 const socket = io();
@@ -15,113 +13,125 @@ socket.on("disconnect", () => {
     console.log("[WS] disconnected");
 });
 
-const chartColors = [
-    "#6bd6d0", "#e4b363", "#82d173", "#f36b5f",
-    "#7ca8ff", "#c48cff", "#d9e76c", "#f18f9f",
-];
-
-function makeChart(canvasId, datasets) {
-    const canvas = document.getElementById(canvasId);
-    return new Chart(canvas.getContext("2d"), {
-        type: "line",
-        data: {
-            labels: Array(CHART_POINTS).fill(""),
-            datasets: datasets.map((ds, i) => ({
-                label: ds.label,
-                data: Array(CHART_POINTS).fill(null),
-                borderColor: ds.color || chartColors[i % chartColors.length],
-                backgroundColor: "transparent",
-                borderWidth: 1.6,
-                pointRadius: 0,
-                tension: 0.26,
-            })),
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            interaction: { intersect: false, mode: "nearest" },
-            plugins: {
-                legend: {
-                    labels: { color: "#a49f90", boxWidth: 10, font: { size: 10 } },
-                },
-            },
-            scales: {
-                x: {
-                    display: false,
-                    grid: { color: "rgba(255,255,255,0.06)" },
-                },
-                y: {
-                    grid: { color: "rgba(255,255,255,0.06)" },
-                    ticks: { color: "#767266", font: { size: 10 } },
-                },
-            },
-        },
-    });
-}
-
-const chartAdc = makeChart(
-    "chart-adc",
-    Array.from({ length: 8 }, (_, i) => ({ label: `AD${i}`, color: chartColors[i] }))
-);
-const chartError = makeChart("chart-error", [
-    { label: "le", color: "#6bd6d0" },
-    { label: "po", color: "#e4b363" },
-]);
-const chartGyro = makeChart("chart-gyro", [
-    { label: "gz", color: "#82d173" },
-]);
-const chartEncoder = makeChart("chart-encoder", [
-    { label: "el", color: "#7ca8ff" },
-    { label: "er", color: "#f36b5f" },
-]);
-
-function pushData(chart, values) {
-    values.forEach((value, index) => {
-        const dataset = chart.data.datasets[index];
-        if (!dataset) return;
-        dataset.data.push(value);
-        if (dataset.data.length > CHART_POINTS) dataset.data.shift();
-    });
-    chart.update("none");
-}
-
 let frameCount = 0;
+let lastTelemetryReceivedAt = null;
+
+const stateMap = {
+    ID: "空闲",
+    LF: "循迹",
+    RA: "直角弯",
+    LL: "丢线",
+    SL: "起点",
+    CR: "十字",
+    RT: "原地旋转",
+    HH: "航向保持",
+    FN: "完成",
+};
+
+function setTelemetryText(id, value, digits = null) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    if (typeof value === "number" && Number.isFinite(value) && digits !== null) {
+        element.textContent = value.toFixed(digits);
+        return;
+    }
+    element.textContent = value ?? "--";
+}
+
+function calibrationLabel(value) {
+    const labels = {
+        0: "未校准",
+        1: "仅白色",
+        2: "仅黑色",
+        3: "白+黑",
+    };
+    return labels[value] || "--";
+}
+
+function updateMotionData(tele) {
+    const section = document.getElementById("tele-motion-section");
+    if (["tg", "ta", "te", "rr"].every((key) => key in tele)) {
+        section.hidden = false;
+        setTelemetryText("tele-motion-title", "原地旋转");
+        setTelemetryText("tele-motion-target", tele.tg, 2);
+        setTelemetryText("tele-motion-actual", tele.ta, 2);
+        setTelemetryText("tele-motion-error", tele.te, 2);
+        setTelemetryText("tele-motion-result", tele.rr);
+        return;
+    }
+    if (["hh", "ht", "ha", "he", "hr"].every((key) => key in tele)) {
+        section.hidden = false;
+        setTelemetryText("tele-motion-title", "航向保持");
+        setTelemetryText("tele-motion-target", tele.ht, 2);
+        setTelemetryText("tele-motion-actual", tele.ha, 2);
+        setTelemetryText("tele-motion-error", tele.he, 2);
+        setTelemetryText("tele-motion-result", tele.hr);
+        return;
+    }
+    section.hidden = true;
+}
 
 socket.on("telemetry", (tele) => {
     frameCount += 1;
     document.getElementById("frame-counter").textContent = `帧: ${frameCount}`;
 
-    pushData(chartAdc, tele.adc || []);
-    pushData(chartError, [tele.le, tele.po]);
-    pushData(chartGyro, [tele.gz]);
-    pushData(chartEncoder, [tele.el, tele.er]);
+    lastTelemetryReceivedAt = Date.now();
+    setTelemetryText("tele-state-code", tele.st);
+    setTelemetryText("tele-state-name", stateMap[tele.st] || "未知状态");
+    setTelemetryText("tele-seq", tele.seq);
+    setTelemetryText("tele-ms", tele.ms);
+    setTelemetryText("tele-received", new Date(lastTelemetryReceivedAt).toLocaleTimeString());
+    setTelemetryText("tele-bc", tele.bc);
+    setTelemetryText("tele-cal", calibrationLabel(tele.cal));
+    setTelemetryText("tele-drop", tele.drop);
 
-    const stateMap = {
-        ID: "空闲",
-        LF: "循迹",
-        RA: "直角弯",
-        LL: "丢线",
-        SL: "起点",
-        CR: "十字",
-        RT: "原地旋转",
-        HH: "航向保持",
-        FN: "完成",
-    };
-    document.getElementById("track-state").textContent =
-        `状态: ${stateMap[tele.st] || tele.st || "-"}`;
+    (tele.adc || []).forEach((value, index) => {
+        setTelemetryText(`tele-adc-${index}`, value);
+    });
+
+    setTelemetryText("tele-gz", tele.gz, 2);
+    setTelemetryText("tele-le", tele.le, 2);
+    setTelemetryText("tele-po", tele.po, 2);
+    setTelemetryText("tele-el", tele.el);
+    setTelemetryText("tele-er", tele.er);
+    setTelemetryText("tele-kp", tele.kp, 3);
+    setTelemetryText("tele-ki", tele.ki, 3);
+    setTelemetryText("tele-kd", tele.kd, 3);
+    setTelemetryText("tele-gd", tele.gd, 3);
+    setTelemetryText("tele-vb", tele.vb);
+    setTelemetryText("tele-vs", tele.vs);
+    setTelemetryText("tele-vc", tele.vc);
+    setTelemetryText("tele-rt", tele.rt, 3);
+    updateMotionData(tele);
+    document.getElementById("telemetry-raw").textContent = JSON.stringify(tele, null, 2);
 
     updateLinkHealth(tele);
 });
+
+setInterval(() => {
+    const ageElement = document.getElementById("telemetry-age");
+    if (!ageElement) {
+        return;
+    }
+    if (lastTelemetryReceivedAt === null) {
+        ageElement.textContent = "等待数据";
+        return;
+    }
+    const ageMs = Date.now() - lastTelemetryReceivedAt;
+    ageElement.textContent = `更新于 ${ageMs} ms 前`;
+    ageElement.classList.toggle("is-stale", ageMs > 500);
+}, 250);
 
 socket.on("client_status", (data) => {
     const el = document.getElementById("car-status");
     if (data.connected) {
         el.textContent = `小车: 已连接 ${data.addr}`;
         el.className = "status-pill status-connected";
+        document.getElementById("telemetry-source").textContent = `TCP ${data.addr}`;
     } else {
         el.textContent = "小车: 未连接";
         el.className = "status-pill status-disconnected";
+        document.getElementById("telemetry-source").textContent = "TCP 未连接";
     }
 });
 
@@ -450,8 +460,8 @@ carLogExportBtn.addEventListener("click", () => {
 
 const PRESETS = {
     conservative: {
-        KP: 3.0, KI: 0.0, KD: 2.0, GDAMP: 0.20,
-        VBASE: 30, VSTR: 40, VCUR: 20, RATHR: 2.5,
+        KP: 3.5, KI: 0.0, KD: 1.5, GDAMP: 0.25,
+        VBASE: 28, VSTR: 30, VCUR: 26, RATHR: 4.0,
     },
     balanced: {
         KP: 5.0, KI: 0.0, KD: 1.0, GDAMP: 0.15,

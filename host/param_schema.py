@@ -24,7 +24,7 @@ PARAM_SCHEMA: list[dict[str, Any]] = [
     {
         "name": "KP",
         "macro": "USER_LINE_PID_KP",
-        "min": 0.0, "max": 50.0, "default": 5.0, "step": 0.1,
+        "min": 0.0, "max": 50.0, "default": 3.5, "step": 0.1,
         "desc": "循迹比例增益", "kind": "float",
     },
     {
@@ -36,38 +36,38 @@ PARAM_SCHEMA: list[dict[str, Any]] = [
     {
         "name": "KD",
         "macro": "USER_LINE_PID_KD",
-        "min": 0.0, "max": 20.0, "default": 1.0, "step": 0.1,
+        "min": 0.0, "max": 20.0, "default": 1.5, "step": 0.1,
         "desc": "循迹微分增益", "kind": "float",
     },
     {
         "name": "GDAMP",
         "macro": "USER_LINE_FOLLOW_GYRO_DAMP",
-        "min": 0.0, "max": 1.0, "default": 0.15, "step": 0.01,
+        "min": 0.0, "max": 1.0, "default": 0.25, "step": 0.01,
         "desc": "陀螺仪阻尼系数", "kind": "float",
     },
     {
         "name": "VBASE",
         "macro": "USER_TRACK_BASE_SPEED",
-        "min": 0, "max": 100, "default": 40, "step": 1,
-        "desc": "基础速度", "kind": "int",
+        "min": 0, "max": 100, "default": 28, "step": 1,
+        "desc": "基础PWM百分比", "kind": "int",
     },
     {
         "name": "VSTR",
         "macro": "USER_TRACK_SPEED_STRAIGHT",
-        "min": 0, "max": 100, "default": 50, "step": 1,
-        "desc": "直道速度", "kind": "int",
+        "min": 0, "max": 100, "default": 30, "step": 1,
+        "desc": "直道PWM百分比", "kind": "int",
     },
     {
         "name": "VCUR",
         "macro": "USER_TRACK_SPEED_CURVE",
         "min": 0, "max": 100, "default": 26, "step": 1,
-        "desc": "弯道速度", "kind": "int",
+        "desc": "弯道PWM百分比", "kind": "int",
     },
     {
         "name": "RATHR",
         "macro": "USER_RIGHT_ANGLE_THRESHOLD",
-        "min": 0.5, "max": 10.0, "default": 2.5, "step": 0.1,
-        "desc": "直角弯检测阈值", "kind": "float",
+        "min": 0.5, "max": 10.0, "default": 4.0, "step": 0.1,
+        "desc": "方形拐角最少黑通道", "kind": "float",
     },
 ]
 

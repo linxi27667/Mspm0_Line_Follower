@@ -267,9 +267,9 @@ def heartbeat_worker():
         connected = tcp.is_connected()
         now = time.monotonic()
         if connected and not was_connected:
-            # Give the ESP-01S one quiet uplink window after the initial AUTH;
-            # steady-state heartbeat timing remains unchanged.
-            heartbeat_ready_at = now + 6.0
+            # Start immediately so authenticated motion commands are never
+            # rejected during an artificial post-connect heartbeat gap.
+            heartbeat_ready_at = now
         if connected and now >= heartbeat_ready_at:
             tcp.send(build_ping(int(time.monotonic() * 1000)))
         was_connected = connected

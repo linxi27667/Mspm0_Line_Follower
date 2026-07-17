@@ -15,6 +15,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define APP_SAFETY_FINISHED_HOLD_MS 1000u
+
 /* 安全状态 */
 typedef enum {
     SAFETY_STATE_BOOT = 0,          /* 初始化中,电机禁止 */
@@ -50,7 +52,7 @@ bool Safety_TransitionToRotation(void);  /* IMU 原地旋转：允许从 BOOT/RE
 void Safety_TransitionAfterRotation(void); /* 旋转结束后切断电机并返回 READY */
 void Safety_TransitionToFinished(void);
 void Safety_EnterFault(safety_fault_t fault);
-void Safety_ClearFault(void);  /* 故障清除→回到 READY(需手动) */
+void Safety_ClearFault(void);  /* 人工确认后清除故障，电机保持关闭 */
 
 /* ============================================================
  * 控制tick — 每5ms由主循环调用，按状态授权电机输出。

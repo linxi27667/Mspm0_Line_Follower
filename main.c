@@ -96,7 +96,9 @@ static void Enable_GPIO_InputReadback(void)
     IOMUX->SECCFG.PINCM[Right_Motor_Dir_AIN1_IOMUX] |= INE_BIT;
     IOMUX->SECCFG.PINCM[Right_Motor_Dir_AIN2_IOMUX] |= INE_BIT;
 
-    /* 右编码器 PHA/PHB (PB12/PB13) — 确保 INE 使能, ISR 中读 DIN 判断方向 */
+    /* 编码器 PHA/PHB — 确保ISR中可原子读取两相信号。 */
+    IOMUX->SECCFG.PINCM[Left_Encoder_PHA_IOMUX] |= INE_BIT;
+    IOMUX->SECCFG.PINCM[Left_Encoder_PHB_IOMUX] |= INE_BIT;
     IOMUX->SECCFG.PINCM[Right_Encoder_PHA_IOMUX] |= INE_BIT;
     IOMUX->SECCFG.PINCM[Right_Encoder_PHB_IOMUX] |= INE_BIT;
 
@@ -171,13 +173,15 @@ void DMA_IRQHandler(void)
     }
 }
 
-/* GPIO GROUP1 中断 — 右编码器PHA双沿触发 */
+/* GPIO GROUP1中断 — 左右编码器A/B两相双边沿触发。 */
 void GROUP1_IRQHandler(void)
 {
-    if (DL_GPIO_getEnabledInterruptStatus(RIGHT_ENC_PHA_PORT,
-                                          RIGHT_ENC_PHA_PIN)) {
-        DL_GPIO_clearInterruptStatus(RIGHT_ENC_PHA_PORT, RIGHT_ENC_PHA_PIN);
-        Right_Encoder_IRQHandler();
+    const uint32_t encoder_pins = LEFT_ENC_PHA_PIN | LEFT_ENC_PHB_PIN |
+                                  RIGHT_ENC_PHA_PIN | RIGHT_ENC_PHB_PIN;
+    uint32_t pending = DL_GPIO_getEnabledInterruptStatus(GPIOB, encoder_pins);
+    if (pending != 0u) {
+        DL_GPIO_clearInterruptStatus(GPIOB, pending);
+        Encoder_GPIO_IRQHandler(pending);
     }
 }
 
@@ -274,8 +278,11 @@ static void System_Init(void)
 
     /* 6. 应用层模块初始化（顺序参考 f407zet6: Motor/Safety/Key/Encoder） */
     App_Led_Init();
+    elog_i("LED", "GPIO configured: channels=%u", (unsigned)BSP_LED_NUM);
     App_Key_Init();
+    elog_i("KEY", "GPIO configured: channels=%u", (unsigned)BSP_KEY_NUM);
     App_Uart_Init();
+    elog_i("UART", "Debug UART configured: 115200 8N1");
 
 #if APP_ESP01S_ENABLE
     /* 7. ESP-01S 非阻塞初始化（仅初始化 HW + 启动 BOOT 状态机）
@@ -368,8 +375,8 @@ static void SelfTest_Motor_Encoder(void)
     Bsp_Delay_ms(50);
 
     /* 引脚说明 */
-    elog_i("MOT", "Left:  PWM=TIMG7_CH0(PA17) DIR1=PA22 DIR2=PA15 Enc=TIMG8(PB21/PB22)");
-    elog_i("MOT", "Right: PWM=TIMG6_CH0(PB10) DIR1=PB0  DIR2=PB11 Enc=GPIO(PB12/PB13)");
+    elog_i("MOT", "Left:  PWM=TIMG7_CH0(PA17) DIR1=PA22 DIR2=PA15 Enc=GPIO4x(PB21/PB22)");
+    elog_i("MOT", "Right: PWM=TIMG6_CH0(PB10) DIR1=PB0  DIR2=PB11 Enc=GPIO4x(PB12/PB13)");
 
     /* PWM 定时器运行状态 + 寄存器诊断 */
     uint32_t t7_1 = DL_Timer_getTimerCount(MOTOR_LEFT_PWM_TIMER);
@@ -386,11 +393,6 @@ static void SelfTest_Motor_Encoder(void)
            (t6_2 != t6_1) ? "RUNNING" : "STOPPED",
            (unsigned long)DL_Timer_getLoadValue(MOTOR_RIGHT_PWM_TIMER));
 
-    /* 编码器定时器诊断 */
-    elog_i("MOT", "TIMG8(Enc) LOAD=%lu cnt=%lu",
-           (unsigned long)DL_Timer_getLoadValue(MOTOR_LEFT_ENC_TIMER),
-           (unsigned long)DL_Timer_getTimerCount(MOTOR_LEFT_ENC_TIMER));
-
     /* 同步编码器基准 (调用 Update_Status 让 last_count = 当前值, 首次返回0) */
     Bsp_Motor_Update_Status(&Motor_Left);
     Bsp_Motor_Update_Status(&Motor_Right);
@@ -398,9 +400,7 @@ static void SelfTest_Motor_Encoder(void)
     Motor_Right.encoder_speed = 0;
 
     /* ---- 正转测试: PWM=50, 每200ms采样一次, 共2秒 ----
-     * 使用 Bsp_Motor_Update_Status 获取正确符号的 delta:
-     *   左编码器(QEI 16位): int16_t cast 处理短间隔回绕
-     *   右编码器(GPIO 32位): int32_t 无回绕 */
+     * 左右编码器均读取GPIO 4x累计计数的差值。 */
     elog_i("TEST", "Forward PWM=50 for 2s (sampled every 200ms)...");
     Bsp_Motor_Set_Speed(&Motor_Left, 50);
     Bsp_Motor_Set_Speed(&Motor_Right, 50);
@@ -585,8 +585,9 @@ static void Main_InitializeTracking(void)
 {
     Safety_Init();
     Track_Init();
+    elog_i("MOTOR", "PWM and encoders configured: dual outputs disabled");
     Track_Set_Circles(USER_TRACK_CIRCLES);
-    Track_Set_Speed(40);
+    Track_Set_Speed(USER_TRACK_BASE_SPEED);
 
     if (Grayscale_Sensor.calibrated && Grayscale_Sensor.black_calibrated) {
         Safety_NotifyCalibrationComplete();
@@ -607,6 +608,9 @@ static void Main_UpdateGrayscale(uint32_t now)
 static void Main_RunControl(uint32_t now, main_runtime_t *runtime)
 {
     if (!Main_PeriodElapsed(now, &runtime->last_5ms, 5u)) return;
+
+    /* IMU恢复仅在Safety已禁止运动时执行；成功后自动重新静止校准。 */
+    App_Imu_Recovery_Update(now, Safety_AllowsMotorOutput());
 
     /* 静止校准独立于电机授权，每个 5 ms 节拍只采一个样本。 */
     if (Imu_Sensor.calibration_state == IMU_CAL_RUNNING) {
@@ -630,25 +634,16 @@ static void Main_LogVehicleStatus(main_runtime_t *runtime)
     uint8_t state = (uint8_t)Track.state;
     uint8_t circle = (uint8_t)Track.current_circle;
     uint8_t black_count = Grayscale_Sensor.black_count;
-    bool changed = state != runtime->last_state || circle != runtime->last_circle ||
-                   black_count != runtime->last_black_count;
+    if (!Track_State_Allows_Motor(Track.state)) return;
 
-    if (!changed && (state == TRACK_STATE_IDLE || state == TRACK_STATE_FINISHED)) return;
-
-    uint8_t left_dir1 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR1_PIN) ? 1u : 0u;
-    uint8_t left_dir2 = (GPIOA->DOUT31_0 & MOTOR_LEFT_DIR2_PIN) ? 1u : 0u;
-    uint8_t right_dir1 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR1_PIN) ? 1u : 0u;
-    uint8_t right_dir2 = (GPIOB->DOUT31_0 & MOTOR_RIGHT_DIR2_PIN) ? 1u : 0u;
-
-    APP_VEHICLE_LOG_I("CAR", "State:%d Circle:%d Error:%ld GyroRate:%ld LeftTarget:%d RightTarget:%d BlackCount:%d",
-                      Track.state, Track.current_circle, (long)(Track.error * 1000),
-                      (long)Track.gyro_rate, Track.left_speed, Track.right_speed, black_count);
-    APP_VEHICLE_LOG_I("MOTOR", "LeftPwm:%ld RightPwm:%ld | LeftEnc:%ld RightEnc:%ld | LeftTotal:%ld RightTotal:%ld",
+    APP_VEHICLE_LOG_I("CAR", "S=%d C=%d E=%ld G=%ld LT=%d RT=%d LP=%ld RP=%ld LE=%ld RE=%ld LX=%ld RX=%ld BC=%d",
+                      Track.state, Track.current_circle,
+                      (long)(Track.error * 1000), (long)Track.gyro_rate,
+                      Track.left_speed, Track.right_speed,
                       (long)Motor_Left.current_pwm, (long)Motor_Right.current_pwm,
                       (long)Motor_Left.encoder_speed, (long)Motor_Right.encoder_speed,
-                      (long)Motor_Left.total_position, (long)Motor_Right.total_position);
-    APP_VEHICLE_LOG_I("MOTOR", "LeftDir1:%d LeftDir2:%d | RightDir1:%d RightDir2:%d",
-                      left_dir1, left_dir2, right_dir1, right_dir2);
+                      (long)Motor_Left.total_position, (long)Motor_Right.total_position,
+                      black_count);
     if (Track.state == TRACK_STATE_ROTATE) {
         APP_VEHICLE_LOG_I("ROTCTL", "actual=%ld error=%ld rate=%ld output=%ld",
                           (long)(Track.rotate_actual_deg * 10.0f),
@@ -671,6 +666,8 @@ static void Main_LogVehicleStatus(main_runtime_t *runtime)
 
 static void Main_LogGrayscale(void)
 {
+    if (!Track_State_Is_LineTracking(Track.state)) return;
+
     APP_GRAY_ADC_LOG_I("GRAY", "ADC_Ch0:%d ADC_Ch1:%d ADC_Ch2:%d ADC_Ch3:%d ADC_Ch4:%d ADC_Ch5:%d ADC_Ch6:%d ADC_Ch7:%d",
                    Grayscale_Sensor.analog[0], Grayscale_Sensor.analog[1],
                    Grayscale_Sensor.analog[2], Grayscale_Sensor.analog[3],
@@ -697,7 +694,7 @@ static void Main_HandleKeyPush(uint8_t key)
             if (Track_Start()) {
                 elog_i("CTRL", "Tracking started");
             } else {
-                elog_w("CTRL", "Start blocked: imu_unavailable");
+                elog_w("CTRL", "Start blocked: %s", Track_Get_Start_Result());
             }
         } else {
             elog_w("CTRL", "Start blocked (safety=%s)", Safety_StateName(Safety_GetState()));

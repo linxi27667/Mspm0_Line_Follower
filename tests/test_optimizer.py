@@ -677,7 +677,7 @@ class GenerateRaceHeaderTests(unittest.TestCase):
         self.assertIn("USER_LINE_PID_KD           1.5f", result)
         self.assertIn("USER_TRACK_BASE_SPEED      42", result)
         # 验证不可调参数保持不变
-        self.assertIn("USER_GYRO_PID_KP           3.0f", result)
+        self.assertIn("USER_ROTATE_PID_KP              0.80f", result)
         self.assertIn("USER_MOTOR_SPEED_PID_KP    0.55f", result)
         # 验证文件结构完整
         self.assertIn("#ifndef USER_TUNING_H", result)

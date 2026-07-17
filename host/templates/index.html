@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP-01S 日志与循迹调参上位机</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.socket.io/4.7.3/socket.io.min.js"></script>
 </head>
 <body>
@@ -26,28 +25,101 @@
 
     <main class="console-layout">
         <section class="telemetry-column">
-            <section class="panel chart-panel">
+            <section class="panel telemetry-panel">
                 <div class="panel-title">
-                    <h2>实时遥测</h2>
-                    <span id="track-state" class="panel-meta">状态: -</span>
+                    <h2>实时数据</h2>
+                    <span id="telemetry-age" class="panel-meta">等待数据</span>
                 </div>
-                <div class="chart-grid">
-                    <div class="chart-box">
-                        <h3>灰度 ADC（8 路）</h3>
-                        <canvas id="chart-adc"></canvas>
+                <div class="telemetry-body">
+                    <div class="telemetry-summary">
+                        <div class="data-field state-field">
+                            <span>运行状态</span>
+                            <strong id="tele-state-code">--</strong>
+                            <small id="tele-state-name">等待遥测</small>
+                        </div>
+                        <div class="data-field">
+                            <span>帧序号</span>
+                            <strong id="tele-seq">--</strong>
+                        </div>
+                        <div class="data-field">
+                            <span>MCU 时间</span>
+                            <strong id="tele-ms">--</strong>
+                            <small>ms</small>
+                        </div>
+                        <div class="data-field">
+                            <span>浏览器接收</span>
+                            <strong id="tele-received">--</strong>
+                        </div>
+                        <div class="data-field">
+                            <span>黑线通道</span>
+                            <strong id="tele-bc">--</strong>
+                        </div>
+                        <div class="data-field">
+                            <span>校准状态</span>
+                            <strong id="tele-cal">--</strong>
+                        </div>
+                        <div class="data-field">
+                            <span>发送丢弃</span>
+                            <strong id="tele-drop">--</strong>
+                        </div>
                     </div>
-                    <div class="chart-box">
-                        <h3>误差 le / 转向 po</h3>
-                        <canvas id="chart-error"></canvas>
+
+                    <section class="data-section">
+                        <h3>8 路灰度 ADC</h3>
+                        <div class="adc-data-grid">
+                            {% for channel in range(8) %}
+                            <div class="adc-value">
+                                <span>AD{{ channel }}</span>
+                                <strong id="tele-adc-{{ channel }}">--</strong>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                    <div class="data-section-grid">
+                        <section class="data-section">
+                            <h3>控制反馈</h3>
+                            <dl class="telemetry-data-grid">
+                                <div><dt>陀螺仪 Z</dt><dd id="tele-gz">--</dd><small>deg/s</small></div>
+                                <div><dt>循迹误差</dt><dd id="tele-le">--</dd></div>
+                                <div><dt>转向输出</dt><dd id="tele-po">--</dd></div>
+                                <div><dt>左编码器</dt><dd id="tele-el">--</dd></div>
+                                <div><dt>右编码器</dt><dd id="tele-er">--</dd></div>
+                            </dl>
+                        </section>
+
+                        <section class="data-section">
+                            <h3>当前参数镜像</h3>
+                            <dl class="telemetry-data-grid compact">
+                                <div><dt>KP</dt><dd id="tele-kp">--</dd></div>
+                                <div><dt>KI</dt><dd id="tele-ki">--</dd></div>
+                                <div><dt>KD</dt><dd id="tele-kd">--</dd></div>
+                                <div><dt>阻尼</dt><dd id="tele-gd">--</dd></div>
+                                <div><dt>基础PWM</dt><dd id="tele-vb">--</dd></div>
+                                <div><dt>直线PWM</dt><dd id="tele-vs">--</dd></div>
+                                <div><dt>弯道PWM</dt><dd id="tele-vc">--</dd></div>
+                                <div><dt>直角阈值</dt><dd id="tele-rt">--</dd></div>
+                            </dl>
+                        </section>
                     </div>
-                    <div class="chart-box">
-                        <h3>陀螺仪 gz</h3>
-                        <canvas id="chart-gyro"></canvas>
-                    </div>
-                    <div class="chart-box">
-                        <h3>编码器 el / er</h3>
-                        <canvas id="chart-encoder"></canvas>
-                    </div>
+
+                    <section id="tele-motion-section" class="data-section motion-section" hidden>
+                        <h3 id="tele-motion-title">运动控制</h3>
+                        <dl class="telemetry-data-grid">
+                            <div><dt>目标角度</dt><dd id="tele-motion-target">--</dd></div>
+                            <div><dt>实际角度</dt><dd id="tele-motion-actual">--</dd></div>
+                            <div><dt>角度误差</dt><dd id="tele-motion-error">--</dd></div>
+                            <div><dt>结果</dt><dd id="tele-motion-result">--</dd></div>
+                        </dl>
+                    </section>
+
+                    <section class="raw-telemetry">
+                        <div class="raw-telemetry-head">
+                            <h3>当前帧原始 JSON</h3>
+                            <span id="telemetry-source">TCP 未连接</span>
+                        </div>
+                        <pre id="telemetry-raw">等待 MCU 遥测帧</pre>
+                    </section>
                 </div>
             </section>
 
@@ -199,7 +271,6 @@
         </section>
     </main>
 
-    <script id="config-data" type="application/json">{{ config | tojson | safe }}</script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

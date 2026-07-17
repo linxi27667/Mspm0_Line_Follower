@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #define BSP_GRAY_CHANNEL_NUM    8       /* 通道数 */
 #define BSP_GRAY_SETTLE_MS      1       /* 通道切换稳定时间(ms)，基础款1ms，青春款10ms */
@@ -48,10 +49,28 @@ typedef struct {
     uint32_t (*GetTick)(void);
 } bsp_grayscale_t;
 
+static inline bool Bsp_Grayscale_ContrastValid8(
+    const uint16_t white[BSP_GRAY_CHANNEL_NUM],
+    const uint16_t black[BSP_GRAY_CHANNEL_NUM],
+    uint16_t minimum_contrast)
+{
+    if (white == NULL || black == NULL) return false;
+
+    for (uint8_t i = 0u; i < BSP_GRAY_CHANNEL_NUM; i++) {
+        uint16_t contrast = (white[i] >= black[i])
+                          ? (uint16_t)(white[i] - black[i])
+                          : (uint16_t)(black[i] - white[i]);
+        if (contrast < minimum_contrast) return false;
+    }
+    return true;
+}
+
 /* --- 4. 对外核心API (跨平台通用) --- */
 void Bsp_Grayscale_Init_Device(bsp_grayscale_t *gs);
 void Bsp_Grayscale_Update(bsp_grayscale_t *gs);
 void Bsp_Grayscale_Calibrate_White(bsp_grayscale_t *gs);
 void Bsp_Grayscale_Calibrate_Black(bsp_grayscale_t *gs);
+bool Bsp_Grayscale_Calibration_Valid(const bsp_grayscale_t *gs,
+                                     uint16_t minimum_contrast);
 
 #endif /* __BSP_GRAYSCALE_H__ */

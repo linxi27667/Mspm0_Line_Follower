@@ -36,13 +36,13 @@
  * 综合建议: KP=5 KD=1(KD=KP/5) 起步,实测调整
  * ================================================================== */
 #ifndef USER_LINE_PID_KP
-#define USER_LINE_PID_KP           5.0f    /* 比例增益(多方案共识:5.0是稳健起点) */
+#define USER_LINE_PID_KP           3.5f    /* 实车低速档: 降低跨线后的反向摆动 */
 #endif
 #ifndef USER_LINE_PID_KI
 #define USER_LINE_PID_KI           0.0f    /* 积分增益(循迹通常为0,国一方案验证) */
 #endif
 #ifndef USER_LINE_PID_KD
-#define USER_LINE_PID_KD           1.0f    /* 微分增益(KP/5,抑制震荡) */
+#define USER_LINE_PID_KD           1.5f    /* 增加误差变化阻尼，抑制左右摆动 */
 #endif
 #ifndef USER_LINE_PID_ILIMIT
 #define USER_LINE_PID_ILIMIT       50.0f   /* 积分限幅 */
@@ -57,35 +57,11 @@
  * 公式: turn_output = line_pid - GYRO_DAMP * gyro_z
  * 调参: 直道抖动→加大(0.15→0.3), 弯道跟踪迟钝→减小(0.15→0.08) */
 #ifndef USER_LINE_FOLLOW_GYRO_DAMP
-#define USER_LINE_FOLLOW_GYRO_DAMP 0.15f   /* 陀螺仪阻尼系数(0=禁用,0.15起步) */
+#define USER_LINE_FOLLOW_GYRO_DAMP 0.25f   /* 实车直线角速度阻尼 */
 #endif
 
 /* ==================================================================
- * ====== 2. 陀螺仪PID (丢线/直角弯时用,输入航向角偏差) ======
- * 调参方法:
- *   1. 直角弯转不过去→加大KP
- *   2. 转过头→加KD或减小KP
- *   3. 丢线时车跑偏→加大KP
- * 注意: ICM42688-P需处理零偏,省一方案用JY61P免校准,我们需开机静止校准
- * ================================================================== */
-#ifndef USER_GYRO_PID_KP
-#define USER_GYRO_PID_KP           3.0f    /* 比例增益 */
-#endif
-#ifndef USER_GYRO_PID_KI
-#define USER_GYRO_PID_KI           0.0f    /* 积分增益 */
-#endif
-#ifndef USER_GYRO_PID_KD
-#define USER_GYRO_PID_KD           0.5f    /* 微分增益 */
-#endif
-#ifndef USER_GYRO_PID_ILIMIT
-#define USER_GYRO_PID_ILIMIT       30.0f   /* 积分限幅 */
-#endif
-#ifndef USER_GYRO_PID_OLIMIT
-#define USER_GYRO_PID_OLIMIT       30.0f   /* 输出限幅(与线PID一致) */
-#endif
-
-/* ==================================================================
- * ====== 3. 速度PID (电机闭环,输入目标速度,反馈编码器,输出PWM) ======
+ * ====== 2. 速度PID (循迹与旋转共用左右独立闭环) ======
  * 调参方法:
  *   1. 空转时PWM很高(如90)是正常的(编码器读数≈0,PID拼命加PWM)
  *   2. 接轮子后车不动→加大KP
@@ -94,7 +70,7 @@
  * 速度比例尺(SPEED_SCALE): 国一方案必须左右分别标定!
  *   方法1(自动): 悬空车轮, K3长按触发 App_Motor_Calibrate_Scale(), RTT打印scale值
  *   方法2(手动): 设PWM=50,测encoder_speed, scale = encoder_speed / 50
- *   注意: 左编码器QEI 4x / 右编码器GPIO 2x, scale_right约为0.5 * scale_left
+ *   注意: 左右均为GPIO 4x解码，仍需分别标定以覆盖机械与安装差异
  * 速度环只用P就够(省一方案验证),KI=0避免积分饱和
  * ================================================================== */
 #ifndef USER_MOTOR_SPEED_PID_KP
@@ -116,10 +92,10 @@
 #define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f /* 积分分离阈值(误差>此值不累加I) */
 #endif
 #ifndef USER_MOTOR_SPEED_SCALE_LEFT
-#define USER_MOTOR_SPEED_SCALE_LEFT   0.067f /* observed counts/5ms/PWM, left QEI 4x */
+#define USER_MOTOR_SPEED_SCALE_LEFT   0.420f /* loaded log: about 10.1 counts/5ms at command 24 */
 #endif
 #ifndef USER_MOTOR_SPEED_SCALE_RIGHT
-#define USER_MOTOR_SPEED_SCALE_RIGHT  0.033f /* right GPIO 2x is about half of left */
+#define USER_MOTOR_SPEED_SCALE_RIGHT  0.260f /* GPIO decoder changed from 2x to 4x; recalibrate on bench */
 #endif
 #ifndef USER_MOTOR_SPEED_FILTER_ALPHA
 #define USER_MOTOR_SPEED_FILTER_ALPHA 0.20f /* about 20ms time constant at 5ms/tick */
@@ -132,7 +108,7 @@
 #endif
 
 /* ==================================================================
- * ====== 4. 循迹策略参数 ======
+ * ====== 3. 循迹策略参数（数值均为PWM百分比） ======
  * 调参方法:
  *   1. 车速太快冲出弯道→减小BASE_SPEED或SPEED_STRAIGHT
  *   2. 直道不够快→加大SPEED_STRAIGHT
@@ -141,19 +117,19 @@
  * 省一方案: 单圈15秒,说明速度中等,我们用40起步
  * ================================================================== */
 #ifndef USER_TRACK_BASE_SPEED
-#define USER_TRACK_BASE_SPEED      40      /* 基础速度(启动时,省一参考值) */
+#define USER_TRACK_BASE_SPEED      28      /* 首轮实车安全档：启动基础PWM */
 #endif
 #ifndef USER_TRACK_SPEED_STRAIGHT
-#define USER_TRACK_SPEED_STRAIGHT  50      /* 直道速度(降低,先求稳) */
+#define USER_TRACK_SPEED_STRAIGHT  30      /* 首轮实车安全档：直道PWM */
 #endif
 #ifndef USER_TRACK_SPEED_CURVE
-#define USER_TRACK_SPEED_CURVE     26      /* 弯道/直角速度(先求稳,后续每次+3) */
+#define USER_TRACK_SPEED_CURVE     26      /* 首轮实车安全档：偏线PWM */
 #endif
 #ifndef USER_TRACK_SPEED_RAMP_STEP
 #define USER_TRACK_SPEED_RAMP_STEP 2       /* 速度渐变步进(避免突变抖动) */
 #endif
 #ifndef USER_TRACK_MOTOR_INNER_MIN
-#define USER_TRACK_MOTOR_INNER_MIN 15      /* 内侧电机最低速度(防急转停转) */
+#define USER_TRACK_MOTOR_INNER_MIN 24      /* 循迹轮最小有效PWM */
 #endif
 #ifndef USER_TRACK_CIRCLES
 #define USER_TRACK_CIRCLES         1       /* 目标圈数 */
@@ -163,54 +139,88 @@
 #ifndef USER_TRACK_CURVE_ERROR_MAX
 #define USER_TRACK_CURVE_ERROR_MAX 2.5f    /* 误差达此值时降到弯道速度 */
 #endif
+#ifndef USER_TRACK_SPEED_PID_ENABLE
+#define USER_TRACK_SPEED_PID_ENABLE 1       /* 循迹默认启用左右独立轮速闭环 */
+#endif
+#ifndef USER_GRAYSCALE_MIN_CAL_CONTRAST
+#define USER_GRAYSCALE_MIN_CAL_CONTRAST 200u /* 每路黑白ADC最小有效差值 */
+#endif
+#ifndef USER_TRACK_INVALID_HOLD_FRAMES
+#define USER_TRACK_INVALID_HOLD_FRAMES 1u
+#endif
+#ifndef USER_TRACK_INVALID_STOP_FRAMES
+#define USER_TRACK_INVALID_STOP_FRAMES 3u
+#endif
 
 /* ==================================================================
- * ====== 5. 丢线/直角弯参数 ======
+ * ====== 4. 丢线/直角弯参数 ======
  * 调参方法:
- *   1. 丢线后车立即停车→加大LINE_LOST_TIMEOUT
- *   2. 直角弯检测不到→减小RIGHT_ANGLE_THRESHOLD或GYRO_RATE或ERROR_INTEGRAL
- *   3. 普通弯道被误判为直角弯→加大RIGHT_ANGLE_THRESHOLD或CONFIRM_FRAMES
- * 国一方案: 直角弯多条件触发 (任一满足即检测)
- *   cond_outer: S0/S7黑+大误差 | cond_accum: 误差累积 | cond_rate: 角速度超限
+ *   1. 左拐角检测不到→确认S3/S4中心对仍压线，再逐步降低RATHR
+ *   2. 普通跑偏被误判为拐角→将RATHR调至4.0
+ * 方形赛道模式: 中心到单侧外沿形成连续黑色链才识别为拐角。
  * ================================================================== */
-#ifndef USER_LINE_LOST_TIMEOUT
-#define USER_LINE_LOST_TIMEOUT     500     /* 丢线超时停车(ms) */
-#endif
-#ifndef USER_LINE_LOST_GAIN
-#define USER_LINE_LOST_GAIN        2.0f    /* 丢线时转向增益(无陀螺仪时用) */
-#endif
 #ifndef USER_RIGHT_ANGLE_THRESHOLD
-#define USER_RIGHT_ANGLE_THRESHOLD 2.5f    /* 直角弯检测误差阈值(cond_outer) */
+#define USER_RIGHT_ANGLE_THRESHOLD 4.0f    /* 中心对+左侧连续展开，至少4路黑 */
 #endif
 #ifndef USER_RIGHT_ANGLE_CONFIRM_FRAMES
 #define USER_RIGHT_ANGLE_CONFIRM_FRAMES 3  /* 直角弯连续确认帧数 */
 #endif
+#ifndef USER_RIGHT_ANGLE_ARM_DELAY
+#define USER_RIGHT_ANGLE_ARM_DELAY  200     /* 启动后短暂稳定，避免漏掉靠近起点的首个角 */
+#endif
 #ifndef USER_RIGHT_ANGLE_TIMEOUT
-#define USER_RIGHT_ANGLE_TIMEOUT   1000    /* 直角弯超时(ms) */
-#endif
-#ifndef USER_RIGHT_ANGLE_DONE_ERR
-#define USER_RIGHT_ANGLE_DONE_ERR  5.0f    /* 直角弯完成角度误差(度) */
-#endif
-#ifndef USER_RIGHT_ANGLE_ERROR_INTEGRAL
-#define USER_RIGHT_ANGLE_ERROR_INTEGRAL  8.0f  /* 误差累积阈值(cond_accum,连续大误差) */
-#endif
-#ifndef USER_RIGHT_ANGLE_GYRO_RATE
-#define USER_RIGHT_ANGLE_GYRO_RATE       80.0f /* 角速度阈值(cond_rate,deg/s,急弯触发) */
+#define USER_RIGHT_ANGLE_TIMEOUT   4500    /* 前探、停车、原地转向和捕线总超时 */
 #endif
 #ifndef USER_RIGHT_ANGLE_TARGET_ANGLE
-#define USER_RIGHT_ANGLE_TARGET_ANGLE    88.0f /* 目标转角(略小于90,靠灰度捕线修正) */
+#define USER_RIGHT_ANGLE_TARGET_ANGLE    90.0f /* IMU按入口航向左转90度 */
 #endif
-#ifndef USER_RIGHT_ANGLE_MIN_EXIT_ANGLE
-#define USER_RIGHT_ANGLE_MIN_EXIT_ANGLE  55.0f /* 转过此角度后允许灰度捕线提前退出 */
+#ifndef USER_ENCODER_LEFT_COUNTS_PER_MM
+#define USER_ENCODER_LEFT_COUNTS_PER_MM  0.0f  /* 必须用左轮实测，不允许猜测 */
 #endif
-#ifndef USER_RIGHT_ANGLE_EXIT_CENTER_MIN
-#define USER_RIGHT_ANGLE_EXIT_CENTER_MIN 2     /* 出弯捕线: S2~S5至少2路黑 */
+#ifndef USER_ENCODER_RIGHT_COUNTS_PER_MM
+#define USER_ENCODER_RIGHT_COUNTS_PER_MM 0.0f  /* 必须用右轮实测，不允许与左轮共用 */
 #endif
-#ifndef USER_RIGHT_ANGLE_EXIT_BLACK_MIN
-#define USER_RIGHT_ANGLE_EXIT_BLACK_MIN  1     /* 出弯捕线: 总黑通道下限 */
+#ifndef USER_SENSOR_TO_AXLE_MM
+#define USER_SENSOR_TO_AXLE_MM           0.0f  /* 探头检测中心到驱动轮轴实测距离 */
 #endif
-#ifndef USER_RIGHT_ANGLE_EXIT_BLACK_MAX
-#define USER_RIGHT_ANGLE_EXIT_BLACK_MAX  5     /* 出弯捕线: 避免起点线/大片黑误退出 */
+#ifndef USER_RIGHT_ANGLE_DETECT_COMP_MM
+#define USER_RIGHT_ANGLE_DETECT_COMP_MM  0.0f  /* 检测三帧与制动造成的补偿距离 */
+#endif
+#ifndef USER_RIGHT_ANGLE_APPROACH_SPEED
+#define USER_RIGHT_ANGLE_APPROACH_SPEED  30    /* 首轮实车安全档：前探PWM */
+#endif
+#ifndef USER_RIGHT_ANGLE_STOP_MS
+#define USER_RIGHT_ANGLE_STOP_MS        100u   /* 原地转向前停车稳定 */
+#endif
+#ifndef USER_RIGHT_ANGLE_RETRIGGER_DELAY
+#define USER_RIGHT_ANGLE_RETRIGGER_DELAY 300u /* 出弯后禁止立即重复计角 */
+#endif
+#ifndef USER_RIGHT_ANGLE_TURN_LIMIT
+#define USER_RIGHT_ANGLE_TURN_LIMIT      18.0f /* 循迹差速限幅 */
+#endif
+#ifndef USER_RIGHT_ANGLE_DONE_ERROR
+#define USER_RIGHT_ANGLE_DONE_ERROR       3.0f /* 到达90度的角度误差 */
+#endif
+#ifndef USER_RIGHT_ANGLE_DONE_RATE
+#define USER_RIGHT_ANGLE_DONE_RATE       12.0f /* 到位时最大角速度(deg/s) */
+#endif
+#ifndef USER_RIGHT_ANGLE_DONE_FRAMES
+#define USER_RIGHT_ANGLE_DONE_FRAMES      4u   /* 角度与角速度连续稳定帧数 */
+#endif
+#ifndef USER_RIGHT_ANGLE_CAPTURE_SPEED
+#define USER_RIGHT_ANGLE_CAPTURE_SPEED    26   /* 首轮实车安全档：捕线PWM */
+#endif
+#ifndef USER_RIGHT_ANGLE_CAPTURE_TURN_LIMIT
+#define USER_RIGHT_ANGLE_CAPTURE_TURN_LIMIT 8.0f
+#endif
+#ifndef USER_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES
+#define USER_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES 3u
+#endif
+#ifndef USER_RIGHT_ANGLE_PIVOT_MIN_PWM
+#define USER_RIGHT_ANGLE_PIVOT_MIN_PWM    28
+#endif
+#ifndef USER_RIGHT_ANGLE_PIVOT_MAX_PWM
+#define USER_RIGHT_ANGLE_PIVOT_MAX_PWM    40   /* 首轮实车安全档：限制原地转向冲击 */
 #endif
 
 /* Rotation/heading outer loop: angle P + measured yaw-rate damping. Its
@@ -273,16 +283,6 @@
 #endif
 #ifndef USER_HEADING_HOLD_COAST_OUTPUT
 #define USER_HEADING_HOLD_COAST_OUTPUT     1.5f
-#endif
-
-/* ==================================================================
- * ====== 6. 起点线/十字路口参数 ======
- * ================================================================== */
-#ifndef USER_START_LINE_MIN_BLACK
-#define USER_START_LINE_MIN_BLACK  6       /* 起点线最少黑色通道数 */
-#endif
-#ifndef USER_CROSS_MIN_BLACK
-#define USER_CROSS_MIN_BLACK       4       /* 十字路口中间黑色通道数 */
 #endif
 
 /* ==================================================================

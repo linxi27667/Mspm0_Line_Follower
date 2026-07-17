@@ -56,7 +56,7 @@
  * ============================================================ */
 
 #define ELOG_ESP_RING_SIZE   2048   /* 环形缓冲大小（字节） */
-#define ELOG_ESP_FLUSH_MS    250u   /* 远程日志发送节流周期 */
+#define ELOG_ESP_FLUSH_MS    200u   /* 远程日志发送节流周期 */
 
 static uint8_t  s_elog_esp_buf[ELOG_ESP_RING_SIZE];
 static volatile uint16_t s_elog_esp_head = 0;
@@ -68,6 +68,18 @@ static uint16_t elog_esp_free_space(void)
     uint16_t head = s_elog_esp_head;
     uint16_t tail = s_elog_esp_tail;
     return (uint16_t)((ELOG_ESP_RING_SIZE + tail - head - 1) % ELOG_ESP_RING_SIZE);
+}
+
+/* 缓冲不足时丢弃最旧的完整日志行，禁止从一行中间开始发送。 */
+static void elog_esp_drop_oldest_line(void)
+{
+    uint16_t tail = s_elog_esp_tail;
+    while (tail != s_elog_esp_head) {
+        char c = (char)s_elog_esp_buf[tail];
+        tail = (uint16_t)((tail + 1u) % ELOG_ESP_RING_SIZE);
+        if (c == '\n') break;
+    }
+    s_elog_esp_tail = tail;
 }
 
 #if APP_UART1_DIAG_CONSOLE_ENABLE
@@ -246,7 +258,7 @@ void elog_port_output(const char *log, size_t size) {
     if (s_elog_esp_enabled && size < ELOG_ESP_RING_SIZE) {
         uint16_t head = s_elog_esp_head;
         while (elog_esp_free_space() < size) {
-            s_elog_esp_tail = (uint16_t)((s_elog_esp_tail + 1) % ELOG_ESP_RING_SIZE);
+            elog_esp_drop_oldest_line();
         }
         for (size_t i = 0; i < size; i++) {
             s_elog_esp_buf[head] = (uint8_t)log[i];

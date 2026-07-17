@@ -289,19 +289,14 @@ static bool apply_cmd(const char *json, const char **error)
     }
     if (strcmp(cmd, "start") == 0) {
         APP_TUNING_LOG_I(LOG_TAG, "cmd start");
-        if ((Safety_GetState() != SAFETY_STATE_READY &&
-             Safety_GetState() != SAFETY_STATE_FINISHED) ||
+        if (Safety_GetState() != SAFETY_STATE_READY ||
             !Safety_ArmRemoteMotion(Bsp_GetTick())) {
             *error = "safety_not_ready";
             return false;
         }
         if (!Track_Start()) {
             Safety_DisarmRemoteMotion();
-            *error = Imu_Health_AllowsMotion(Imu_Sensor.initialized,
-                                             Imu_Sensor.data_valid,
-                                             Imu_Sensor.calibration_state) &&
-                     isfinite(Imu_Sensor.heading) && isfinite(Imu_Sensor.gyro_z)
-                   ? "safety_rejected" : "imu_unavailable";
+            *error = Track_Get_Start_Result();
             return false;
         }
         return true;
@@ -454,6 +449,10 @@ static void dispatch_frame(const tc1_frame_t *frame)
             send_ack(frame->msg_id, frame->has_id, false, "cmd", "not authenticated");
             break;
         }
+        /* An authenticated command proves the host link is live. Refresh the
+         * watchdog before motion authorization so the command is not rejected
+         * solely because the periodic ping has not arrived yet. */
+        Safety_NotifyHeartbeat(Bsp_GetTick());
         bool ok = apply_cmd(frame->json, &error);
         send_ack(frame->msg_id, frame->has_id, ok, "cmd",
                  ok ? NULL : error);

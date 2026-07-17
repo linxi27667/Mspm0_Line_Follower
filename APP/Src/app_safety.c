@@ -24,6 +24,7 @@
 
 static safety_state_t s_state = SAFETY_STATE_BOOT;
 static safety_fault_t s_fault = SAFETY_FAULT_NONE;
+static uint32_t s_finished_at = 0u;
 
 /* 校准完成标志 */
 static bool     s_calibration_complete = false;
@@ -39,6 +40,29 @@ static void Safety_CutMotor(void)
     App_Motor_Enable_Speed_PID(false);
     Bsp_Motor_Write_Pwm(&Motor_Left, 0);
     Bsp_Motor_Write_Pwm(&Motor_Right, 0);
+}
+
+static bool Safety_GrayscaleCalibrationValid(void)
+{
+    return Grayscale_Calibration_Valid(USER_GRAYSCALE_MIN_CAL_CONTRAST);
+}
+
+static uint16_t Safety_GrayscaleContrast(uint8_t channel)
+{
+    uint16_t white = Grayscale_Sensor.white[channel];
+    uint16_t black = Grayscale_Sensor.black[channel];
+    return (white >= black) ? (uint16_t)(white - black)
+                            : (uint16_t)(black - white);
+}
+
+static void Safety_LogCalibrationContrast(void)
+{
+    elog_w("SAFETY", "calibration rejected min=%u D=%u,%u,%u,%u,%u,%u,%u,%u",
+           USER_GRAYSCALE_MIN_CAL_CONTRAST,
+           Safety_GrayscaleContrast(0), Safety_GrayscaleContrast(1),
+           Safety_GrayscaleContrast(2), Safety_GrayscaleContrast(3),
+           Safety_GrayscaleContrast(4), Safety_GrayscaleContrast(5),
+           Safety_GrayscaleContrast(6), Safety_GrayscaleContrast(7));
 }
 
 static const char *s_state_names[] = {
@@ -65,6 +89,7 @@ void Safety_Init(void)
 {
     s_state                = SAFETY_STATE_BOOT;
     s_fault                = SAFETY_FAULT_NONE;
+    s_finished_at          = 0u;
     s_calibration_complete = false;
     s_health.remote_armed = false;
     s_health.grayscale_required = false;
@@ -113,7 +138,7 @@ void Safety_TransitionToRunning(void)
     if (s_state == SAFETY_STATE_RUNNING) return;
 
     /* 必须从 READY 进入，校准已完成 */
-    if (s_state != SAFETY_STATE_READY && s_state != SAFETY_STATE_FINISHED) {
+    if (s_state != SAFETY_STATE_READY) {
         elog_w("SAFETY", "RUNNING blocked: state=%s",
                Safety_StateName(s_state));
         return;
@@ -163,6 +188,7 @@ void Safety_TransitionToFinished(void)
 {
     if (s_state == SAFETY_STATE_FAULT) return;
     s_state = SAFETY_STATE_FINISHED;
+    s_finished_at = Bsp_GetTick();
     s_health.remote_armed = false;
     s_health.grayscale_required = false;
     Safety_CutMotor();
@@ -206,10 +232,24 @@ bool Safety_ControlTick(void)
         return false;
     }
 
-    /* --- FAULT/FINISHED: 持续切断电机 --- */
-    if (s_state == SAFETY_STATE_FAULT ||
-        s_state == SAFETY_STATE_FINISHED) {
+    /* --- FAULT: 锁定切断，必须由明确的故障恢复流程解除 --- */
+    if (s_state == SAFETY_STATE_FAULT) {
         Safety_CutMotor();
+        return false;
+    }
+
+    /* --- FINISHED: 停车保持1秒后自动回到READY，无需复位 --- */
+    if (s_state == SAFETY_STATE_FINISHED) {
+        Safety_CutMotor();
+        if (Safety_Logic_FinishedHoldElapsed(Bsp_GetTick(), s_finished_at,
+                                             APP_SAFETY_FINISHED_HOLD_MS)) {
+            if (s_calibration_complete) {
+                Safety_TransitionToReady();
+            } else {
+                s_state = SAFETY_STATE_BOOT;
+                elog_i("SAFETY", "finished hold elapsed -> BOOT (calibration pending)");
+            }
+        }
         return false;
     }
 
@@ -324,13 +364,15 @@ void Safety_NotifySensorAbnormal(void)
 
 void Safety_NotifyCalibrationComplete(void)
 {
-    s_calibration_complete = true;
+    s_calibration_complete = Safety_GrayscaleCalibrationValid();
+    if (!s_calibration_complete) Safety_LogCalibrationContrast();
 }
 
 void Safety_TryAdvanceAfterCalibration(void)
 {
     /* 检查灰度白+黑校准都完成 */
-    if (Grayscale_Sensor.calibrated && Grayscale_Sensor.black_calibrated) {
+    if (Grayscale_Sensor.calibrated && Grayscale_Sensor.black_calibrated &&
+        Safety_GrayscaleCalibrationValid()) {
         if (!s_calibration_complete) {
             s_calibration_complete = true;
             elog_i("SAFETY", "calibration complete (white+black)");
@@ -338,6 +380,10 @@ void Safety_TryAdvanceAfterCalibration(void)
         if (s_state == SAFETY_STATE_BOOT || s_state == SAFETY_STATE_CALIBRATING) {
             Safety_TransitionToReady();
         }
+    } else if (Grayscale_Sensor.calibrated &&
+               Grayscale_Sensor.black_calibrated) {
+        s_calibration_complete = false;
+        Safety_LogCalibrationContrast();
     }
 }
 

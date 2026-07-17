@@ -6,12 +6,15 @@
 #define APP_IMU_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "bsp_icm42688.h"
 
 extern imu_sensor_t Imu_Sensor;
 
 bool App_Imu_Init(void);
+void App_Imu_Request_Recovery(void);
+void App_Imu_Recovery_Update(uint32_t now, bool motion_active);
 bool Imu_Read_Data(void);
 void Imu_Calibration_Start(void);
 imu_cal_state_t Imu_Calibration_Update(void);

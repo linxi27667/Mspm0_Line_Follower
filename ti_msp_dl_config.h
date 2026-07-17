@@ -104,22 +104,6 @@ extern "C" {
 
 
 
-/* Defines for Encoder_Timer */
-#define Encoder_Timer_INST                                                 TIMG8
-#define Encoder_Timer_INST_IRQHandler                           TIMG8_IRQHandler
-#define Encoder_Timer_INST_INT_IRQN                             (TIMG8_INT_IRQn)
-/* Pin configuration defines for Encoder_Timer PHA Pin */
-#define GPIO_Encoder_Timer_PHA_PORT                                        GPIOB
-#define GPIO_Encoder_Timer_PHA_PIN                                DL_GPIO_PIN_21
-#define GPIO_Encoder_Timer_PHA_IOMUX                             (IOMUX_PINCM49)
-#define GPIO_Encoder_Timer_PHA_IOMUX_FUNC             IOMUX_PINCM49_PF_TIMG8_CCP0
-/* Pin configuration defines for Encoder_Timer PHB Pin */
-#define GPIO_Encoder_Timer_PHB_PORT                                        GPIOB
-#define GPIO_Encoder_Timer_PHB_PIN                                DL_GPIO_PIN_22
-#define GPIO_Encoder_Timer_PHB_IOMUX                             (IOMUX_PINCM50)
-#define GPIO_Encoder_Timer_PHB_IOMUX_FUNC             IOMUX_PINCM50_PF_TIMG8_CCP1
-
-
 /* Defines for UART_Debug */
 #define UART_Debug_INST                                                    UART0
 #define UART_Debug_INST_IRQHandler                              UART0_IRQHandler
@@ -280,15 +264,31 @@ extern "C" {
 #define Right_Encoder_PORT                                               (GPIOB)
 
 /* Defines for PHA: GPIOB.12 with pinCMx 29 on package pin 64 */
-// pins affected by this interrupt request:["PHA"]
+// pins affected by this interrupt request:["PHA","PHB"]
 #define Right_Encoder_INT_IRQN                                  (GPIOB_INT_IRQn)
 #define Right_Encoder_INT_IIDX                  (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
 #define Right_Encoder_PHA_IIDX                              (DL_GPIO_IIDX_DIO12)
 #define Right_Encoder_PHA_PIN                                   (DL_GPIO_PIN_12)
 #define Right_Encoder_PHA_IOMUX                                  (IOMUX_PINCM29)
 /* Defines for PHB: GPIOB.13 with pinCMx 30 on package pin 1 */
+#define Right_Encoder_PHB_IIDX                              (DL_GPIO_IIDX_DIO13)
 #define Right_Encoder_PHB_PIN                                   (DL_GPIO_PIN_13)
 #define Right_Encoder_PHB_IOMUX                                  (IOMUX_PINCM30)
+
+/* Port definition for Pin Group Left_Encoder */
+#define Left_Encoder_PORT                                                (GPIOB)
+
+/* Defines for PHA: GPIOB.21 with pinCMx 49 on package pin 20 */
+// pins affected by this interrupt request:["PHA","PHB"]
+#define Left_Encoder_INT_IRQN                                   (GPIOB_INT_IRQn)
+#define Left_Encoder_INT_IIDX                   (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
+#define Left_Encoder_PHA_IIDX                               (DL_GPIO_IIDX_DIO21)
+#define Left_Encoder_PHA_PIN                                    (DL_GPIO_PIN_21)
+#define Left_Encoder_PHA_IOMUX                                   (IOMUX_PINCM49)
+/* Defines for PHB: GPIOB.22 with pinCMx 50 on package pin 21 */
+#define Left_Encoder_PHB_IIDX                               (DL_GPIO_IIDX_DIO22)
+#define Left_Encoder_PHB_PIN                                    (DL_GPIO_PIN_22)
+#define Left_Encoder_PHB_IOMUX                                   (IOMUX_PINCM50)
 
 /* clang-format on */
 
@@ -298,7 +298,6 @@ void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_Monitor_Left_Timer_init(void);
 void SYSCFG_DL_Right_Motor_Timer_init(void);
-void SYSCFG_DL_Encoder_Timer_init(void);
 void SYSCFG_DL_UART_Debug_init(void);
 void SYSCFG_DL_UART_ESP01S_init(void);
 void SYSCFG_DL_ICM_SPI_init(void);

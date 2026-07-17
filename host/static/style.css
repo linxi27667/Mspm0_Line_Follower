@@ -204,41 +204,179 @@ button:disabled {
     white-space: nowrap;
 }
 
-.chart-panel {
+.telemetry-panel {
     padding: 0;
 }
 
-.chart-grid {
+.telemetry-body {
     flex: 1;
     min-height: 0;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    overflow: auto;
+    background: #141510;
 }
 
-.chart-box {
-    min-height: 0;
-    padding: 10px;
-    border: 1px solid var(--line-soft);
-    border-radius: 6px;
-    background: #151611;
+.telemetry-summary {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(6, minmax(90px, 1fr));
+    border-bottom: 1px solid var(--line);
+}
+
+.data-field {
+    min-width: 0;
+    min-height: 76px;
+    padding: 10px 12px;
+    border-right: 1px solid var(--line-soft);
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
-.chart-box h3 {
-    margin: 0 0 6px;
+.data-field:last-child {
+    border-right: 0;
+}
+
+.data-field span,
+.data-field small,
+.telemetry-data-grid dt,
+.telemetry-data-grid small,
+.adc-value span {
     color: var(--muted);
+    font-size: 11px;
+}
+
+.data-field strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 18px;
+    letter-spacing: 0;
+}
+
+.state-field strong {
+    color: var(--cyan);
+    font-size: 24px;
+}
+
+.data-section {
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.data-section h3,
+.raw-telemetry h3 {
+    margin: 0 0 10px;
+    color: var(--amber);
     font-size: 12px;
     font-weight: 600;
 }
 
-.chart-box canvas {
-    flex: 1;
+.adc-data-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    border-top: 1px solid var(--line-soft);
+    border-left: 1px solid var(--line-soft);
+}
+
+.adc-value {
     min-width: 0;
-    min-height: 0;
+    min-height: 58px;
+    padding: 8px 10px;
+    border-right: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.adc-value strong {
+    color: var(--green);
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+}
+
+.data-section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.data-section-grid .data-section:first-child {
+    border-right: 1px solid var(--line);
+}
+
+.telemetry-data-grid {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    border-top: 1px solid var(--line-soft);
+    border-left: 1px solid var(--line-soft);
+}
+
+.telemetry-data-grid.compact {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.telemetry-data-grid > div {
+    min-width: 0;
+    min-height: 58px;
+    padding: 8px;
+    border-right: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.telemetry-data-grid dd {
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+}
+
+.motion-section .telemetry-data-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.raw-telemetry {
+    padding: 12px;
+}
+
+.raw-telemetry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.raw-telemetry-head span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.raw-telemetry pre {
+    min-height: 92px;
+    max-height: 190px;
+    margin: 0;
+    padding: 10px;
+    overflow: auto;
+    border: 1px solid var(--line-soft);
+    background: var(--terminal);
+    color: #c8dfba;
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.panel-meta.is-stale {
+    color: var(--red);
 }
 
 .tuning-panel {
@@ -716,8 +854,8 @@ button:disabled {
         grid-template-rows: auto;
     }
 
-    .chart-panel {
-        height: 520px;
+    .telemetry-panel {
+        min-height: 560px;
     }
 
     .tuning-panel,
@@ -731,17 +869,38 @@ button:disabled {
         font-size: 18px;
     }
 
-    .chart-grid,
     .control-grid {
         grid-template-columns: 1fr;
     }
 
-    .chart-grid {
-        grid-template-rows: repeat(4, minmax(0, 1fr));
+    .telemetry-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .chart-panel {
-        height: 780px;
+    .data-field {
+        border-bottom: 1px solid var(--line-soft);
+    }
+
+    .adc-data-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .data-section-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-section-grid .data-section:first-child {
+        border-right: 0;
+    }
+
+    .telemetry-data-grid,
+    .telemetry-data-grid.compact,
+    .motion-section .telemetry-data-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .telemetry-panel {
+        min-height: 760px;
     }
 
     .param-row {
