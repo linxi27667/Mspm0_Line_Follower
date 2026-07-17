@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+static inline uint32_t Motor_Pwm_DutyToCompare(uint32_t duty,
+                                               uint32_t period)
+{
+    if (duty > period) duty = period;
+    return period - duty;
+}
+
 static inline float Motor_Speed_LowPass(float previous, float sample, float alpha)
 {
     return previous + alpha * (sample - previous);

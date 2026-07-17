@@ -129,6 +129,18 @@ class RequestTests(unittest.TestCase):
         sample.pop("mrp")
         self.assertIsNone(parse_telemetry(sample))
 
+    def test_motor_test_accepts_reverse_and_stop_qualification_phases(self):
+        reverse = telemetry(
+            st="MT", mt=True, mph=8, mtg=-40,
+            mlp=-42, mrp=-39, mrs="running",
+        )
+        self.assertEqual(parse_telemetry(reverse), reverse)
+        stopped = telemetry(
+            st="MT", mt=True, mph=9, mtg=0,
+            mlp=0, mrp=0, mrs="running",
+        )
+        self.assertEqual(parse_telemetry(stopped), stopped)
+
     def test_invalid_parameter_types_and_non_finite_values_are_rejected(self):
         for value in (True, "5", None, math.nan, math.inf, -math.inf):
             with self.subTest(value=value):

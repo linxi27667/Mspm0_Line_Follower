@@ -282,6 +282,12 @@ class TrackLogicTests(unittest.TestCase):
         self.assertIn("TRACK_MOTOR_TEST_TIMEOUT_MS", handler)
         self.assertIn("encoder_sign_or_stall", handler)
         self.assertIn("App_Motor_Enable_Speed_PID(true);", handler)
+        self.assertIn("TRACK_MOTOR_TEST_OPEN_PHASES", handler)
+        self.assertIn("TRACK_MOTOR_TEST_STOP_PHASE", handler)
+        self.assertIn("-TRACK_MOTOR_TEST_TARGET_LOW", handler)
+        self.assertIn("TRACK_MOTOR_TEST_WHEEL_MISMATCH", track_source)
+        self.assertIn("TRACK_MOTOR_TEST_STOP_MAX_AVG", track_source)
+        self.assertIn('"qualification_failed"', handler)
         self.assertNotIn("Bsp_Delay_ms", handler)
         self.assertIn('strcmp(cmd, "motor_test") == 0', tuning_source)
         self.assertIn('find_bool(json, "lifted", &lifted)', tuning_source)
@@ -584,6 +590,43 @@ class TrackLogicTests(unittest.TestCase):
             '''
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_pwm_duty_maps_to_down_count_compare(self):
+        result = compile_and_run(
+            r'''
+            #include "APP/Inc/motor_speed_logic.h"
+
+            int main(void) {
+                if (Motor_Pwm_DutyToCompare(0u, 100u) != 100u) return 1;
+                if (Motor_Pwm_DutyToCompare(20u, 100u) != 80u) return 2;
+                if (Motor_Pwm_DutyToCompare(100u, 100u) != 0u) return 3;
+                if (Motor_Pwm_DutyToCompare(120u, 100u) != 0u) return 4;
+                return 0;
+            }
+            '''
+        )
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_esp_transparent_tx_waits_for_whole_frame_capacity(self):
+        source = (ROOT / "APP" / "Src" / "app_esp01s.c").read_text(
+            encoding="utf-8"
+        )
+        transparent = source.split("if (s_transparent_mode)", 1)[1].split(
+            "switch (s_tx_state)", 1
+        )[0]
+        self.assertIn("Bsp_UART_TrySendFrame(&ESP_Uart_Dev", transparent)
+        self.assertIn("ESP01S_TX_CHUNK_BYTES", transparent)
+        self.assertIn("ESP01S_TX_CHUNK_GAP_MS", transparent)
+        self.assertIn("s_tx_active_offset", transparent)
+        uart_source = (ROOT / "BSP" / "Src" / "bsp_uart.c").read_text(
+            encoding="utf-8"
+        )
+        frame_send = uart_source.split("bool Bsp_UART_TrySendFrame", 1)[1].split(
+            "void Bsp_UART_Send_Block", 1
+        )[0]
+        self.assertIn("uart->tx_busy || !tx_fifo_empty(uart)", frame_send)
+        self.assertIn("uart->tx_fifo_head = 0u", frame_send)
+        self.assertIn("memcpy(uart->tx_fifo_buf, data, len)", frame_send)
 
     def test_tracking_speed_pi_is_default_and_encoder_monitoring_stays_active(self):
         track_source = (ROOT / "TASK" / "track.c").read_text(encoding="utf-8")

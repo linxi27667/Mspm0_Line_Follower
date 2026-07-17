@@ -337,8 +337,8 @@ def validate_telemetry(obj: dict[str, Any]) -> dict[str, Any]:
     if present_motor_test_fields:
         if obj["mt"] is not True or obj["st"] != "MT":
             raise ProtocolError("motor test must be active in MT state")
-        _require_int("mph", obj["mph"], 0, 3)
-        _require_int("mtg", obj["mtg"], 0, 40)
+        _require_int("mph", obj["mph"], 0, 9)
+        _require_int("mtg", obj["mtg"], -40, 40)
         _require_int("mlp", obj["mlp"], -100, 100)
         _require_int("mrp", obj["mrp"], -100, 100)
         if not isinstance(obj["mrs"], str) or not obj["mrs"] or len(obj["mrs"]) > 32:

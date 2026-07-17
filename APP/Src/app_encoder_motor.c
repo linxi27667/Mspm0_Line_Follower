@@ -58,7 +58,9 @@ static void HW_Gpio_Write(void *port, uint32_t pin, uint8_t level)
 static void HW_Pwm_Write(void *timer, uint32_t channel, uint32_t duty)
 {
     if (timer == NULL) return;
-    DL_TimerG_setCaptureCompareValue((GPTIMER_Regs *)timer, duty, (DL_TIMER_CC_INDEX)channel);
+    uint32_t compare = Motor_Pwm_DutyToCompare(duty, MOTOR_PWM_PERIOD);
+    DL_TimerG_setCaptureCompareValue((GPTIMER_Regs *)timer, compare,
+                                     (DL_TIMER_CC_INDEX)channel);
 }
 
 /* 左电机编码器读取 — GPIO 4x正交累计值差分。 */
@@ -275,6 +277,16 @@ void App_Motor_Set_Speed_Scale_Right(float scale)
     if (scale > 0.001f) {
         s_speed_scale_right = scale;
     }
+}
+
+float App_Motor_Get_Speed_Scale_Left(void)
+{
+    return s_speed_scale_left;
+}
+
+float App_Motor_Get_Speed_Scale_Right(void)
+{
+    return s_speed_scale_right;
 }
 
 /* 速度比例尺自动标定 (国一方案核心)

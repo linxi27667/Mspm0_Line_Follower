@@ -10,6 +10,7 @@ keil/flash_log.txt
 # Debug scripts and temp files
 *.jlink
 *.ps1
+!scripts/*.ps1
 ram_dump.bin
 rtt_*.txt
 rtt_*.bin
@@ -47,6 +48,7 @@ Thumbs.db
 host/.host_build_tmp/
 __pycache__/
 host/*.log
+logs/closed_loop/
 Event.dot
 README.html
 jlink_rtt_*.txt

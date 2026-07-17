@@ -305,6 +305,11 @@ def on_request_confirmed(ack: dict):
         add_log("INFO", f"参数已确认: {applied}")
     else:
         add_log("INFO", f"指令已确认 (id={ack.get('id')})")
+    socketio.emit("request_status", {
+        "state": "confirmed",
+        "id": ack.get("id"),
+        "kind": ack.get("kind"),
+    })
     # 转发给优化器
     if optimizer is not None:
         optimizer.on_ack_confirmed(ack)

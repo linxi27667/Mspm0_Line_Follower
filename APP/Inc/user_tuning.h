@@ -92,10 +92,10 @@
 #define USER_MOTOR_SPEED_PID_INTEGRAL_SEP 15.0f /* 积分分离阈值(误差>此值不累加I) */
 #endif
 #ifndef USER_MOTOR_SPEED_SCALE_LEFT
-#define USER_MOTOR_SPEED_SCALE_LEFT   0.420f /* loaded log: about 10.1 counts/5ms at command 24 */
+#define USER_MOTOR_SPEED_SCALE_LEFT   0.161f /* bench regression: PWM20/30/40, GPIO 4x */
 #endif
 #ifndef USER_MOTOR_SPEED_SCALE_RIGHT
-#define USER_MOTOR_SPEED_SCALE_RIGHT  0.260f /* GPIO decoder changed from 2x to 4x; recalibrate on bench */
+#define USER_MOTOR_SPEED_SCALE_RIGHT  0.164f /* bench regression: PWM20/30/40, GPIO 4x */
 #endif
 #ifndef USER_MOTOR_SPEED_FILTER_ALPHA
 #define USER_MOTOR_SPEED_FILTER_ALPHA 0.20f /* about 20ms time constant at 5ms/tick */

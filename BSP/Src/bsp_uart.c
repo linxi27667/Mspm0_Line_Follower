@@ -139,6 +139,30 @@ void Bsp_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
     tx_kick(uart);
 }
 
+bool Bsp_UART_TrySendFrame(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
+{
+    if (uart == NULL || data == NULL || len == 0u ||
+        len >= uart->tx_fifo_size) {
+        return false;
+    }
+
+    BSP_UART_ENTER_CRITICAL();
+    if (uart->tx_busy || !tx_fifo_empty(uart)) {
+        BSP_UART_EXIT_CRITICAL();
+        return false;
+    }
+
+    /* Rebase each standalone frame so DMA never has to continue the same
+     * protocol frame across the ring-buffer wrap boundary. */
+    uart->tx_fifo_head = 0u;
+    uart->tx_fifo_tail = 0u;
+    memcpy(uart->tx_fifo_buf, data, len);
+    uart->tx_fifo_head = len;
+    tx_kick_locked(uart);
+    BSP_UART_EXIT_CRITICAL();
+    return true;
+}
+
 void Bsp_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len)
 {
     if (uart == NULL || data == NULL || len == 0) return;

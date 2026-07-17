@@ -95,10 +95,16 @@
 #define TRACK_ROTATE_DONE_ERR_DEG USER_ROTATE_DONE_ERR_DEG
 
 /* --- 架空电机台架测试（固定流程，避免远程任意PWM） --- */
-#define TRACK_MOTOR_TEST_SIGN_MS       800u
 #define TRACK_MOTOR_TEST_STAGE_MS     1200u
-#define TRACK_MOTOR_TEST_TIMEOUT_MS   5200u
-#define TRACK_MOTOR_TEST_SIGN_PWM       20
+#define TRACK_MOTOR_TEST_SETTLE_MS      400u
+#define TRACK_MOTOR_TEST_TIMEOUT_MS   12600u
+#define TRACK_MOTOR_TEST_PHASE_COUNT     10u
+#define TRACK_MOTOR_TEST_OPEN_PHASES      3u
+#define TRACK_MOTOR_TEST_CLOSED_PHASES    6u
+#define TRACK_MOTOR_TEST_STOP_PHASE       9u
+#define TRACK_MOTOR_TEST_TOLERANCE       0.15f
+#define TRACK_MOTOR_TEST_WHEEL_MISMATCH  0.10f
+#define TRACK_MOTOR_TEST_STOP_MAX_AVG    0.25f
 #define TRACK_MOTOR_TEST_TARGET_LOW     20
 #define TRACK_MOTOR_TEST_TARGET_MID     30
 #define TRACK_MOTOR_TEST_TARGET_HIGH    40
@@ -152,6 +158,17 @@ typedef struct {
     uint8_t  motor_test_phase;
     int32_t  motor_test_target;
     const char *motor_test_result;
+    int32_t  motor_test_left_sum;
+    int32_t  motor_test_right_sum;
+    uint32_t motor_test_left_abs_sum;
+    uint32_t motor_test_right_abs_sum;
+    uint16_t motor_test_sample_count;
+    float    motor_test_prev_left_avg;
+    float    motor_test_prev_right_avg;
+    float    motor_test_scale_left_num;
+    float    motor_test_scale_right_num;
+    float    motor_test_scale_den;
+    bool     motor_test_failed;
 
     /* --- 直角弯道多帧确认 --- */
     uint8_t  right_angle_confirm;   /* 直角弯连续确认计数 */

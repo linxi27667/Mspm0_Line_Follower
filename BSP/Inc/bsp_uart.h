@@ -58,6 +58,8 @@ void     Bsp_UART_Init(bsp_uart_t *uart);
 
 /* TX —— 非阻塞（FIFO 满则丢字节并置 tx_overflow） */
 void     Bsp_UART_Send(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
+bool     Bsp_UART_TrySendFrame(bsp_uart_t *uart, const uint8_t *data,
+                               uint16_t len);
 /* TX —— 阻塞直到全部入队（不丢数据） */
 void     Bsp_UART_Send_Block(bsp_uart_t *uart, const uint8_t *data, uint16_t len);
 /* TX —— 发送字符串（阻塞） */

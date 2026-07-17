@@ -38,6 +38,8 @@
 #define ESP01S_TX_SEND_TIMEOUT      ESP01S_AT_TIMEOUT_SEND
 #define ESP01S_TX_RECOVERY_TIMEOUT  3000u
 #define ESP01S_TX_GAP_MS            100u
+#define ESP01S_TX_CHUNK_BYTES         64u
+#define ESP01S_TX_CHUNK_GAP_MS        25u
 #define ESP01S_TCP_SETTLE_MS         750u
 #define ESP01S_RX_TO_TX_QUIET_MS      25u
 #define ESP01S_ESCAPE_FLUSH_MS       100u
@@ -389,6 +391,7 @@ typedef enum {
 
 static uint8_t        s_tx_active[ESP01S_TX_FRAME_MAX];
 static uint16_t       s_tx_active_len = 0;
+static uint16_t       s_tx_active_offset = 0;
 static esp_tx_state_t s_tx_state = ESP_TX_IDLE;
 static uint32_t       s_tx_deadline = 0;
 static uint32_t       s_tx_next_allowed = 0;
@@ -433,6 +436,7 @@ static void tx_queue_clear(void)
     s_tx_heartbeat_valid = false;
     s_tx_nonlog_streak = 0;
     s_tx_active_len = 0;
+    s_tx_active_offset = 0;
     s_tx_state = ESP_TX_IDLE;
     s_tx_next_allowed = 0;
     s_tx_consecutive_failures = 0;
@@ -560,6 +564,7 @@ static void tx_state_fail(const char *reason)
     }
     s_tx_state = ESP_TX_IDLE;
     s_tx_active_len = 0;
+    s_tx_active_offset = 0;
     s_tx_prompt_recovery = false;
     s_tx_next_allowed = Bsp_GetTick() + ESP01S_TX_SEND_TIMEOUT;
     if (reason != NULL) {
@@ -591,17 +596,37 @@ static void tx_state_poll(void)
 
     if (s_transparent_mode) {
         if (s_tx_state == ESP_TX_IDLE &&
-            (int32_t)(now - s_tx_next_allowed) >= 0 &&
-            tx_queue_pop(s_tx_active, &s_tx_active_len)) {
+            (int32_t)(now - s_tx_next_allowed) >= 0) {
             /* Online frames can be hundreds of bytes.  Polling them into the
              * UART FIFO at 115200 baud stalls the bare-metal scheduler for
-             * longer than the 25 ms control safety limit.  The dedicated
-             * UART1 TX FIFO is sized for two maximum TC1 frames, so publish
-             * once and let DMA drain it asynchronously. */
-            Bsp_UART_Send(&ESP_Uart_Dev, s_tx_active, s_tx_active_len);
-            s_tx_active_len = 0;
-            s_tx_next_allowed = now + ESP01S_TX_GAP_MS;
-            s_tx_consecutive_failures = 0;
+             * longer than the 25 ms control safety limit. Keep a popped frame
+             * active until the UART FIFO has room for the entire frame;
+             * Bsp_UART_Send is byte-oriented and would otherwise enqueue a
+             * truncated TC1 line when the FIFO becomes full. */
+            if (s_tx_active_len == 0u) {
+                if (tx_queue_pop(s_tx_active, &s_tx_active_len)) {
+                    s_tx_active_offset = 0u;
+                }
+            }
+            if (s_tx_active_len > 0u) {
+                uint16_t remaining = (uint16_t)(s_tx_active_len -
+                                                s_tx_active_offset);
+                uint16_t chunk = remaining > ESP01S_TX_CHUNK_BYTES ?
+                                 ESP01S_TX_CHUNK_BYTES : remaining;
+                if (Bsp_UART_TrySendFrame(&ESP_Uart_Dev,
+                                           &s_tx_active[s_tx_active_offset],
+                                           chunk)) {
+                    s_tx_active_offset = (uint16_t)(s_tx_active_offset + chunk);
+                    if (s_tx_active_offset >= s_tx_active_len) {
+                        s_tx_active_len = 0u;
+                        s_tx_active_offset = 0u;
+                        s_tx_next_allowed = now + ESP01S_TX_GAP_MS;
+                    } else {
+                        s_tx_next_allowed = now + ESP01S_TX_CHUNK_GAP_MS;
+                    }
+                }
+                s_tx_consecutive_failures = 0;
+            }
         }
         return;
     }

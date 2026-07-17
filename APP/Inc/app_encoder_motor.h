@@ -25,6 +25,9 @@
 #define MOTOR_RIGHT_DIR2_PORT       Right_Motor_Dir_PORT
 #define MOTOR_RIGHT_DIR2_PIN        Right_Motor_Dir_AIN2_PIN
 
+/* SysConfig edge-aligned down-count PWM uses CC=period-duty. */
+#define MOTOR_PWM_PERIOD             100u
+
 /* ============ 编码器硬件配置（统一GPIO 4x正交解码） ============
  * MSPM0G3507只有TIMG8支持硬件QEI，无法提供两路硬件QEI。
  * 左右编码器均由PHA/PHB双边沿中断驱动同一正交状态机。
@@ -106,6 +109,8 @@ void App_Motor_Enable_Speed_PID(bool enable);
 void App_Motor_Set_Speed_Scale(float scale);
 void App_Motor_Set_Speed_Scale_Left(float scale);
 void App_Motor_Set_Speed_Scale_Right(float scale);
+float App_Motor_Get_Speed_Scale_Left(void);
+float App_Motor_Get_Speed_Scale_Right(void);
 
 /* 速度比例尺自动标定 (国一方案核心: 速度环可信的前提)
  * 使用方法: 悬空车轮 → 调用此函数 → 自动以 PWM=50 跑1秒测编码器速度

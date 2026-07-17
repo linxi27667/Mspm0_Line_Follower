@@ -387,12 +387,131 @@ static void Track_Motor_Test_End(const char *result)
     }
 }
 
+static void Track_Motor_Test_ResetSamples(void)
+{
+    Track.motor_test_left_sum = 0;
+    Track.motor_test_right_sum = 0;
+    Track.motor_test_left_abs_sum = 0u;
+    Track.motor_test_right_abs_sum = 0u;
+    Track.motor_test_sample_count = 0u;
+}
+
+static float Track_Motor_Test_Abs(float value)
+{
+    return value >= 0.0f ? value : -value;
+}
+
+static bool Track_Motor_Test_WithinTolerance(float measured, float expected)
+{
+    float limit = Track_Motor_Test_Abs(expected) * TRACK_MOTOR_TEST_TOLERANCE;
+    return measured >= (expected - limit) && measured <= (expected + limit);
+}
+
+static void Track_Motor_Test_FinishStage(void)
+{
+    if (Track.motor_test_sample_count == 0u) {
+        Track.motor_test_failed = true;
+        APP_TRACK_LOG_W("MOTORTEST", "phase=%u no stable samples",
+                        Track.motor_test_phase);
+        return;
+    }
+
+    float left_avg = (float)Track.motor_test_left_sum /
+                     (float)Track.motor_test_sample_count;
+    float right_avg = (float)Track.motor_test_right_sum /
+                      (float)Track.motor_test_sample_count;
+    float left_abs_avg = (float)Track.motor_test_left_abs_sum /
+                         (float)Track.motor_test_sample_count;
+    float right_abs_avg = (float)Track.motor_test_right_abs_sum /
+                          (float)Track.motor_test_sample_count;
+
+    if (Track.motor_test_phase < TRACK_MOTOR_TEST_OPEN_PHASES) {
+        APP_TRACK_LOG_I("MOTORTEST", "open phase=%u pwm=%d Lavg=%ld Ravg=%ld (x1000) n=%u",
+                        Track.motor_test_phase, Track.motor_test_target,
+                        (long)(left_avg * 1000.0f),
+                        (long)(right_avg * 1000.0f),
+                        Track.motor_test_sample_count);
+        if (left_avg <= 0.0f || right_avg <= 0.0f ||
+            (Track.motor_test_phase > 0u &&
+             (left_avg <= Track.motor_test_prev_left_avg ||
+              right_avg <= Track.motor_test_prev_right_avg))) {
+            Track.motor_test_failed = true;
+            APP_TRACK_LOG_W("MOTORTEST", "open response invalid phase=%u L=%ld R=%ld prevL=%ld prevR=%ld (x1000)",
+                            Track.motor_test_phase,
+                            (long)(left_avg * 1000.0f),
+                            (long)(right_avg * 1000.0f),
+                            (long)(Track.motor_test_prev_left_avg * 1000.0f),
+                            (long)(Track.motor_test_prev_right_avg * 1000.0f));
+        }
+        Track.motor_test_scale_left_num +=
+            (float)Track.motor_test_target * left_avg;
+        Track.motor_test_scale_right_num +=
+            (float)Track.motor_test_target * right_avg;
+        Track.motor_test_scale_den +=
+            (float)Track.motor_test_target * (float)Track.motor_test_target;
+    } else if (Track.motor_test_phase < TRACK_MOTOR_TEST_STOP_PHASE) {
+        float left_scale = App_Motor_Get_Speed_Scale_Left();
+        float right_scale = App_Motor_Get_Speed_Scale_Right();
+        float expected_left = left_scale * (float)Track.motor_test_target;
+        float expected_right = right_scale * (float)Track.motor_test_target;
+        bool left_ok = Track_Motor_Test_WithinTolerance(left_avg, expected_left);
+        bool right_ok = Track_Motor_Test_WithinTolerance(right_avg, expected_right);
+        bool first_in_direction = Track.motor_test_phase == TRACK_MOTOR_TEST_OPEN_PHASES ||
+                                  Track.motor_test_phase ==
+                                      (TRACK_MOTOR_TEST_OPEN_PHASES +
+                                       TRACK_MOTOR_TEST_CLOSED_PHASES / 2u);
+        bool monotonic = first_in_direction ||
+                         (left_abs_avg > Track_Motor_Test_Abs(Track.motor_test_prev_left_avg) &&
+                          right_abs_avg > Track_Motor_Test_Abs(Track.motor_test_prev_right_avg));
+        float left_normalized = left_avg / left_scale;
+        float right_normalized = right_avg / right_scale;
+        float target_abs = Track_Motor_Test_Abs((float)Track.motor_test_target);
+        float wheel_delta = Track_Motor_Test_Abs(
+            Track_Motor_Test_Abs(left_normalized) -
+            Track_Motor_Test_Abs(right_normalized));
+        bool wheels_match = wheel_delta <=
+                            target_abs * TRACK_MOTOR_TEST_WHEEL_MISMATCH;
+        APP_TRACK_LOG_I("MOTORTEST", "closed phase=%u target=%d Lavg=%ld Ravg=%ld expL=%ld expR=%ld mismatch=%ld (x1000) pass=%u",
+                        Track.motor_test_phase, Track.motor_test_target,
+                        (long)(left_avg * 1000.0f),
+                        (long)(right_avg * 1000.0f),
+                        (long)(expected_left * 1000.0f),
+                        (long)(expected_right * 1000.0f),
+                        (long)(wheel_delta * 1000.0f),
+                        (unsigned)(left_ok && right_ok && monotonic && wheels_match));
+        if (!left_ok || !right_ok || !monotonic || !wheels_match) {
+            Track.motor_test_failed = true;
+        }
+    } else {
+        bool stopped = left_abs_avg <= TRACK_MOTOR_TEST_STOP_MAX_AVG &&
+                       right_abs_avg <= TRACK_MOTOR_TEST_STOP_MAX_AVG;
+        APP_TRACK_LOG_I("MOTORTEST", "stop phase=%u Labs=%ld Rabs=%ld (x1000) pass=%u",
+                        Track.motor_test_phase,
+                        (long)(left_abs_avg * 1000.0f),
+                        (long)(right_abs_avg * 1000.0f),
+                        (unsigned)stopped);
+        if (!stopped) {
+            Track.motor_test_failed = true;
+        }
+    }
+
+    Track.motor_test_prev_left_avg = left_avg;
+    Track.motor_test_prev_right_avg = right_avg;
+}
+
 static void Track_Handle_Motor_Test(void)
 {
     static const int32_t targets[] = {
         TRACK_MOTOR_TEST_TARGET_LOW,
         TRACK_MOTOR_TEST_TARGET_MID,
-        TRACK_MOTOR_TEST_TARGET_HIGH
+        TRACK_MOTOR_TEST_TARGET_HIGH,
+        TRACK_MOTOR_TEST_TARGET_LOW,
+        TRACK_MOTOR_TEST_TARGET_MID,
+        TRACK_MOTOR_TEST_TARGET_HIGH,
+        -TRACK_MOTOR_TEST_TARGET_LOW,
+        -TRACK_MOTOR_TEST_TARGET_MID,
+        -TRACK_MOTOR_TEST_TARGET_HIGH,
+        0
     };
     uint32_t now = Bsp_GetTick();
 
@@ -406,51 +525,74 @@ static void Track_Handle_Motor_Test(void)
         return;
     }
 
-    if (Track.motor_test_phase == 0u) {
-        if (!Track_Timeout_Reached(now, Track.motor_test_stage_started_at,
-                                   TRACK_MOTOR_TEST_SIGN_MS)) {
-            return;
-        }
-
-        int32_t left_delta = Track_EncoderDelta(
-            Motor_Left.total_position, Track.motor_test_left_start);
-        int32_t right_delta = Track_EncoderDelta(
-            Motor_Right.total_position, Track.motor_test_right_start);
-        if (left_delta <= 0 || right_delta <= 0) {
-            APP_TRACK_LOG_W("MOTORTEST", "sign check failed L=%ld R=%ld",
-                            (long)left_delta, (long)right_delta);
-            Track_Motor_Test_End("encoder_sign_or_stall");
-            return;
-        }
-
-        Track.motor_test_phase = 1u;
-        Track.motor_test_stage_started_at = now;
-        Track.motor_test_target = targets[0];
-        Track.left_speed = targets[0];
-        Track.right_speed = targets[0];
-        App_Motor_Enable_Speed_PID(true);
-        Motor_Set_Speed(targets[0]);
-        Motor_Right_Set_Speed(targets[0]);
-        APP_TRACK_LOG_I("MOTORTEST", "phase=1 closed_loop target=%d signL=%ld signR=%ld",
-                        targets[0], (long)left_delta, (long)right_delta);
-        return;
+    if (Track_Timeout_Reached(now, Track.motor_test_stage_started_at,
+                              TRACK_MOTOR_TEST_SETTLE_MS)) {
+        Track.motor_test_left_sum += Motor_Left.encoder_speed;
+        Track.motor_test_right_sum += Motor_Right.encoder_speed;
+        Track.motor_test_left_abs_sum += (uint32_t)(Motor_Left.encoder_speed >= 0 ?
+                                                   Motor_Left.encoder_speed :
+                                                   -Motor_Left.encoder_speed);
+        Track.motor_test_right_abs_sum += (uint32_t)(Motor_Right.encoder_speed >= 0 ?
+                                                    Motor_Right.encoder_speed :
+                                                    -Motor_Right.encoder_speed);
+        Track.motor_test_sample_count++;
     }
 
     if (Track_Timeout_Reached(now, Track.motor_test_stage_started_at,
                               TRACK_MOTOR_TEST_STAGE_MS)) {
-        if (Track.motor_test_phase >= 3u) {
-            Track_Motor_Test_End("complete");
+        if (Track.motor_test_phase == 0u &&
+            (Track.motor_test_left_sum <= 0 ||
+             Track.motor_test_right_sum <= 0)) {
+            APP_TRACK_LOG_W("MOTORTEST", "sign check failed L=%ld R=%ld",
+                            (long)Track.motor_test_left_sum,
+                            (long)Track.motor_test_right_sum);
+            Track_Motor_Test_End("encoder_sign_or_stall");
             return;
         }
+        Track_Motor_Test_FinishStage();
+        if (Track.motor_test_phase + 1u >= TRACK_MOTOR_TEST_PHASE_COUNT) {
+            Track_Motor_Test_End(Track.motor_test_failed ?
+                                 "qualification_failed" : "complete");
+            return;
+        }
+
         Track.motor_test_phase++;
         Track.motor_test_stage_started_at = now;
-        Track.motor_test_target = targets[Track.motor_test_phase - 1u];
+        Track.motor_test_target = targets[Track.motor_test_phase];
         Track.left_speed = Track.motor_test_target;
         Track.right_speed = Track.motor_test_target;
+        Track_Motor_Test_ResetSamples();
+
+        if (Track.motor_test_phase == TRACK_MOTOR_TEST_OPEN_PHASES) {
+            float recommended_left = Track.motor_test_scale_left_num /
+                                     Track.motor_test_scale_den;
+            float recommended_right = Track.motor_test_scale_right_num /
+                                      Track.motor_test_scale_den;
+            APP_TRACK_LOG_I("MOTORTEST", "scale configured L=%ld R=%ld recommended L=%ld R=%ld (x1000)",
+                            (long)(App_Motor_Get_Speed_Scale_Left() * 1000.0f),
+                            (long)(App_Motor_Get_Speed_Scale_Right() * 1000.0f),
+                            (long)(recommended_left * 1000.0f),
+                            (long)(recommended_right * 1000.0f));
+            Track.motor_test_prev_left_avg = 0;
+            Track.motor_test_prev_right_avg = 0;
+            App_Motor_Enable_Speed_PID(true);
+        }
+        if (Track.motor_test_phase ==
+            (TRACK_MOTOR_TEST_OPEN_PHASES +
+             TRACK_MOTOR_TEST_CLOSED_PHASES / 2u)) {
+            Track.motor_test_prev_left_avg = 0;
+            Track.motor_test_prev_right_avg = 0;
+        }
+
         Motor_Set_Speed(Track.motor_test_target);
         Motor_Right_Set_Speed(Track.motor_test_target);
-        APP_TRACK_LOG_I("MOTORTEST", "phase=%u closed_loop target=%d",
-                        Track.motor_test_phase, Track.motor_test_target);
+        APP_TRACK_LOG_I("MOTORTEST", "phase=%u mode=%s target=%d",
+                        Track.motor_test_phase,
+                        Track.motor_test_phase < TRACK_MOTOR_TEST_OPEN_PHASES ?
+                        "open" : (Track.motor_test_phase ==
+                                  TRACK_MOTOR_TEST_STOP_PHASE ?
+                                  "stop" : "closed"),
+                        Track.motor_test_target);
     }
 }
 
@@ -746,6 +888,17 @@ void Track_Init(void)
     Track.motor_test_phase = 0;
     Track.motor_test_target = 0;
     Track.motor_test_result = "idle";
+    Track.motor_test_left_sum = 0;
+    Track.motor_test_right_sum = 0;
+    Track.motor_test_left_abs_sum = 0u;
+    Track.motor_test_right_abs_sum = 0u;
+    Track.motor_test_sample_count = 0u;
+    Track.motor_test_prev_left_avg = 0;
+    Track.motor_test_prev_right_avg = 0;
+    Track.motor_test_scale_left_num = 0.0f;
+    Track.motor_test_scale_right_num = 0.0f;
+    Track.motor_test_scale_den = 0.0f;
+    Track.motor_test_failed = false;
     Track.right_angle_confirm = 0;
     Track.corner_heading_settle_confirm = 0;
     Track.line_lost_confirm  = 0;
@@ -1220,18 +1373,25 @@ bool Track_Start_Motor_Test(void)
     Track.motor_test_left_start = Motor_Left.total_position;
     Track.motor_test_right_start = Motor_Right.total_position;
     Track.motor_test_phase = 0u;
-    Track.motor_test_target = TRACK_MOTOR_TEST_SIGN_PWM;
+    Track.motor_test_target = TRACK_MOTOR_TEST_TARGET_LOW;
     Track.motor_test_result = "running";
-    Track.left_speed = TRACK_MOTOR_TEST_SIGN_PWM;
-    Track.right_speed = TRACK_MOTOR_TEST_SIGN_PWM;
+    Track.left_speed = TRACK_MOTOR_TEST_TARGET_LOW;
+    Track.right_speed = TRACK_MOTOR_TEST_TARGET_LOW;
     Track.turn_output = 0.0f;
     Track.state = TRACK_STATE_MOTOR_TEST;
+    Track.motor_test_prev_left_avg = 0;
+    Track.motor_test_prev_right_avg = 0;
+    Track.motor_test_scale_left_num = 0.0f;
+    Track.motor_test_scale_right_num = 0.0f;
+    Track.motor_test_scale_den = 0.0f;
+    Track.motor_test_failed = false;
+    Track_Motor_Test_ResetSamples();
 
     App_Motor_Enable_Speed_PID(false);
-    Motor_Set_Speed(TRACK_MOTOR_TEST_SIGN_PWM);
-    Motor_Right_Set_Speed(TRACK_MOTOR_TEST_SIGN_PWM);
+    Motor_Set_Speed(TRACK_MOTOR_TEST_TARGET_LOW);
+    Motor_Right_Set_Speed(TRACK_MOTOR_TEST_TARGET_LOW);
     APP_TRACK_LOG_I("MOTORTEST", "start phase=0 open_loop pwm=%d timeout=%lu",
-                    TRACK_MOTOR_TEST_SIGN_PWM,
+                    TRACK_MOTOR_TEST_TARGET_LOW,
                     (unsigned long)TRACK_MOTOR_TEST_TIMEOUT_MS);
     return true;
 }

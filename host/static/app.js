@@ -88,7 +88,9 @@ function updateMotorTestData(tele) {
     if (tele.st === "MT" && tele.mt === true) {
         motorTestRunning = true;
         motorTestPending = false;
-        const mode = tele.mph === 0 ? "开环方向检查" : `闭环第${tele.mph}档`;
+        const mode = tele.mph < 3 ? `开环正转第${tele.mph + 1}档`
+            : (tele.mph < 6 ? `闭环正转第${tele.mph - 2}档`
+            : (tele.mph < 9 ? `闭环反转第${tele.mph - 5}档` : "停车残留检查"));
         setMotorTestStatus(
             `${mode} 目标${tele.mtg} PWM L${tele.mlp}/R${tele.mrp} 编码 L${tele.el}/R${tele.er}`,
             "running",
