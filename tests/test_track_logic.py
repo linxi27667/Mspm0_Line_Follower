@@ -54,7 +54,7 @@ class TrackLogicTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
-    def test_line_classifier_is_symmetric_and_rejects_split_patterns(self):
+    def test_line_classifier_accepts_measured_split_left_corners(self):
         result = compile_and_run(
             r'''
             #include "TASK/track_logic.h"
@@ -70,8 +70,10 @@ class TrackLogicTests(unittest.TestCase):
                 if (Track_ClassifyLine8(0x81u, 1.25f, 4u).type != TRACK_LINE_INVALID) return 5;
                 if (Track_ClassifyLine8(0xFFu, 1.25f, 4u).type != TRACK_LINE_INVALID) return 6;
                 if (Track_ClassifyLine8(0x0Eu, 0.0f, 4u).type != TRACK_LINE_NORMAL) return 7;
-                if (Track_ClassifyLine8(0x0Fu, 0.0f, 4u).type != TRACK_LINE_INVALID) return 8;
+                if (Track_ClassifyLine8(0x0Fu, 0.0f, 4u).type != TRACK_LINE_LEFT_CORNER) return 8;
                 if (Track_ClassifyLine8(0x1Eu, 0.0f, 4u).type != TRACK_LINE_LEFT_CORNER) return 9;
+                if (Track_ClassifyLine8(0x09u, 0.0f, 4u).type != TRACK_LINE_LEFT_CORNER) return 10;
+                if (Track_ClassifyLine8(0x0Du, 0.0f, 4u).type != TRACK_LINE_LEFT_CORNER) return 11;
                 return 0;
             }
             '''
@@ -355,6 +357,14 @@ class TrackLogicTests(unittest.TestCase):
                 if (!Track_SquareLeftCorner(0x1Eu, 4u)) return 6;
                 if (!Track_SquareLeftCorner(0x1Fu, 4u)) return 7;
                 if (Track_SquareLeftCorner(0x1Eu, 5u)) return 8;
+                /* Real-car L-corner masks: split branch + incoming line. */
+                if (!Track_SquareLeftCorner(0x09u, 4u)) return 9;
+                if (!Track_SquareLeftCorner(0x0Du, 4u)) return 10;
+                if (!Track_SquareLeftCorner(0x0Fu, 4u)) return 11;
+                /* S0 without the incoming-line anchor, and 0x0E without S0,
+                 * must remain rejected. */
+                if (Track_SquareLeftCorner(0x01u, 4u)) return 12;
+                if (Track_SquareLeftCorner(0x0Eu, 4u)) return 13;
                 return 0;
             }
             '''
@@ -380,7 +390,7 @@ class TrackLogicTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
-    def test_corner_phases_pivot_pwm_and_lap_count(self):
+    def test_corner_phases_and_lap_count(self):
         result = compile_and_run(
             r'''
             #include "TASK/track_logic.h"
@@ -392,10 +402,6 @@ class TrackLogicTests(unittest.TestCase):
                 if (frames != 2u) return 1;
                 frames = Track_UpdateConfirmFrames(frames, false);
                 if (frames != 0u) return 2;
-                if (Track_RightAngle_PivotPwm(90.0f, 0.0f, 0.8f, 0.08f, 28, 50) != 50) return 10;
-                if (Track_RightAngle_PivotPwm(-90.0f, 0.0f, 0.8f, 0.08f, 28, 50) != -50) return 11;
-                if (Track_RightAngle_PivotPwm(4.0f, 0.0f, 0.8f, 0.08f, 28, 50) != 28) return 12;
-                if (Track_RightAngle_PivotPwm(3.0f, 0.0f, 0.8f, 0.08f, 28, 50) != 0) return 13;
                 for (uint8_t laps = 1u; laps <= 5u; laps++) {
                     uint16_t corners = (uint16_t)laps * 4u;
                     if (Track_CornersComplete((uint16_t)(corners - 1u), laps)) return 6;
@@ -423,6 +429,12 @@ class TrackLogicTests(unittest.TestCase):
         self.assertIn("Track_Motor_Stop_Immediate();", timeout)
         self.assertIn("Track.corner_phase == TRACK_CORNER_PIVOT", source)
         self.assertIn("Track_EncoderDistanceReached", source)
+        self.assertNotIn("CORNER_FAIL reason=approach_cal_missing", source)
+        self.assertIn("Track.corner_phase = TRACK_CORNER_APPROACH;", source)
+        self.assertIn("TRACK_RIGHT_ANGLE_APPROACH_FALLBACK_MS", source)
+        self.assertIn("Track_Apply_Rotate_Envelope(angle_error, Imu_Sensor.gyro_z);", source)
+        self.assertNotIn("Track_RightAngle_PivotPwm", source)
+        self.assertIn("if (!pivot_turn) {", source)
         self.assertNotIn("USER_RIGHT_ANGLE_APPROACH_MS", source)
         self.assertIn("App_Motor_Enable_Speed_PID(false);", source)
         self.assertIn("TRACK_MOTOR_INNER_MIN", source)
@@ -513,6 +525,10 @@ class TrackLogicTests(unittest.TestCase):
                 if (Track_Rotate_SpeedLimit(20.0f, 20.0f, 40.0f, 5.0f, 16.0f) != 5.0f) return 11;
                 if (Track_Rotate_SpeedLimit(40.0f, 20.0f, 40.0f, 5.0f, 16.0f) != 16.0f) return 12;
                 if (Track_Rotate_SpeedLimit(30.0f, 20.0f, 40.0f, 5.0f, 16.0f) != 10.5f) return 13;
+                if (!Track_Rotate_ShouldCoast(5.0f, 8.0f, 3.5f, 4.0f)) return 14;
+                if (Track_Rotate_ShouldCoast(5.0f, -1.0f, 3.5f, 4.0f)) return 15;
+                if (Track_Rotate_ShouldCoast(5.0f, 0.0f, 3.5f, 4.0f)) return 16;
+                if (Track_Rotate_ShouldCoast(5.0f, 8.0f, 4.0f, 4.0f)) return 17;
                 Track_Rotate_Command(90.0f, 30, &left, &right);
                 if (left >= 0 || right <= 0) return 7;
                 Track_Rotate_Command(-90.0f, 30, &left, &right);
@@ -542,15 +558,19 @@ class TrackLogicTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
-    def test_manual_rotation_uses_low_slip_speed_envelope(self):
+    def test_manual_rotation_uses_fast_near_target_speed_envelope(self):
         tuning = (ROOT / "APP" / "Inc" / "user_tuning.h").read_text(
             encoding="utf-8"
         )
-        self.assertIn("USER_ROTATE_PID_MAX_SPEED        8.0f", tuning)
-        self.assertIn("USER_ROTATE_PID_MIN_SPEED       5", tuning)
-        self.assertIn("USER_ROTATE_PID_FINE_ZONE_DEG    25.0f", tuning)
-        self.assertIn("USER_ROTATE_PID_BLEND_ZONE_DEG   60.0f", tuning)
-        self.assertIn("USER_RIGHT_ANGLE_PIVOT_MAX_PWM    40", tuning)
+        self.assertIn("USER_ROTATE_PID_MAX_SPEED       16.0f", tuning)
+        self.assertIn("USER_ROTATE_PID_MIN_SPEED       8", tuning)
+        self.assertIn("USER_ROTATE_PID_FINE_ZONE_DEG    10.0f", tuning)
+        self.assertIn("USER_ROTATE_PID_BLEND_ZONE_DEG   25.0f", tuning)
+        self.assertIn("USER_ROTATE_PID_FINE_MAX_SPEED    7.0f", tuning)
+        self.assertIn("USER_ROTATE_PID_COAST_OUTPUT    4.0f", tuning)
+        self.assertIn("USER_RIGHT_ANGLE_APPROACH_FALLBACK_MS 500u", tuning)
+        self.assertIn("USER_RIGHT_ANGLE_TIMEOUT   6000", tuning)
+        self.assertNotIn("USER_RIGHT_ANGLE_PIVOT_MAX_PWM", tuning)
 
     def test_rotation_requires_twenty_continuous_settle_frames(self):
         result = compile_and_run(

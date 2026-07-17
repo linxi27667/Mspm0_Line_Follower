@@ -103,9 +103,19 @@ static inline uint8_t Track_Rotate_UpdateSettleFrames(uint8_t current,
 }
 
 static inline bool Track_Rotate_Settled(uint8_t settle_frames,
-                                         uint8_t required_frames)
+                                          uint8_t required_frames)
 {
     return required_frames > 0u && settle_frames >= required_frames;
+}
+
+static inline bool Track_Rotate_ShouldCoast(float angle_error_deg,
+                                             float gyro_rate_deg_s,
+                                             float output,
+                                             float coast_output)
+{
+    bool moving_toward_target = angle_error_deg * gyro_rate_deg_s > 0.0f;
+    return moving_toward_target &&
+           Track_Abs_Float(output) < coast_output;
 }
 
 static inline float Track_Rotate_SpeedLimit(float error_abs_deg,
@@ -247,9 +257,21 @@ static inline bool Track_SquareLeftCorner(uint8_t digital_mask,
     bool right_chain = center_pair &&
                        (digital_mask & (1u << 5)) != 0u &&
                        (digital_mask & 0xC0u) != 0u;
+    bool ideal_left_corner =
+        digital_mask != 0xFFu && Track_MaskIsContiguous(digital_mask) &&
+        black_count >= min_black && left_chain && !right_chain;
 
-    return digital_mask != 0xFFu && Track_MaskIsContiguous(digital_mask) &&
-           black_count >= min_black && left_chain && !right_chain;
+    /* Real-car L-corner evidence: the far-left branch reaches S0 while the
+     * incoming line still covers S3.  This includes the measured 0x09, 0x0D
+     * and 0x0F masks.  The temporal centered-history gate is applied by the
+     * caller, so an isolated wide-left mask cannot trigger a turn. */
+    bool split_left_corner =
+        (digital_mask & 0x01u) != 0u &&
+        (digital_mask & 0x08u) != 0u &&
+        (digital_mask & 0xE0u) == 0u &&
+        black_count >= 2u && black_count <= 4u;
+
+    return ideal_left_corner || split_left_corner;
 }
 
 static inline track_line_observation_t Track_ClassifyLine8(
@@ -339,24 +361,6 @@ static inline float Track_ClampTurn(float turn_output, float limit)
     if (turn_output > limit) return limit;
     if (turn_output < -limit) return -limit;
     return turn_output;
-}
-
-static inline int32_t Track_RightAngle_PivotPwm(float angle_error_deg,
-                                                float gyro_rate_deg_s,
-                                                float kp,
-                                                float kd_rate,
-                                                int32_t min_pwm,
-                                                int32_t max_pwm)
-{
-    if (Track_Abs_Float(angle_error_deg) <= TRACK_RIGHT_ANGLE_DONE_ERROR) {
-        return 0;
-    }
-
-    float command = kp * angle_error_deg - kd_rate * gyro_rate_deg_s;
-    float magnitude = Track_Abs_Float(command);
-    if (magnitude < (float)min_pwm) magnitude = (float)min_pwm;
-    if (magnitude > (float)max_pwm) magnitude = (float)max_pwm;
-    return (command >= 0.0f) ? (int32_t)magnitude : -(int32_t)magnitude;
 }
 
 static inline float Track_RightAngle_PivotTurn(float angle_error_deg,

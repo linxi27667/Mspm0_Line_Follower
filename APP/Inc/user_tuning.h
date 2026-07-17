@@ -169,7 +169,7 @@
 #define USER_RIGHT_ANGLE_ARM_DELAY  200     /* 启动后短暂稳定，避免漏掉靠近起点的首个角 */
 #endif
 #ifndef USER_RIGHT_ANGLE_TIMEOUT
-#define USER_RIGHT_ANGLE_TIMEOUT   4500    /* 前探、停车、原地转向和捕线总超时 */
+#define USER_RIGHT_ANGLE_TIMEOUT   6000    /* 前探、停车、闭环转向和捕线总超时 */
 #endif
 #ifndef USER_RIGHT_ANGLE_TARGET_ANGLE
 #define USER_RIGHT_ANGLE_TARGET_ANGLE    90.0f /* IMU按入口航向左转90度 */
@@ -188,6 +188,9 @@
 #endif
 #ifndef USER_RIGHT_ANGLE_APPROACH_SPEED
 #define USER_RIGHT_ANGLE_APPROACH_SPEED  30    /* 首轮实车安全档：前探PWM */
+#endif
+#ifndef USER_RIGHT_ANGLE_APPROACH_FALLBACK_MS
+#define USER_RIGHT_ANGLE_APPROACH_FALLBACK_MS 500u /* 距离未标定时闭环前探500ms */
 #endif
 #ifndef USER_RIGHT_ANGLE_STOP_MS
 #define USER_RIGHT_ANGLE_STOP_MS        100u   /* 原地转向前停车稳定 */
@@ -216,13 +219,6 @@
 #ifndef USER_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES
 #define USER_RIGHT_ANGLE_CAPTURE_CONFIRM_FRAMES 3u
 #endif
-#ifndef USER_RIGHT_ANGLE_PIVOT_MIN_PWM
-#define USER_RIGHT_ANGLE_PIVOT_MIN_PWM    28
-#endif
-#ifndef USER_RIGHT_ANGLE_PIVOT_MAX_PWM
-#define USER_RIGHT_ANGLE_PIVOT_MAX_PWM    40   /* 首轮实车安全档：限制原地转向冲击 */
-#endif
-
 /* Rotation/heading outer loop: angle P + measured yaw-rate damping. Its
  * output is a wheel-speed target; the encoder P loop below it produces PWM. */
 #ifndef USER_ROTATE_PID_KP
@@ -232,25 +228,25 @@
 #define USER_ROTATE_PID_KD_RATE         0.08f  /* wheel-speed / (degree/second) */
 #endif
 #ifndef USER_ROTATE_PID_MAX_SPEED
-#define USER_ROTATE_PID_MAX_SPEED        8.0f  /* 实车防滑档：约束原地旋转峰值角速度 */
+#define USER_ROTATE_PID_MAX_SPEED       16.0f
 #endif
 #ifndef USER_ROTATE_PID_MIN_SPEED
-#define USER_ROTATE_PID_MIN_SPEED       5
+#define USER_ROTATE_PID_MIN_SPEED       8
 #endif
 #ifndef USER_ROTATE_PID_COAST_OUTPUT
-#define USER_ROTATE_PID_COAST_OUTPUT    2.4f
+#define USER_ROTATE_PID_COAST_OUTPUT    4.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_ZONE_DEG
-#define USER_ROTATE_PID_FINE_ZONE_DEG    25.0f
+#define USER_ROTATE_PID_FINE_ZONE_DEG    10.0f
 #endif
 #ifndef USER_ROTATE_PID_BLEND_ZONE_DEG
-#define USER_ROTATE_PID_BLEND_ZONE_DEG   60.0f
+#define USER_ROTATE_PID_BLEND_ZONE_DEG   25.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_MAX_SPEED
-#define USER_ROTATE_PID_FINE_MAX_SPEED    3.0f
+#define USER_ROTATE_PID_FINE_MAX_SPEED    7.0f
 #endif
 #ifndef USER_ROTATE_PID_FINE_MIN_SPEED
-#define USER_ROTATE_PID_FINE_MIN_SPEED   2
+#define USER_ROTATE_PID_FINE_MIN_SPEED   3
 #endif
 #ifndef USER_ROTATE_DONE_ERR_DEG
 #define USER_ROTATE_DONE_ERR_DEG          3.0f

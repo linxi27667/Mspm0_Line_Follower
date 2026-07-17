@@ -146,23 +146,16 @@ static void Track_Detect_Pattern(track_line_observation_t observation)
 
         if (gyro_available && corner_armed &&
             Track.right_angle_confirm >= TRACK_RIGHT_ANGLE_CONFIRM_FRAMES) {
-                if (!Track_ApproachCalibrationValid()) {
-                    Track.state = TRACK_STATE_FINISHED;
-                    Track_Motor_Stop_Immediate();
-                    Safety_TransitionToFinished();
-                    APP_TRACK_LOG_W("TRACK", "CORNER_FAIL reason=approach_cal_missing mask=0x%02X cpmL=%d cpmR=%d mm=%d",
-                                    digital_mask,
-                                    (int)(USER_ENCODER_LEFT_COUNTS_PER_MM * 1000.0f),
-                                    (int)(USER_ENCODER_RIGHT_COUNTS_PER_MM * 1000.0f),
-                                    (int)((USER_SENSOR_TO_AXLE_MM + USER_RIGHT_ANGLE_DETECT_COMP_MM) * 10.0f));
-                    return;
-                }
+                bool encoder_approach = Track_ApproachCalibrationValid();
                 Track.right_angle_entry_heading = Imu_Sensor.heading;
                 Track.right_angle_target = Imu_Sensor.heading;
                 App_Motor_Enable_Speed_PID(true);
                 Track.corner_left_start = Motor_Left.total_position;
                 Track.corner_right_start = Motor_Right.total_position;
                 Track.state = TRACK_STATE_RIGHT_ANGLE;
+                /* Distance calibration is preferred. Until it is available,
+                 * keep the closed-loop wheels straight for 500ms before the
+                 * IMU-controlled 90-degree turn. */
                 Track.corner_phase = TRACK_CORNER_APPROACH;
                 Track.corner_started_at = now;
                 Track.state_timer = now;
@@ -171,11 +164,12 @@ static void Track_Detect_Pattern(track_line_observation_t observation)
                 Track.capture_confirm = 0;
                 Track.line_lost_confirm = 0;
                 Track.centered_history = 0;
-                APP_TRACK_LOG_I("TRACK", "CORNER_ENTER mask=0x%02X err=%d enc=%ld,%ld entry=%d target_mm=%d",
+                APP_TRACK_LOG_I("TRACK", "CORNER_ENTER mask=0x%02X err=%d enc=%ld,%ld entry=%d approach=%s target_mm=%d",
                        digital_mask, (int)(Track.error * 1000.0f),
                        (long)Track.corner_left_start,
                        (long)Track.corner_right_start,
                        (int)Track.right_angle_entry_heading,
+                       encoder_approach ? "encoder" : "time500",
                        (int)((USER_SENSOR_TO_AXLE_MM + USER_RIGHT_ANGLE_DETECT_COMP_MM) * 10.0f));
                 return;
         }
@@ -271,10 +265,15 @@ static void Track_Apply_Rotate_PD(float angle_error_deg, float gyro_rate_deg_s,
     }
     Track.turn_output = output;
 
-    /* Near the target, forcing a motor's minimum speed causes a limit cycle.
-     * Let the vehicle coast until angle/rate demand is large enough to brake. */
-    if (Track_Abs_Float(output) < coast_output) {
-        speed = 0;
+    /* A target speed of 3 is below the encoder's stable 5ms resolution and
+     * makes the wheel PI pulse its minimum starting PWM. Coast while inertia
+     * is already carrying the chassis toward the target. If it stops outside
+     * tolerance, PD is allowed to nudge it again. */
+    if (Track_Rotate_ShouldCoast(angle_error_deg, gyro_rate_deg_s,
+                                 output, coast_output)) {
+        Track.left_speed = 0;
+        Track.right_speed = 0;
+        return;
     } else {
         speed = (int32_t)Track_Abs_Float(output);
         if (speed < min_speed) speed = min_speed;
@@ -285,6 +284,28 @@ static void Track_Apply_Rotate_PD(float angle_error_deg, float gyro_rate_deg_s,
                                           USER_ROTATE_SPEED_SLEW_STEP);
     Track.right_speed = Track_Slew_Command(Track.right_speed, desired_right,
                                            USER_ROTATE_SPEED_SLEW_STEP);
+}
+
+static void Track_Apply_Rotate_Envelope(float angle_error_deg,
+                                        float gyro_rate_deg_s)
+{
+    float error_abs = Track_Abs_Float(angle_error_deg);
+    if (error_abs < USER_ROTATE_PID_BLEND_ZONE_DEG) {
+        float speed_limit = Track_Rotate_SpeedLimit(
+            error_abs,
+            USER_ROTATE_PID_FINE_ZONE_DEG,
+            USER_ROTATE_PID_BLEND_ZONE_DEG,
+            USER_ROTATE_PID_FINE_MAX_SPEED,
+            USER_ROTATE_PID_MAX_SPEED);
+        Track_Apply_Rotate_PD(angle_error_deg, gyro_rate_deg_s,
+                              speed_limit, USER_ROTATE_PID_FINE_MIN_SPEED,
+                              USER_ROTATE_PID_COAST_OUTPUT);
+    } else {
+        Track_Apply_Rotate_PD(angle_error_deg, gyro_rate_deg_s,
+                              USER_ROTATE_PID_MAX_SPEED,
+                              USER_ROTATE_PID_MIN_SPEED,
+                              USER_ROTATE_PID_COAST_OUTPUT);
+    }
 }
 
 static void Track_Handle_Rotate(void)
@@ -331,23 +352,7 @@ static void Track_Handle_Rotate(void)
         return;
     }
 
-    float error_abs = Track_Abs_Float(Track.rotate_error_deg);
-    if (error_abs < USER_ROTATE_PID_BLEND_ZONE_DEG) {
-        float speed_limit = Track_Rotate_SpeedLimit(
-            error_abs,
-            USER_ROTATE_PID_FINE_ZONE_DEG,
-            USER_ROTATE_PID_BLEND_ZONE_DEG,
-            USER_ROTATE_PID_FINE_MAX_SPEED,
-            USER_ROTATE_PID_MAX_SPEED);
-        Track_Apply_Rotate_PD(Track.rotate_error_deg, Imu_Sensor.gyro_z,
-                              speed_limit, USER_ROTATE_PID_FINE_MIN_SPEED,
-                              USER_ROTATE_PID_COAST_OUTPUT);
-    } else {
-        Track_Apply_Rotate_PD(Track.rotate_error_deg, Imu_Sensor.gyro_z,
-                              USER_ROTATE_PID_MAX_SPEED,
-                              USER_ROTATE_PID_MIN_SPEED,
-                              USER_ROTATE_PID_COAST_OUTPUT);
-    }
+    Track_Apply_Rotate_Envelope(Track.rotate_error_deg, Imu_Sensor.gyro_z);
     Motor_Set_Speed(Track.left_speed);
     Motor_Right_Set_Speed(Track.right_speed);
 }
@@ -657,21 +662,27 @@ static void Track_Handle_RightAngle(track_line_observation_t observation)
         return;
     }
 
-    if (Track.corner_phase == TRACK_CORNER_APPROACH &&
-        Track_EncoderDistanceReached(
-            Motor_Left.total_position, Motor_Right.total_position,
-            Track.corner_left_start, Track.corner_right_start,
-            USER_ENCODER_LEFT_COUNTS_PER_MM,
-            USER_ENCODER_RIGHT_COUNTS_PER_MM, target_mm)) {
+    bool encoder_approach = Track_ApproachCalibrationValid();
+    bool approach_done = encoder_approach
+        ? Track_EncoderDistanceReached(
+              Motor_Left.total_position, Motor_Right.total_position,
+              Track.corner_left_start, Track.corner_right_start,
+              USER_ENCODER_LEFT_COUNTS_PER_MM,
+              USER_ENCODER_RIGHT_COUNTS_PER_MM, target_mm)
+        : Track_Timeout_Reached(now, Track.corner_started_at,
+                                TRACK_RIGHT_ANGLE_APPROACH_FALLBACK_MS);
+
+    if (Track.corner_phase == TRACK_CORNER_APPROACH && approach_done) {
         Track.corner_phase = TRACK_CORNER_STOP;
         Track.state_timer = now;
         Track.base_speed = 0;
         Track.target_speed = 0;
         Track.turn_output = 0.0f;
-        APP_TRACK_LOG_I("TRACK", "CORNER_STOP mask=0x%02X enc_d=%ld,%ld entry=%d actual=%d",
+        APP_TRACK_LOG_I("TRACK", "CORNER_STOP mask=0x%02X enc_d=%ld,%ld entry=%d actual=%d approach=%s",
                         Track.line_mask, (long)left_delta, (long)right_delta,
                         (int)Track.right_angle_entry_heading,
-                        (int)Imu_Sensor.heading);
+                        (int)Imu_Sensor.heading,
+                        encoder_approach ? "encoder" : "time500");
     }
 
     if (Track.corner_phase == TRACK_CORNER_STOP &&
@@ -726,14 +737,15 @@ static void Track_Handle_RightAngle(track_line_observation_t observation)
         Track.base_speed = 0;
         Track.turn_output = 0.0f;
     } else if (Track.corner_phase == TRACK_CORNER_PIVOT) {
-        int32_t pivot_pwm = Track_RightAngle_PivotPwm(
-            angle_error, Imu_Sensor.gyro_z,
-            USER_ROTATE_PID_KP, USER_ROTATE_PID_KD_RATE,
-            TRACK_RIGHT_ANGLE_PIVOT_MIN_PWM,
-            TRACK_RIGHT_ANGLE_PIVOT_MAX_PWM);
         Track.target_speed = 0;
         Track.base_speed = 0;
-        Track.turn_output = (float)-pivot_pwm;
+        if (Track_Abs_Float(angle_error) <= TRACK_RIGHT_ANGLE_DONE_ERROR) {
+            Track.left_speed = 0;
+            Track.right_speed = 0;
+            Track.turn_output = 0.0f;
+        } else {
+            Track_Apply_Rotate_Envelope(angle_error, Imu_Sensor.gyro_z);
+        }
     } else {
         Track.target_speed = TRACK_RIGHT_ANGLE_CAPTURE_SPEED;
         Track.base_speed = TRACK_RIGHT_ANGLE_CAPTURE_SPEED;
@@ -826,8 +838,10 @@ static void Track_Motor_Output(void)
         return;
     }
 
-    Track.left_speed  = Track.base_speed + (int32_t)Track.turn_output;
-    Track.right_speed = Track.base_speed - (int32_t)Track.turn_output;
+    if (!pivot_turn) {
+        Track.left_speed  = Track.base_speed + (int32_t)Track.turn_output;
+        Track.right_speed = Track.base_speed - (int32_t)Track.turn_output;
+    }
 
     /* 内侧电机最低速度限制（不允许反转，避免急转抖动）
      * 修复: 原代码双 if 互斥条件在两轮都低于 MIN 时均不执行，
