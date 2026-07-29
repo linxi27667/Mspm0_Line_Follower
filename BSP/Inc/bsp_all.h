@@ -21,11 +21,9 @@
 /* 硬件绑定层 (APP_HW) */
 #include "app_led.h"
 #include "app_key.h"
-#include "app_uart.h"
 #include "app_servo.h"
 #include "app_encoder_motor.h"
 #include "app_stepper.h"
-#include "app_sw_i2c.h"
 #include "app_mpu6050.h"
 
 #endif /* __BSP_ALL_H__ */

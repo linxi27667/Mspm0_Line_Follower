@@ -21,7 +21,7 @@
           <Cpu>IRAM(0x20000000,0x00008000) IRAM2(0x20200000,0x00008000) IROM(0x00000000,0x00020000) IROM2(0x00400000,0x00020000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC8000 -FN1 -FF0MSPM0G_MainFlash_128KB -FS00 -FL020000 -FP0($$Device:MSPM0G3507$02_Flash_Programming\FlashARM\MSPM0G_MainFlash_128KB.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20200000 -FC8000 -FN1 -FF0MSPM0G1X0X_G3X0X_MAIN_128KB -FS00 -FL020000 -FP0($$Device:MSPM0G3507$02_Flash_Programming\FlashARM\MSPM0G1X0X_G3X0X_MAIN_128KB.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
           <RegisterFile></RegisterFile>
           <MemoryEnv></MemoryEnv>
@@ -72,7 +72,7 @@
           <BeforeMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>cmd.exe /C "E:\MCU\MSPM0\m0_sdk\mspm0_sdk_1_30_00_03\tools\keil\syscfg.bat '$P' TI_moban.syscfg"</UserProg1Name>
+            <UserProg1Name>cmd.exe /C "C:\ti\mspm0_sdk_1_30_00_03\tools\keil\syscfg.bat" $P TI_moban.syscfg</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -138,7 +138,7 @@
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -323,10 +323,10 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>4</wLevel>
+            <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
             <v6Lang>3</v6Lang>
@@ -337,10 +337,10 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>-Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-gnu-zero-variadic-macro-arguments -Wno-pedantic -Wno-extra-semi-stmt -Wno-covered-switch-default -Wno-unused-parameter -Wno-cast-qual -Wno-sign-conversion -Wno-padded -Wno-newline-eof -Wno-implicit-int-conversion -Wno-missing-variable-declarations -Wno-format-nonliteral -Wno-missing-prototypes</MiscControls>
               <Define>__MSPM0G3507__</Define>
               <Undefine></Undefine>
-              <IncludePath>E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source/third_party/CMSIS/Core/Include;E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source;..\BSP\Inc;..\BSP\Src;..\APP\Inc;..\APP\Src;..\RTT EasyLog\RTT_easylog\easylogger\inc;..\RTT EasyLog\RTT_easylog\easylogger\plugins;..\RTT EasyLog\RTT_easylog\easylogger\port;..\RTT EasyLog\RTT_easylog\easylogger\src;..\RTT EasyLog\RTT_easylog\RTT;..\RTT EasyLog\RTT_easylog\easylogger\plugins\file;..\RTT EasyLog\RTT_easylog\easylogger\plugins\flash;..\..\TI_moban;..\RTT EasyLog\RTT_easylog\my_easylog</IncludePath>
+              <IncludePath>C:\ti\mspm0_sdk_1_30_00_03\source;C:\ti\mspm0_sdk_1_30_00_03\source\third_party\CMSIS\Core\Include;..;..\TASK;..\MID\Inc;..\MID\Src;..\COMM\Inc;..\COMM\Src;..\APP\stepper\Inc;..\APP\stepper\Src;..\BSP\stepper\Inc;..\BSP\stepper\Src;..\BSP\Inc;..\BSP\Src;..\APP\Inc;..\APP\Src;..\RTT EasyLog\RTT_easylog\easylogger\inc;..\RTT EasyLog\RTT_easylog\easylogger\plugins;..\RTT EasyLog\RTT_easylog\easylogger\port;..\RTT EasyLog\RTT_easylog\easylogger\src;..\RTT EasyLog\RTT_easylog\RTT;..\RTT EasyLog\RTT_easylog\easylogger\plugins\file;..\RTT EasyLog\RTT_easylog\easylogger\plugins\flash</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -422,28 +422,342 @@
             <File>
               <FileName>driverlib.a</FileName>
               <FileType>4</FileType>
-              <FilePath>E:/MCU/MSPM0/m0_sdk/mspm0_sdk_1_30_00_03/source/ti/driverlib/lib/keil/m0p/mspm0g1x0x_g3x0x/driverlib.a</FilePath>
+              <FilePath>C:\ti\mspm0_sdk_1_30_00_03\source\ti\driverlib\lib\keil\m0p\mspm0g1x0x_g3x0x\driverlib.a</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MID</GroupName>
+          <Files>
+            <File>
+              <FileName>mid_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MID\Src\mid_pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>mid_pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\MID\Inc\mid_pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>mid_scara.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MID\Src\mid_scara.c</FilePath>
+            </File>
+            <File>
+              <FileName>mid_scara.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\MID\Inc\mid_scara.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>COMM</GroupName>
+          <Files>
+            <File>
+              <FileName>comm_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\COMM\Src\comm_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\COMM\Inc\comm_uart.h</FilePath>
+            </File>
+            <File>
+              <FileName>comm_sw_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\COMM\Src\comm_sw_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_sw_i2c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\COMM\Inc\comm_sw_i2c.h</FilePath>
+            </File>
+            <File>
+              <FileName>comm_vision_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\COMM\Src\comm_vision_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_vision_uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\COMM\Inc\comm_vision_uart.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>TASK</GroupName>
+          <Files>
+            <File>
+              <FileName>writer_home.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\writer_home.c</FilePath>
+            </File>
+            <File>
+              <FileName>writer_home.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\writer_home.h</FilePath>
+            </File>
+            <File>
+              <FileName>writer_rehome.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\writer_rehome.c</FilePath>
+            </File>
+            <File>
+              <FileName>writer_rehome.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\writer_rehome.h</FilePath>
+            </File>
+            <File>
+              <FileName>fixed_layout_probe.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\fixed_layout_probe.c</FilePath>
+            </File>
+            <File>
+              <FileName>fixed_layout_probe.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\fixed_layout_probe.h</FilePath>
+            </File>
+            <File>
+              <FileName>puzzle_area_probe.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\puzzle_area_probe.c</FilePath>
+            </File>
+            <File>
+              <FileName>puzzle_area_probe.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\puzzle_area_probe.h</FilePath>
+            </File>
+            <File>
+              <FileName>center_reference_mark.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\center_reference_mark.c</FilePath>
+            </File>
+            <File>
+              <FileName>center_reference_mark.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\center_reference_mark.h</FilePath>
+            </File>
+            <File>
+              <FileName>fixed_layout_axis_mark.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\fixed_layout_axis_mark.c</FilePath>
+            </File>
+            <File>
+              <FileName>fixed_layout_axis_mark.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\fixed_layout_axis_mark.h</FilePath>
+            </File>
+            <File>
+              <FileName>author_text_demo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\author_text_demo.c</FilePath>
+            </File>
+            <File>
+              <FileName>author_text_demo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\author_text_demo.h</FilePath>
+            </File>
+            <File>
+              <FileName>author_text_demo_path.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\author_text_demo_path.h</FilePath>
+            </File>
+            <File>
+              <FileName>final_xy_point_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\final_xy_point_test.c</FilePath>
+            </File>
+            <File>
+              <FileName>final_xy_point_test.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\final_xy_point_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>writer_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\writer_test.c</FilePath>
+            </File>
+            <File>
+              <FileName>writer_test.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\writer_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>gcode_serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\gcode_serial.c</FilePath>
+            </File>
+            <File>
+              <FileName>gcode_serial.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\gcode_serial.h</FilePath>
+            </File>
+            <File>
+              <FileName>writer_cloud.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\writer_cloud.c</FilePath>
+            </File>
+            <File>
+              <FileName>writer_cloud.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\writer_cloud.h</FilePath>
+            </File>
+            <File>
+              <FileName>writer_net_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\TASK\writer_net_config.h</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
           <GroupName>APP</GroupName>
+          <Files>
+            <File>
+              <FileName>app_stepper.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\stepper\Src\app_stepper.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_stepper.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\stepper\Inc\app_stepper.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_writer_motion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_writer_motion.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_writer_motion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_writer_motion.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_writer_paper_map.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_writer_paper_map.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_writer_paper_map.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_writer_paper_map.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_servo.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_key.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_key.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_key.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_writer_identity.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_writer_identity.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_writer_identity.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_writer_identity.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>BSP</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp_stepper.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\stepper\Inc\bsp_stepper.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_stepper.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\stepper\Src\bsp_stepper.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_servo.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_esp_at.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_esp_at.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mqtt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_mqtt.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_writer_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_writer_protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_writer_job.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_writer_job.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_esp_at.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_esp_at.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mqtt.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_mqtt.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_writer_protocol.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_writer_protocol.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_writer_job.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_writer_job.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Easy_log</GroupName>
           <Files>
             <File>
-              <FileName>my_easylog.c</FileName>
+              <FileName>elog.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\RTT EasyLog\RTT_easylog\my_easylog\my_easylog.c</FilePath>
+              <FilePath>..\RTT EasyLog\RTT_easylog\easylogger\src\elog.c</FilePath>
             </File>
             <File>
-              <FileName>my_easylog.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\RTT EasyLog\RTT_easylog\my_easylog\my_easylog.h</FilePath>
+              <FileName>elog_utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\RTT EasyLog\RTT_easylog\easylogger\src\elog_utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>elog_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\RTT EasyLog\RTT_easylog\easylogger\port\elog_port.c</FilePath>
             </File>
             <File>
               <FileName>SEGGER_RTT.c</FileName>

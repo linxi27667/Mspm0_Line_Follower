@@ -25,14 +25,15 @@
  * Function: Portable interface for each platform.
  * Created on: 2015-04-28
  */
- 
+
 #include <elog.h>
+#include <stdio.h>
 
-
-#include "main.h"
-#include "ti_msp_dl_config.h"
 #include "SEGGER_RTT.h"
-#include "core_cm0plus.h" 
+#include "ti_msp_dl_config.h"
+
+/* 使用 main.c 中定义的 SysTick 毫秒计数器 */
+extern volatile uint32_t s_sys_tick;
 
 /**
  * EasyLogger port initialize
@@ -43,7 +44,7 @@ ElogErrCode elog_port_init(void) {
     ElogErrCode result = ELOG_NO_ERR;
 
     /* add your code here */
-    
+
     return result;
 }
 
@@ -64,8 +65,7 @@ void elog_port_deinit(void) {
  * @param size log size
  */
 void elog_port_output(const char *log, size_t size) {
-    
-    /* add your code here */
+
     SEGGER_RTT_Write(0, log, size);
 }
 
@@ -73,13 +73,14 @@ void elog_port_output(const char *log, size_t size) {
  * output lock
  */
 void elog_port_output_lock(void) {
-    /* 暂时禁用中断锁，防止芯片锁死导致无法烧录 */
-    // __disable_irq();
+
 }
 
+/**
+ * output unlock
+ */
 void elog_port_output_unlock(void) {
-    /* 暂时禁用中断锁，防止芯片锁死导致无法烧录 */
-    // __enable_irq();
+
 }
 
 /**
@@ -88,9 +89,12 @@ void elog_port_output_unlock(void) {
  * @return current time
  */
 const char *elog_port_get_time(void) {
-    
-    /* add your code here */
-    return "";
+
+    static char cur_system_time[16] = { 0 };
+
+    snprintf(cur_system_time, sizeof(cur_system_time), "%lu", (unsigned long)s_sys_tick);
+
+    return cur_system_time;
 }
 
 /**
@@ -99,7 +103,7 @@ const char *elog_port_get_time(void) {
  * @return current process name
  */
 const char *elog_port_get_p_info(void) {
-    
+
     /* add your code here */
     return "";
 }
@@ -110,8 +114,7 @@ const char *elog_port_get_p_info(void) {
  * @return current thread name
  */
 const char *elog_port_get_t_info(void) {
-    
+
     /* add your code here */
     return "";
 }
-

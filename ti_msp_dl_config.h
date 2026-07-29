@@ -72,27 +72,85 @@ extern "C" {
 #define POWER_STARTUP_DELAY                                                (16)
 
 
-
 #define CPUCLK_FREQ                                                     32000000
 
 
 
+/* Defines for STEP */
+#define STEP_INST                                                          TIMA1
+#define STEP_INST_IRQHandler                                    TIMA1_IRQHandler
+#define STEP_INST_INT_IRQN                                      (TIMA1_INT_IRQn)
+#define STEP_INST_CLK_FREQ                                              32000000
+/* GPIO defines for channel 0 */
+#define GPIO_STEP_C0_PORT                                                  GPIOA
+#define GPIO_STEP_C0_PIN                                          DL_GPIO_PIN_10
+#define GPIO_STEP_C0_IOMUX                                       (IOMUX_PINCM21)
+#define GPIO_STEP_C0_IOMUX_FUNC                      IOMUX_PINCM21_PF_TIMA1_CCP0
+#define GPIO_STEP_C0_IDX                                     DL_TIMER_CC_0_INDEX
 
-/* Port definition for Pin Group GPIO_LEDS */
-#define GPIO_LEDS_PORT                                                   (GPIOB)
+/* Defines for STEP2 */
+#define STEP2_INST                                                         TIMA0
+#define STEP2_INST_IRQHandler                                   TIMA0_IRQHandler
+#define STEP2_INST_INT_IRQN                                     (TIMA0_INT_IRQn)
+#define STEP2_INST_CLK_FREQ                                             32000000
+/* GPIO defines for channel 0 */
+#define GPIO_STEP2_C0_PORT                                                 GPIOA
+#define GPIO_STEP2_C0_PIN                                          DL_GPIO_PIN_8
+#define GPIO_STEP2_C0_IOMUX                                      (IOMUX_PINCM19)
+#define GPIO_STEP2_C0_IOMUX_FUNC                     IOMUX_PINCM19_PF_TIMA0_CCP0
+#define GPIO_STEP2_C0_IDX                                    DL_TIMER_CC_0_INDEX
 
-/* Defines for USER_LED_1: GPIOB.22 with pinCMx 50 on package pin 21 */
-#define GPIO_LEDS_USER_LED_1_PIN                                (DL_GPIO_PIN_22)
-#define GPIO_LEDS_USER_LED_1_IOMUX                               (IOMUX_PINCM50)
-/* Defines for USER_LED_2: GPIOB.21 with pinCMx 49 on package pin 20 */
-#define GPIO_LEDS_USER_LED_2_PIN                                (DL_GPIO_PIN_21)
-#define GPIO_LEDS_USER_LED_2_IOMUX                               (IOMUX_PINCM49)
-/* Defines for USER_LED_3: GPIOB.27 with pinCMx 58 on package pin 29 */
-#define GPIO_LEDS_USER_LED_3_PIN                                (DL_GPIO_PIN_27)
-#define GPIO_LEDS_USER_LED_3_IOMUX                               (IOMUX_PINCM58)
-/* Defines for USER_TEST: GPIOB.16 with pinCMx 33 on package pin 4 */
-#define GPIO_LEDS_USER_TEST_PIN                                 (DL_GPIO_PIN_16)
-#define GPIO_LEDS_USER_TEST_IOMUX                                (IOMUX_PINCM33)
+
+
+
+/* Port definition for Pin Group GPIO_GRP_1 */
+#define GPIO_GRP_1_PORT                                                  (GPIOA)
+
+/* Defines for STAGE1_DIR_PIN: GPIOA.11 with pinCMx 22 on package pin 57 */
+#define GPIO_GRP_1_STAGE1_DIR_PIN_PIN                           (DL_GPIO_PIN_11)
+#define GPIO_GRP_1_STAGE1_DIR_PIN_IOMUX                          (IOMUX_PINCM22)
+/* Port definition for Pin Group GPIO_GRP_2 */
+#define GPIO_GRP_2_PORT                                                  (GPIOA)
+
+/* Defines for STAGE2_DIR_PIN: GPIOA.9 with pinCMx 20 on package pin 55 */
+#define GPIO_GRP_2_STAGE2_DIR_PIN_PIN                            (DL_GPIO_PIN_9)
+#define GPIO_GRP_2_STAGE2_DIR_PIN_IOMUX                          (IOMUX_PINCM20)
+/* Port definition for Pin Group GPIO_GRP_3 */
+#define GPIO_GRP_3_PORT                                                  (GPIOA)
+
+/* Defines for STAGE1_LIMIT_PIN: GPIOA.26 with pinCMx 59 on package pin 30 */
+#define GPIO_GRP_3_STAGE1_LIMIT_PIN_PIN                         (DL_GPIO_PIN_26)
+#define GPIO_GRP_3_STAGE1_LIMIT_PIN_IOMUX                        (IOMUX_PINCM59)
+/* Port definition for Pin Group GPIO_GRP_4 */
+#define GPIO_GRP_4_PORT                                                  (GPIOA)
+
+/* Defines for STAGE2_LIMIT_PIN: GPIOA.27 with pinCMx 60 on package pin 31 */
+#define GPIO_GRP_4_STAGE2_LIMIT_PIN_PIN                         (DL_GPIO_PIN_27)
+#define GPIO_GRP_4_STAGE2_LIMIT_PIN_IOMUX                        (IOMUX_PINCM60)
+/* Port definition for Pin Group KEY1_GPIO */
+#define KEY1_GPIO_PORT                                                   (GPIOB)
+
+/* Defines for KEY1_PIN: GPIOB.26 with pinCMx 57 on package pin 28 */
+#define KEY1_GPIO_KEY1_PIN_PIN                                  (DL_GPIO_PIN_26)
+#define KEY1_GPIO_KEY1_PIN_IOMUX                                 (IOMUX_PINCM57)
+/* Port definition for Pin Group KEY2_GPIO */
+#define KEY2_GPIO_PORT                                                   (GPIOA)
+
+/* Defines for KEY2_PIN: GPIOA.29 with pinCMx 4 on package pin 36 */
+#define KEY2_GPIO_KEY2_PIN_PIN                                  (DL_GPIO_PIN_29)
+#define KEY2_GPIO_KEY2_PIN_IOMUX                                  (IOMUX_PINCM4)
+/* Port definition for Pin Group KEY3_GPIO */
+#define KEY3_GPIO_PORT                                                   (GPIOB)
+
+/* Defines for KEY3_PIN: GPIOB.23 with pinCMx 51 on package pin 22 */
+#define KEY3_GPIO_KEY3_PIN_PIN                                  (DL_GPIO_PIN_23)
+#define KEY3_GPIO_KEY3_PIN_IOMUX                                 (IOMUX_PINCM51)
+/* Port definition for Pin Group KEY4_GPIO */
+#define KEY4_GPIO_PORT                                                   (GPIOB)
+
+/* Defines for KEY4_PIN: GPIOB.27 with pinCMx 58 on package pin 29 */
+#define KEY4_GPIO_KEY4_PIN_PIN                                  (DL_GPIO_PIN_27)
+#define KEY4_GPIO_KEY4_PIN_IOMUX                                 (IOMUX_PINCM58)
 
 /* clang-format on */
 
@@ -100,8 +158,12 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
+void SYSCFG_DL_STEP_init(void);
+void SYSCFG_DL_STEP2_init(void);
 
 
+bool SYSCFG_DL_saveConfiguration(void);
+bool SYSCFG_DL_restoreConfiguration(void);
 
 #ifdef __cplusplus
 }

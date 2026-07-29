@@ -1,0 +1,45 @@
+# Keil build artifacts
+keil/Objects/
+keil/Listings/
+keil/*.log
+keil/*.txt
+keil/build_log.txt
+keil/build_output.txt
+keil/flash_log.txt
+
+# Debug scripts and temp files
+*.jlink
+*.ps1
+!tests/protocol/run_protocol_tests.ps1
+ram_dump.bin
+rtt_*.txt
+rtt_*.bin
+rtt_*.log
+read_systick*
+-LLogFile
+build_log.txt
+flash_log.txt
+flash_log.txt
+device.cmd.genlibs
+device.lds.genlibs
+device.opt
+device_linker.cmd
+device_linker.lds
+open_sysconfig.bat
+reset_script.jlink
+
+# SysConfig generated (kept for reference, can be regenerated)
+# ti_msp_dl_config.c/h are kept as they contain manual fixes
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Local Wi-Fi/MQTT credentials (copy from the committed example).
+TASK/writer_net_config_local.h
