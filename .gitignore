@@ -34,8 +34,15 @@ reset_script.jlink
 # IDE files
 .vscode/
 .idea/
+*.uvguix.*
 *.swp
 *~
+
+# Local backups and reproducible render/test caches
+backups/
+.qa_*/
+tmp/
+__pycache__/
 
 # OS files
 Thumbs.db
