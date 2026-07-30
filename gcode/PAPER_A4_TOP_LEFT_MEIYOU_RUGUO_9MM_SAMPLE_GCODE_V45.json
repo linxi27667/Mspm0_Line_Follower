@@ -1,0 +1,110 @@
+{
+  "id": "PAPER_A4_TOP_LEFT_MEIYOU_RUGUO_9MM_SAMPLE_GCODE_V45",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "text": "张佳乐作品",
+  "comparison_to": "PAPER_A4_TOP_LEFT_SONG_9MM_ZHANG_JIA_LE_ZUO_PIN_GCODE_V44",
+  "font": {
+    "file": "MEIYOU_RUGUO_e31cdaaa.gfont",
+    "sha256": "569C56EE629D29E1F1172D66F1FE8205E810801A6437FA8490006FE1CB3DD6D6",
+    "name": "没有如果",
+    "em_size": 600,
+    "geometry": "unmodified gfont path points and command order",
+    "character_path_counts": [
+      7,
+      8,
+      4,
+      7,
+      9
+    ]
+  },
+  "layout": {
+    "content_left_mm": 30.0,
+    "content_top_mm": 190.0,
+    "visible_height_mm": 9.0,
+    "character_gap_mm": 1.875,
+    "bounds_with_penup_approaches_paper_mm": [
+      28.2815075884866,
+      181.0,
+      75.07296050179487,
+      191.73736930283766
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          30.0,
+          181.94029850746267,
+          39.04695132648004,
+          189.3859275053305
+        ],
+        "stroke_count": 7
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          40.92195132648004,
+          181.6140724946695,
+          48.63623704076576,
+          190.0
+        ],
+        "stroke_count": 8
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          50.51123704076576,
+          181.55650319829425,
+          57.285224247588786,
+          189.50106609808103
+        ],
+        "stroke_count": 4
+      },
+      {
+        "character": "作",
+        "bounds_mm": [
+          59.160224247588786,
+          181.0,
+          66.4331453563308,
+          189.53944562899787
+        ],
+        "stroke_count": 7
+      },
+      {
+        "character": "品",
+        "bounds_mm": [
+          68.30814535633078,
+          182.3816631130064,
+          75.07296050179487,
+          189.35661345199227
+        ],
+        "stroke_count": 9
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 150,
+    "tangent_approach_mm": 1.875,
+    "paper_subdivision_max_mm": 0.4,
+    "stroke_count": 35,
+    "g1_count": 462,
+    "stroke_length_mm": [
+      2.00047265387554,
+      11.716493715793929
+    ],
+    "sampled_paper_segment_mm": [
+      0.04290962003730676,
+      0.3995055476072678
+    ]
+  },
+  "coordinate_contract": {
+    "gfont_y": "positive downward",
+    "paper_y": "positive upward",
+    "firmware_paper_map_enabled": false,
+    "offline_pointwise_paper_to_user_map_enabled": true
+  },
+  "gcode": {
+    "file": "PAPER_A4_TOP_LEFT_MEIYOU_RUGUO_9MM_SAMPLE_GCODE_V45.gcode",
+    "line_count": 653,
+    "sha256": "9426fc5a917f155ab3c5cb35e58280eeacd1894a19832e82cced975f40ac412d"
+  }
+}

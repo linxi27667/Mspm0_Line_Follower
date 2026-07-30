@@ -1,0 +1,79 @@
+{
+  "id": "PAPER_A4_ZHANG_JIA_LE_AA_GUO_32MM_TANGENT_GCODE_V31",
+  "supersedes": {
+    "id": "PAPER_A4_ZHANG_JIA_LE_CHEN_HAND_32MM_TANGENT_GCODE_V30",
+    "reason": "V30 interpreted gfont +Y in the wrong direction"
+  },
+  "text": "张佳乐",
+  "font": {
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "name": "aa郭敬明字体",
+    "em_size": 525,
+    "glyph_count": 2576,
+    "geometry": "unmodified gfont path points and command order"
+  },
+  "coordinate_contract": {
+    "gfont_y": "positive downward",
+    "paper_y": "positive upward",
+    "transform_y": "paper_y = baseline_y - source_y * scale"
+  },
+  "layout": {
+    "visible_height_mm": 32.0,
+    "character_gap_mm": 7.0,
+    "row_center_mm": [
+      105.0,
+      130.0
+    ],
+    "scale_mm_per_font_unit": 0.08695758900212597,
+    "bounds_mm": [
+      48.00780168700276,
+      114.0,
+      160.2624238751232,
+      150.92878717013332
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          49.73757612487681,
+          114.0,
+          85.77062706763276,
+          143.7173632886942
+        ],
+        "stroke_count": 7
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          92.77062706763276,
+          115.80397721901176,
+          130.10523419377375,
+          145.02172712372607
+        ],
+        "stroke_count": 8
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          137.10523419377375,
+          117.35391769241818,
+          160.2624238751232,
+          146.0
+        ],
+        "stroke_count": 5
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 180,
+    "tangent_approach_mm": 6.0,
+    "stroke_count": 20,
+    "g1_count": 65
+  },
+  "gcode": {
+    "file": "PAPER_A4_ZHANG_JIA_LE_AA_GUO_32MM_TANGENT_GCODE_V31.gcode",
+    "line_count": 150,
+    "sha256": "6255549871113ED4BDBB9FDA2B53D60694BCDF0DBC156491893051AA2EA1F847"
+  }
+}

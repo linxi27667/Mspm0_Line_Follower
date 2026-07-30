@@ -12,6 +12,7 @@
 #include "gcode_serial.h"
 #include "app_servo.h"
 #include "app_stepper.h"
+#include "app_puzzle_frame.h"
 #include "app_writer_motion.h"
 #include "app_writer_paper_map.h"
 #include "comm_vision_uart.h"
@@ -587,15 +588,18 @@ void WriterTest_Start(void)
 #elif WRITER_TEST_MODE == WRITER_TEST_MODE_PUZZLE_AREA_PROBE
     s_writer_panel_action = WRITER_PANEL_ACTION_IDLE;
     elog_i("TEST", "[TEST] mode=%s source=KEY2_OR_M850 "
-           "paper=A4_LANDSCAPE "
-           "points_mm=0_-10__181p5_-14__181p5_233__0_230 "
-           "correction=P2_DOWN4_P3_UP3 "
-           "origin_shift_mm=0_0 limits_deg=135_255 "
-           "k2_corner_cal=4PT_PROJECTIVE_MEASURED_ALIGN "
-           "route=LL_LR_UR_UL_LL_LINE marks=4 lines=1 "
-           "line_more_up_mm=30 line_y_mm=76p5 "
+           "machine_home=%s paper_zero=P4 paper_frame=%s "
+           "axes=X_RIGHT_Y_DOWN "
+           "paper_points_mm=0_0__199_0__160_243__40_243 "
+           "legacy_cal=P1_-9_-10_P2_191p5_-24_"
+           "P3_191p5_231_P4_0_230 "
+           "calibration=PHOTO_TRI_MESH_24NODE_31TRI_4ROW_ALIGN "
+           "route=P4_P3_SAFE_BR_SAFE_BL_P4 marks=4 lines=0 "
+           "divider=DISABLED_CORNER_CAL "
            "tool=UP_AFTER_EACH_MARK gcode=DISABLED single_pass=1",
-           PUZZLE_AREA_PROBE_BUILD_ID);
+           PUZZLE_AREA_PROBE_BUILD_ID,
+           APP_PUZZLE_MACHINE_HOME_TEXT,
+           APP_PUZZLE_PAPER_FRAME_TEXT);
     PuzzleAreaProbe_Start();
 #elif WRITER_TEST_MODE == WRITER_TEST_MODE_GCODE_SERIAL
     elog_i("TEST", "[TEST] mode=%s host=STANDARD_GCODE "

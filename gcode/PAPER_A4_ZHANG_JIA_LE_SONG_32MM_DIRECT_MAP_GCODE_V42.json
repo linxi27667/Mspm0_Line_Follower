@@ -1,0 +1,97 @@
+{
+  "id": "PAPER_A4_ZHANG_JIA_LE_SONG_32MM_DIRECT_MAP_GCODE_V42",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "text": "张佳乐",
+  "font": {
+    "file": "SONG_ec900461.gfont",
+    "sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+    "name": "宋体",
+    "em_size": 600,
+    "glyph_count": 2598,
+    "geometry": "unmodified gfont path points and command order",
+    "character_path_counts": [
+      15,
+      9,
+      13
+    ]
+  },
+  "coordinate_contract": {
+    "gfont_y": "positive downward",
+    "paper_y": "positive upward",
+    "transform_y": "paper_y = baseline_y - source_y * scale",
+    "firmware_paper_map_enabled": false,
+    "offline_pointwise_paper_to_user_map_enabled": true
+  },
+  "layout": {
+    "new_blank_a4_required": true,
+    "row_center_mm": [
+      105.0,
+      150.0
+    ],
+    "visible_height_mm": 32.0,
+    "bounds_with_penup_approaches_paper_mm": [
+      45.474654377880185,
+      128.884835346101,
+      165.4839758676777,
+      171.23136811099627
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          50.44239631336406,
+          134.0,
+          82.22119815668202,
+          164.74654377880185
+        ],
+        "stroke_count": 15
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          89.22119815668202,
+          134.8847926267281,
+          120.04147465437788,
+          166.0
+        ],
+        "stroke_count": 9
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          127.04147465437788,
+          135.4746543778802,
+          159.55760368663596,
+          164.08294930875576
+        ],
+        "stroke_count": 13
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 180,
+    "tangent_approach_mm": 6.0,
+    "paper_subdivision_max_mm": 1.0,
+    "stroke_count": 37,
+    "g1_count": 460,
+    "source_segment_mm": [
+      0.10427381105054782,
+      25.880189518896664
+    ],
+    "sampled_paper_segment_mm": [
+      0.10427381105054782,
+      0.9975016378412642
+    ],
+    "command_user_bounds_mm": [
+      243.88150493728708,
+      -22.08342841438384,
+      335.9363737604286,
+      90.58170885349364
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_ZHANG_JIA_LE_SONG_32MM_DIRECT_MAP_GCODE_V42.gcode",
+    "line_count": 658,
+    "sha256": "2f911b816a4b234739162383248477c1c409442b95b871b1d2bfabe1a077d95a"
+  }
+}

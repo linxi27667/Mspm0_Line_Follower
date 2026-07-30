@@ -1,0 +1,103 @@
+{
+  "id": "PAPER_A4_TOP_LEFT_SONG_9MM_ZHANG_JIA_LE_ZUO_PIN_GCODE_V44",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "text": "张佳乐作品",
+  "comparison_to": "PAPER_A4_TOP_LEFT_SONG_12MM_ZHANG_JIA_LE_ZUO_PIN_GCODE_V43",
+  "font": {
+    "file": "SONG_ec900461.gfont",
+    "sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+    "name": "宋体",
+    "geometry": "unmodified gfont path points and command order",
+    "character_path_counts": [
+      15,
+      9,
+      13,
+      11,
+      6
+    ]
+  },
+  "layout": {
+    "content_left_mm": 30.0,
+    "content_top_mm": 212.0,
+    "visible_height_mm": 9.0,
+    "character_gap_mm": 1.875,
+    "bounds_with_penup_approaches_paper_mm": [
+      28.41267123287671,
+      201.37158869226977,
+      81.16940898765463,
+      213.60867622626495
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          30.0,
+          203.0,
+          38.85616438356164,
+          211.56849315068493
+        ],
+        "stroke_count": 15
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          40.73116438356164,
+          203.24657534246575,
+          49.320205479452056,
+          211.91780821917808
+        ],
+        "stroke_count": 9
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          51.195205479452056,
+          203.4109589041096,
+          60.25684931506849,
+          211.3835616438356
+        ],
+        "stroke_count": 13
+      },
+      {
+        "character": "作",
+        "bounds_mm": [
+          62.13184931506849,
+          203.2671232876712,
+          70.7414383561644,
+          212.0
+        ],
+        "stroke_count": 11
+      },
+      {
+        "character": "品",
+        "bounds_mm": [
+          72.6164383561644,
+          203.24657534246575,
+          80.21917808219177,
+          211.26027397260273
+        ],
+        "stroke_count": 6
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 150,
+    "tangent_approach_mm": 1.875,
+    "paper_subdivision_max_mm": 0.4,
+    "stroke_count": 54,
+    "g1_count": 552,
+    "sampled_paper_segment_mm": [
+      0.02905918278847738,
+      0.3993216634860945
+    ]
+  },
+  "coordinate_contract": {
+    "firmware_paper_map_enabled": false,
+    "offline_pointwise_paper_to_user_map_enabled": true
+  },
+  "gcode": {
+    "file": "PAPER_A4_TOP_LEFT_SONG_9MM_ZHANG_JIA_LE_ZUO_PIN_GCODE_V44.gcode",
+    "line_count": 837,
+    "sha256": "6e9e047a5c514028fd55190f0bbd26f92f962716cb5a7c8d8fe5b972bae2489c"
+  }
+}

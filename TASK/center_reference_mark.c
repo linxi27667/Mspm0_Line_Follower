@@ -1,23 +1,20 @@
 /**
  * @file    center_reference_mark.c
- * @brief   One-point calibration for the lower-left origin of landscape A4.
+ * @brief   One-point mark for puzzle paper zero, independent of machine home.
  */
 #include "center_reference_mark.h"
 
 #include "app_servo.h"
+#include "app_puzzle_frame.h"
 #include "app_stepper.h"
 #include "app_writer_motion.h"
-#include "app_writer_paper_map.h"
-#include "gcode_serial.h"
 #include "elog.h"
 
 #include <math.h>
 #include <stdint.h>
 
-#define ORIGIN_MAP_PAPER_X_MM          APP_WRITER_LANDSCAPE_MAP_ORIGIN_X_MM
-#define ORIGIN_MAP_PAPER_Y_MM          APP_WRITER_LANDSCAPE_MAP_ORIGIN_Y_MM
-#define ORIGIN_LANDSCAPE_X_MM          (0.0f)
-#define ORIGIN_LANDSCAPE_Y_MM          (0.0f)
+#define ORIGIN_PAPER_X_MM              (0.0f)
+#define ORIGIN_PAPER_Y_MM              (0.0f)
 #define ORIGIN_MOVE_FEED_MM_MIN        (300.0f)
 #define ORIGIN_MOVE_LEG_MAX_MM         (120.0f)
 #define ORIGIN_POSITION_EPS_MM         (0.20f)
@@ -64,8 +61,8 @@ static void CenterReferenceMark_Fail(const char *reason)
            "[ORIGIN] result=ERROR reason=%s paper_x100=%d paper_y100=%d "
            "lim1=%d lim2=%d pen=UP rehome=1",
            reason,
-           CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_X_MM),
-           CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_Y_MM),
+           CenterReferenceMark_Scale_100(ORIGIN_PAPER_X_MM),
+           CenterReferenceMark_Scale_100(ORIGIN_PAPER_Y_MM),
            App_Stepper_Stage1_IsLimitHit(),
            App_Stepper_Stage2_IsLimitHit());
 }
@@ -92,6 +89,8 @@ static bool CenterReferenceMark_Start_Leg(void)
 
 bool CenterReferenceMark_Start(void)
 {
+    app_puzzle_frame_map_t frame_map;
+
     App_Servo_Pen_Up();
     s_state_start_ms = 0u;
 
@@ -106,33 +105,35 @@ bool CenterReferenceMark_Start(void)
                App_Stepper_Stage2_IsLimitHit());
         return false;
     }
-    if (!WriterPaperMap_To_User(
-            ORIGIN_MAP_PAPER_X_MM, ORIGIN_MAP_PAPER_Y_MM,
-            &s_target_user_x_mm, &s_target_user_y_mm)) {
-        CenterReferenceMark_Fail("paper_map_rejected");
+    if (!App_PuzzleFrame_To_User(
+            ORIGIN_PAPER_X_MM, ORIGIN_PAPER_Y_MM, &frame_map)) {
+        CenterReferenceMark_Fail("puzzle_frame_rejected");
         return false;
     }
-    s_target_user_x_mm += GCODE_SERIAL_WORKSPACE_SHIFT_X_MM;
-    s_target_user_y_mm += GCODE_SERIAL_WORKSPACE_SHIFT_Y_MM;
-    s_target_user_x_mm += APP_WRITER_LANDSCAPE_SHIFT_X_MM;
-    s_target_user_y_mm += APP_WRITER_LANDSCAPE_SHIFT_Y_MM;
+    s_target_user_x_mm = frame_map.user_x_mm;
+    s_target_user_y_mm = frame_map.user_y_mm;
 
     elog_i("ORIGIN",
-           "[ORIGIN] id=%s paper=A4_LANDSCAPE_297X210 "
-           "origin=LOWER_LEFT axis=X_RIGHT_Y_UP "
-           "paper_x100=%d paper_y100=%d map_x100=%d map_y100=%d "
-           "shift_x100=%d shift_y100=%d "
+           "[ORIGIN] id=%s zero_type=PAPER_ZERO "
+           "machine_home=%s paper_frame=%s origin_corner=P4 "
+           "axis=X_RIGHT_Y_DOWN paper_x100=%d paper_y100=%d "
+           "grid_in_x100=%d grid_in_y100=%d "
+           "legacy_x100=%d legacy_y100=%d "
            "user_x100=%d user_y100=%d feed_x100=%d "
            "action=MOVE_AND_MARK",
            CENTER_REFERENCE_MARK_BUILD_ID,
-           CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_X_MM),
-           CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_Y_MM),
-           CenterReferenceMark_Scale_100(ORIGIN_MAP_PAPER_X_MM),
-           CenterReferenceMark_Scale_100(ORIGIN_MAP_PAPER_Y_MM),
+           APP_PUZZLE_MACHINE_HOME_TEXT,
+           APP_PUZZLE_PAPER_FRAME_TEXT,
+           CenterReferenceMark_Scale_100(ORIGIN_PAPER_X_MM),
+           CenterReferenceMark_Scale_100(ORIGIN_PAPER_Y_MM),
            CenterReferenceMark_Scale_100(
-               APP_WRITER_LANDSCAPE_SHIFT_X_MM),
+               frame_map.calibration_input_x_mm),
            CenterReferenceMark_Scale_100(
-               APP_WRITER_LANDSCAPE_SHIFT_Y_MM),
+               frame_map.calibration_input_y_mm),
+           CenterReferenceMark_Scale_100(
+               frame_map.legacy_work_x_mm),
+           CenterReferenceMark_Scale_100(
+               frame_map.legacy_work_y_mm),
            CenterReferenceMark_Scale_100(s_target_user_x_mm),
            CenterReferenceMark_Scale_100(s_target_user_y_mm),
            CenterReferenceMark_Scale_100(ORIGIN_MOVE_FEED_MM_MIN));
@@ -177,8 +178,8 @@ void CenterReferenceMark_Update(void)
         elog_i("ORIGIN",
                "[ORIGIN] action=PEN_DOWN paper_x100=%d paper_y100=%d "
                "hold_ms=%u",
-               CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_X_MM),
-               CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_Y_MM),
+               CenterReferenceMark_Scale_100(ORIGIN_PAPER_X_MM),
+               CenterReferenceMark_Scale_100(ORIGIN_PAPER_Y_MM),
                ORIGIN_DOWN_HOLD_MS);
         return;
     }
@@ -201,10 +202,13 @@ void CenterReferenceMark_Update(void)
     }
     s_state = CENTER_REFERENCE_MARK_STATE_DONE;
     elog_i("ORIGIN",
-           "[ORIGIN] result=DONE paper=A4_LANDSCAPE_297X210 "
+           "[ORIGIN] result=DONE zero_type=PAPER_ZERO "
+           "machine_home=%s paper_frame=%s "
            "paper_x100=%d paper_y100=%d pen=UP",
-           CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_X_MM),
-           CenterReferenceMark_Scale_100(ORIGIN_LANDSCAPE_Y_MM));
+           APP_PUZZLE_MACHINE_HOME_TEXT,
+           APP_PUZZLE_PAPER_FRAME_TEXT,
+           CenterReferenceMark_Scale_100(ORIGIN_PAPER_X_MM),
+           CenterReferenceMark_Scale_100(ORIGIN_PAPER_Y_MM));
 }
 
 void CenterReferenceMark_Abort_For_Rehome(void)

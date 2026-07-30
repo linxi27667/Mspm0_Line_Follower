@@ -1,0 +1,60 @@
+{
+  "id": "PAPER_A4_STANDARD_UPPER_BFONT_6MM_WRITER_TEST_TIMESTAMP_GCODE_V65",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_RIGHT_SBOW_PAPERMAP_YSHIFT15_V30",
+  "requested_text": "写字机第好多次测试，7.25  5.23am",
+  "rendered_text": "写字机第好多次测试，7。25  5。23am",
+  "period_substitution": {
+    "requested": "ASCII U+002E",
+    "rendered": "original B-gfont U+3002",
+    "synthesized_geometry": false
+  },
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "em_size": 525,
+    "geometry": "unmodified gfont path points and command order",
+    "gfont_y": "positive downward"
+  },
+  "layout": {
+    "visible_height_mm": 6.0,
+    "character_gap_mm": 0.9,
+    "space_advance_mm": 2.4,
+    "content_left_mm": 30.0,
+    "content_top_mm": 230.0,
+    "bounds_mm": [
+      29.66325332596835,
+      224.0,
+      118.84100418674463,
+      231.0357097917336
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 1.2,
+    "firmware_draw_subdivision_max_mm": 1.0
+  },
+  "safety": {
+    "safe_samples": 896,
+    "min_joint_margin_deg": 0.30678162956587374,
+    "min_margin_user_mm": [
+      68.98265853379115,
+      16.006685630745533
+    ],
+    "motion_line_count": 488,
+    "stroke_count": 71
+  },
+  "gcode": {
+    "file": "PAPER_A4_STANDARD_UPPER_BFONT_6MM_WRITER_TEST_TIMESTAMP_GCODE_V65.gcode",
+    "line_count": 718,
+    "sha256": "A7F99BC10166F296E3CFB9E92352A230D65C0FE21F0785F5EFCFDF9802AE0BD6"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "BFONT_DIGIT8_MOTION_CHAIN_AUDIT_V74",
+  "scope": "offline_only_no_motion_no_source_change",
+  "font": {
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "name": "aa郭敬明字体",
+    "glyph": "8",
+    "visible_height_mm": 12.0,
+    "source_point_count": 21,
+    "source_stroke_count": 1,
+    "source_segment_count": 20,
+    "source_longest_segment_mm": 4.233315989186391,
+    "source_shortest_segment_mm": 0.6019549743754595,
+    "source_start_end_gap_mm": 2.071211509755969,
+    "source_path_length_mm": 36.70357195070452,
+    "source_corner_angle_max_deg": 64.3462525559812,
+    "source_corner_angle_rms_deg": 37.72078967320786
+  },
+  "firmware_chain": {
+    "paper_center_mm": [
+      105.0,
+      215.0
+    ],
+    "cartesian_segment_limit_mm": 1.0,
+    "dense_point_count": 44,
+    "stage1_steps_per_deg": 40.099216,
+    "stage2_steps_per_deg": 40.11579,
+    "joint_reversal_count": [
+      4,
+      3
+    ],
+    "quantization_rms_mm": 0.03943581178748641,
+    "quantization_max_mm": 0.060766862291096214,
+    "quantization_axis_abs_max_mm": [
+      0.060726117240108124,
+      0.052008125106766556
+    ]
+  },
+  "conclusion": {
+    "source_geometry_can_explain_mm_scale_digit8_shape": true,
+    "joint_quantization_can_explain_1mm_misalignment": false,
+    "motion_dynamics_still_require_physical_forward_reverse_overlay": true
+  }
+}

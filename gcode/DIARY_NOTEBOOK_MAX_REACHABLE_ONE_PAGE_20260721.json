@@ -1,0 +1,178 @@
+{
+  "artifact": "DIARY_NOTEBOOK_MAX_REACHABLE_ONE_PAGE_20260721",
+  "runnable_on_robot": false,
+  "source_text_sha256": "19A3A4BB9885145B41087A3A63466275C1FF29F35A4896B149FAA8954AFC631A",
+  "source_docx_sha256": "EA36C6DEEF17968A1B18B49750D2A6B5F7CE5ECDD03572A4995E01151EBFAAE9",
+  "font_name": "宋体",
+  "font_sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+  "missing_characters_replaced_by_disclosed_composites": "粿麟婷鹏",
+  "unresolved_characters": "",
+  "paper": {
+    "size_mm": [
+      297.0,
+      210.0
+    ],
+    "orientation": "landscape",
+    "paper_origin": "lower-left",
+    "kenjoy_origin": "right-upper",
+    "paper_margin_mm": 15.0
+  },
+  "layout": {
+    "page_count": 1,
+    "line_count": 14,
+    "line_pitch_mm": 12.0,
+    "font_size_percent": 95.0,
+    "maximum_actual_glyph_height_mm": 8.379,
+    "joint_margin_boundary_deg": 10.0,
+    "boundary_pad_mm": 1.0,
+    "local_y_correction_applied": false,
+    "local_y_correction_reason": "validated only near y=65; not extrapolated",
+    "lines": [
+      "日记",
+      "  今天是星期二，是2",
+      "026年4月28日。此时此刻，我",
+      "和我的团队正在等待着“智汇杯”",
+      "的决赛，我们前面还有一个队伍，我",
+      "一点都不紧张。谢谢大家，我的演讲到",
+      "此结束。哦，对了，我的晚饭吃的是桂哥爆",
+      "炒牛肉粿条，吃的太快，没品尝到一点美味。",
+      "我变成了勤劳的小蜜蜂，在大家饥饿的时候，",
+      "我提出了去小吃街买晚饭，我是好人。我的左边",
+      "坐的是梁伟麟，我左边的左边是张佳乐，我是张瑞",
+      "婷，我后面是罗诗辉，我后面的左边是罗诗辉的队",
+      "友，我后面的后面是梁伟鹏，我后面的后面的左边是",
+      "老戴。妈的，还有多久到我们，真服了！"
+    ],
+    "rows": [
+      {
+        "row": 1,
+        "x_start_mm": 227.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 171.936,
+        "y_max_mm": 180.695,
+        "raw_boundary_x_mm": 226.0
+      },
+      {
+        "row": 2,
+        "x_start_mm": 200.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 159.936,
+        "y_max_mm": 168.695,
+        "raw_boundary_x_mm": 199.0
+      },
+      {
+        "row": 3,
+        "x_start_mm": 180.5,
+        "x_end_mm": 282.0,
+        "y_min_mm": 147.936,
+        "y_max_mm": 156.695,
+        "raw_boundary_x_mm": 179.5
+      },
+      {
+        "row": 4,
+        "x_start_mm": 165.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 135.936,
+        "y_max_mm": 144.695,
+        "raw_boundary_x_mm": 164.0
+      },
+      {
+        "row": 5,
+        "x_start_mm": 151.5,
+        "x_end_mm": 282.0,
+        "y_min_mm": 123.936,
+        "y_max_mm": 132.695,
+        "raw_boundary_x_mm": 150.5
+      },
+      {
+        "row": 6,
+        "x_start_mm": 140.5,
+        "x_end_mm": 282.0,
+        "y_min_mm": 111.936,
+        "y_max_mm": 120.695,
+        "raw_boundary_x_mm": 139.5
+      },
+      {
+        "row": 7,
+        "x_start_mm": 131.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 99.936,
+        "y_max_mm": 108.695,
+        "raw_boundary_x_mm": 130.0
+      },
+      {
+        "row": 8,
+        "x_start_mm": 123.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 87.936,
+        "y_max_mm": 96.695,
+        "raw_boundary_x_mm": 122.0
+      },
+      {
+        "row": 9,
+        "x_start_mm": 116.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 75.936,
+        "y_max_mm": 84.695,
+        "raw_boundary_x_mm": 115.0
+      },
+      {
+        "row": 10,
+        "x_start_mm": 110.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 63.936,
+        "y_max_mm": 72.695,
+        "raw_boundary_x_mm": 109.0
+      },
+      {
+        "row": 11,
+        "x_start_mm": 105.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 51.936,
+        "y_max_mm": 60.695,
+        "raw_boundary_x_mm": 104.0
+      },
+      {
+        "row": 12,
+        "x_start_mm": 101.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 39.936,
+        "y_max_mm": 48.695,
+        "raw_boundary_x_mm": 100.0
+      },
+      {
+        "row": 13,
+        "x_start_mm": 98.0,
+        "x_end_mm": 282.0,
+        "y_min_mm": 27.936,
+        "y_max_mm": 36.695,
+        "raw_boundary_x_mm": 97.0
+      },
+      {
+        "row": 14,
+        "x_start_mm": 100.5,
+        "x_end_mm": 282.0,
+        "y_min_mm": 15.936,
+        "y_max_mm": 24.695,
+        "raw_boundary_x_mm": 99.5
+      }
+    ]
+  },
+  "path": {
+    "glyph_count": 240,
+    "stroke_count": 2863,
+    "point_count": 10262,
+    "bounds_mm": [
+      98.0,
+      15.936,
+      281.988,
+      180.334
+    ]
+  },
+  "blocking_reasons": [
+    "current V36 rejects ordinary G-code",
+    "full wedge writing accuracy has not been physically calibrated",
+    "single-page glyph height is smaller than the successful 16 mm V36 test"
+  ],
+  "preview": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_MAX_REACHABLE_ONE_PAGE_OFFLINE_PREVIEW_20260721.png"
+}

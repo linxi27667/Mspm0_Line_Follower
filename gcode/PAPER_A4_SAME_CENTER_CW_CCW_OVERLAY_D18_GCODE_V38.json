@@ -1,0 +1,47 @@
+{
+  "test_id": "PAPER_A4_SAME_CENTER_CW_CCW_OVERLAY_D18_GCODE_V38",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "paper_map_enabled": false,
+  "nominal_paper_center_mm": [
+    175.0,
+    215.0
+  ],
+  "command_user_center_mm": [
+    281.47890985030347,
+    129.66811401815954
+  ],
+  "diameter_mm": 18.0,
+  "segments_per_circle": 72,
+  "feed_mm_min": 180,
+  "passes": [
+    {
+      "name": "PASS1_CW",
+      "direction": "CW",
+      "command_user_center_mm": [
+        281.47890985030347,
+        129.66811401815954
+      ],
+      "start_user_mm": [
+        281.47890985030347,
+        138.66811401815954
+      ]
+    },
+    {
+      "name": "PASS2_CCW",
+      "direction": "CCW",
+      "command_user_center_mm": [
+        281.47890985030347,
+        129.66811401815954
+      ],
+      "start_user_mm": [
+        281.47890985030347,
+        138.66811401815954
+      ]
+    }
+  ],
+  "decision": {
+    "two_traces_split": "direction_backlash_drag_or_step_loss",
+    "two_traces_overlap_but_oval": "kinematic_calibration_error"
+  },
+  "gcode_sha256": "65817a7b04c77513dd96d478b527c87984aaced71a2c9878390387c4d850e907"
+}

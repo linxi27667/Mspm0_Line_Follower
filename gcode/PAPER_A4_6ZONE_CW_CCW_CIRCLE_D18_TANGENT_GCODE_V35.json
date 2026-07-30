@@ -1,0 +1,176 @@
+{
+  "id": "PAPER_A4_6ZONE_CW_CCW_CIRCLE_D18_TANGENT_GCODE_V35",
+  "purpose": "measure circle scale, roundness, closure, direction and position",
+  "circle_contract": {
+    "radius_mm": 9.0,
+    "diameter_mm": 18.0,
+    "segments_per_circle": 72,
+    "start_angle_deg": 90.0,
+    "pair_order": [
+      "CW",
+      "CCW"
+    ],
+    "pair_offset_x_mm": 11.0
+  },
+  "zones": [
+    {
+      "zone_id": "下左",
+      "row": "下",
+      "column": "左",
+      "direction": "CW",
+      "center_mm": [
+        41.0,
+        65.0
+      ]
+    },
+    {
+      "zone_id": "下左",
+      "row": "下",
+      "column": "左",
+      "direction": "CCW",
+      "center_mm": [
+        63.0,
+        65.0
+      ]
+    },
+    {
+      "zone_id": "下中",
+      "row": "下",
+      "column": "中",
+      "direction": "CW",
+      "center_mm": [
+        94.0,
+        65.0
+      ]
+    },
+    {
+      "zone_id": "下中",
+      "row": "下",
+      "column": "中",
+      "direction": "CCW",
+      "center_mm": [
+        116.0,
+        65.0
+      ]
+    },
+    {
+      "zone_id": "下右",
+      "row": "下",
+      "column": "右",
+      "direction": "CW",
+      "center_mm": [
+        147.0,
+        65.0
+      ]
+    },
+    {
+      "zone_id": "下右",
+      "row": "下",
+      "column": "右",
+      "direction": "CCW",
+      "center_mm": [
+        169.0,
+        65.0
+      ]
+    },
+    {
+      "zone_id": "上左",
+      "row": "上",
+      "column": "左",
+      "direction": "CW",
+      "center_mm": [
+        41.0,
+        220.0
+      ]
+    },
+    {
+      "zone_id": "上左",
+      "row": "上",
+      "column": "左",
+      "direction": "CCW",
+      "center_mm": [
+        63.0,
+        220.0
+      ]
+    },
+    {
+      "zone_id": "上中",
+      "row": "上",
+      "column": "中",
+      "direction": "CW",
+      "center_mm": [
+        94.0,
+        220.0
+      ]
+    },
+    {
+      "zone_id": "上中",
+      "row": "上",
+      "column": "中",
+      "direction": "CCW",
+      "center_mm": [
+        116.0,
+        220.0
+      ]
+    },
+    {
+      "zone_id": "上右",
+      "row": "上",
+      "column": "右",
+      "direction": "CW",
+      "center_mm": [
+        147.0,
+        220.0
+      ]
+    },
+    {
+      "zone_id": "上右",
+      "row": "上",
+      "column": "右",
+      "direction": "CCW",
+      "center_mm": [
+        169.0,
+        220.0
+      ]
+    }
+  ],
+  "layout": {
+    "column_centers_mm": [
+      52.0,
+      105.0,
+      158.0
+    ],
+    "row_centers_mm": [
+      65.0,
+      220.0
+    ],
+    "bounds_with_approach_mm": [
+      32.0,
+      56.0,
+      178.0,
+      229.26171632419195
+    ],
+    "existing_ink_bands_mm": [
+      [
+        114.0,
+        150.929
+      ],
+      [
+        158.885,
+        201.231
+      ]
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 180,
+    "tangent_approach_mm": 6.0,
+    "circle_count": 12,
+    "stroke_count": 12,
+    "g1_count": 864
+  },
+  "gcode": {
+    "file": "PAPER_A4_6ZONE_CW_CCW_CIRCLE_D18_TANGENT_GCODE_V35.gcode",
+    "line_count": 917,
+    "sha256": "ECF68B625441A8BB9D4B557A035848096D5200F2D95AD94F16E879F5F37FBE08"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "id": "PAPER_A4_DIARY_DOCX_BFONT_12MM_PAGE1_GCODE_V73",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32",
+  "source_docx": {
+    "path": "C:\\Users\\zjl\\Desktop\\日记本.docx",
+    "sha256": "EA36C6DEEF17968A1B18B49750D2A6B5F7CE5ECDD03572A4995E01151EBFAAE9",
+    "paragraph_count": 2,
+    "paragraphs": [
+      "日记",
+      "  今天是星期二，是2026年4月28日。此时此刻，我和我的团队正在等待着“智汇杯”的决赛，我们前面还有一个队伍，我一点都不紧张。谢谢大家，我的演讲到此结束。哦，对了，我的晚饭吃的是桂哥爆炒牛肉粿条，吃的太快，没品尝到一点美味。我变成了勤劳的小蜜蜂，在大家饥饿的时候，我提出了去小吃街买晚饭，我是好人。我的左边坐的是梁伟麟，我左边的左边是张佳乐，我是张瑞婷，我后面是罗诗辉，我后面的左边是罗诗辉的队友，我后面的后面是梁伟鹏，我后面的后面的左边是老戴。妈的，还有多久到我们，真服了！"
+    ]
+  },
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified gfont paths",
+    "zero_length_source_strokes": "ignored as non-visible no-ops",
+    "full_document_missing_characters": "哦粿麟婷鹏"
+  },
+  "layout": {
+    "page": 1,
+    "visible_height_mm": 12.0,
+    "character_gap_mm": 1.4,
+    "space_advance_mm": 4.8,
+    "content_x_mm": [
+      30.0,
+      180.0
+    ],
+    "row_tops_mm": [
+      230.0,
+      213.0,
+      196.0,
+      179.0,
+      162.0,
+      145.0
+    ],
+    "rendered_rows": [
+      "日记",
+      "  今天是星期二，是2026年4月28",
+      "日。此时此刻，我和我的团队正在等",
+      "待着“智汇杯”的决赛，我们前面还有",
+      "一个队伍，我一点都不紧张。谢谢大",
+      "家，我的演讲到此结束。"
+    ],
+    "bounds_mm": [
+      25.181574306701204,
+      130.67618242626637,
+      179.89265531547295,
+      232.4964428544294
+    ],
+    "pagination": {
+      "stop_reason": "unsupported_glyph",
+      "stop_character": "哦",
+      "consumed_character_count": 81,
+      "source_flat_index": 81,
+      "used_row_count": 6
+    }
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0
+  },
+  "safety": {
+    "safe_samples": 9070,
+    "min_joint_margin_deg": 0.30172944021478365,
+    "min_margin_user_mm": [
+      68.97908073810632,
+      15.992089222560496
+    ],
+    "stroke_count": 458,
+    "motion_line_count": 2418
+  },
+  "gcode": {
+    "file": "PAPER_A4_DIARY_DOCX_BFONT_12MM_PAGE1_GCODE_V73.gcode",
+    "line_count": 3820,
+    "sha256": "5D5A3AE19190920439E1E5FA8205879BC43E05DF105BDE9C73C3E1D8315B780B"
+  }
+}

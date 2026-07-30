@@ -1858,6 +1858,17 @@ bool WriterMotion_Start_To_At_Feed(float user_x_mm, float user_y_mm,
                                          APP_WRITER_DRAW_MAX_FREQ_HZ);
 }
 
+bool WriterMotion_Start_To_At_Feed_Limited(
+    float user_x_mm, float user_y_mm, float feed_mm_min,
+    uint32_t min_freq_hz, uint32_t max_freq_hz)
+{
+    return WriterMotion_Start_To_Profile(user_x_mm,
+                                         user_y_mm,
+                                         feed_mm_min,
+                                         min_freq_hz,
+                                         max_freq_hz);
+}
+
 app_writer_queue_result_t WriterMotion_Queue_To(
     float user_x_mm, float user_y_mm)
 {

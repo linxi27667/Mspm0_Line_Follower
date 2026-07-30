@@ -1,0 +1,33 @@
+{
+  "id": "PAPER_A4_BFONT_DIGIT8_DIRECTION_JUNCTION_GCODE_V74",
+  "firmware_minimum": "PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32",
+  "purpose": [
+    "separate B-font digit-8 source geometry from motion error",
+    "detect direction/history-dependent splitting on the same locus",
+    "measure disconnected-stroke junction error without a font"
+  ],
+  "font": {
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified_gfont",
+    "visible_height_mm": 14.0
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0,
+    "stroke_count": 20
+  },
+  "safety": {
+    "sample_count": 853,
+    "minimum_joint_margin_deg": 24.482656805600044,
+    "minimum_margin_at_paper_mm": [
+      165.18447305568117,
+      226.30020458979126
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_BFONT_DIGIT8_DIRECTION_JUNCTION_GCODE_V74.gcode",
+    "line_count": 378,
+    "sha256": "C4134BD22ECAD6F12362F861B297F77E416450EF516945A3586F7DA28A9F999E"
+  }
+}

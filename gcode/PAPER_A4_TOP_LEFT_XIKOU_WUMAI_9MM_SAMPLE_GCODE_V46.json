@@ -1,0 +1,110 @@
+{
+  "id": "PAPER_A4_TOP_LEFT_XIKOU_WUMAI_9MM_SAMPLE_GCODE_V46",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "text": "张佳乐作品",
+  "comparison_to": "PAPER_A4_TOP_LEFT_SONG_9MM_ZHANG_JIA_LE_ZUO_PIN_GCODE_V44",
+  "font": {
+    "file": "XIKOU_WUMAI_YAYA_JING_1d6c6baa.gfont",
+    "sha256": "9377ADD7793C0B7965E21E6B7660DD6E1B6A90EE455DA076E36FB8D483C14B3A",
+    "name": "吸口雾霾压压惊",
+    "em_size": 400,
+    "geometry": "unmodified gfont path points and command order",
+    "character_path_counts": [
+      10,
+      10,
+      7,
+      5,
+      12
+    ]
+  },
+  "layout": {
+    "content_left_mm": 30.0,
+    "content_top_mm": 190.0,
+    "visible_height_mm": 9.0,
+    "character_gap_mm": 1.875,
+    "bounds_with_penup_approaches_paper_mm": [
+      29.60237701894126,
+      179.33707255675156,
+      77.50213135199866,
+      191.4672025117428
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          30.0,
+          181.03010033444815,
+          38.30769230769231,
+          190.0
+        ],
+        "stroke_count": 10
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          40.18269230769231,
+          181.0,
+          47.466973244147155,
+          189.96989966555185
+        ],
+        "stroke_count": 10
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          49.341973244147155,
+          181.30434792815242,
+          56.89715719063545,
+          189.84615374408835
+        ],
+        "stroke_count": 7
+      },
+      {
+        "character": "作",
+        "bounds_mm": [
+          58.772157190635454,
+          181.21070234113714,
+          67.14005016722409,
+          189.87959866220737
+        ],
+        "stroke_count": 5
+      },
+      {
+        "character": "品",
+        "bounds_mm": [
+          69.01505016722409,
+          181.51170568561872,
+          76.02842809364549,
+          189.294313973009
+        ],
+        "stroke_count": 12
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 150,
+    "tangent_approach_mm": 1.875,
+    "paper_subdivision_max_mm": 0.4,
+    "stroke_count": 44,
+    "g1_count": 457,
+    "stroke_length_mm": [
+      0.03010033444815008,
+      14.55358673539429
+    ],
+    "sampled_paper_segment_mm": [
+      0.03010033444815008,
+      0.39869924870989226
+    ]
+  },
+  "coordinate_contract": {
+    "gfont_y": "positive downward",
+    "paper_y": "positive upward",
+    "firmware_paper_map_enabled": false,
+    "offline_pointwise_paper_to_user_map_enabled": true
+  },
+  "gcode": {
+    "file": "PAPER_A4_TOP_LEFT_XIKOU_WUMAI_9MM_SAMPLE_GCODE_V46.gcode",
+    "line_count": 693,
+    "sha256": "191a2fe4ad4fc7436a386dfaab54ad91247b21c0cab51e453bb21fae59d19c5e"
+  }
+}

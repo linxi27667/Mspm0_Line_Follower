@@ -1,0 +1,1717 @@
+{
+  "id": "V49_PHOTO_SMOOTH_INVERSE_QUADRATIC_V1",
+  "purpose": "smooth desired-physical-paper to base-source-paper correction; the old 4x7 residual is not used",
+  "source": {
+    "photo": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\V49_BASEONLY_DIRECTION_PHOTO_20260725.jpg",
+    "photo_sha256": "C933373DFAB25FC977ADC6C9D4AED87AD7BE87967472CFFFC49804B2BE02E593",
+    "analysis": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\V49_BASEONLY_DIRECTION_PHOTO_ANALYSIS.json",
+    "analysis_sha256": "747CC2A6BD677D4E26CF0DF0011617E25FB36AC983EF55C1469B184FB5AD0D5F"
+  },
+  "normalization": {
+    "nx": "(paper_x - 105) / 100",
+    "ny": "(paper_y - 130) / 100",
+    "basis": [
+      "1",
+      "nx",
+      "ny",
+      "nx^2",
+      "nx*ny",
+      "ny^2"
+    ]
+  },
+  "coefficients": {
+    "adjusted_base_source_x": [
+      110.23426326057101,
+      96.45490403758643,
+      5.198832052488787,
+      5.2178290298819725,
+      1.1858261952876983,
+      -5.08532796544924
+    ],
+    "adjusted_base_source_y": [
+      109.49816079012434,
+      0.4683781214428393,
+      98.69040895044667,
+      -0.48775111798330323,
+      0.8437960808335004,
+      1.3595047780115708
+    ]
+  },
+  "fit": {
+    "sample_count": 72,
+    "mean_residual_mm": 1.0876663332553633,
+    "rms_residual_mm": 1.279968039745083,
+    "p95_residual_mm": 2.375949630416675,
+    "max_residual_mm": 2.6587078634903394,
+    "robust_scale_mm": 0.8136433420583347,
+    "physical_domain_mm": {
+      "x": [
+        28.0,
+        172.3198872717521
+      ],
+      "y": [
+        62.55124784896503,
+        237.62151605675874
+      ]
+    }
+  },
+  "known_limit": "Pen-down CW/CCW compliance remains in the residual. The robust fit averages both directions and must be verified by V51.",
+  "samples": [
+    {
+      "zone": "TOP_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        28.199999999999996,
+        237.62151605675874
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        216.0
+      ],
+      "fitted_base_source_paper_mm": [
+        37.959409307677625,
+        215.9400794333802
+      ],
+      "residual_vector_mm": [
+        -0.04059069232237533,
+        -0.059920566619808824
+      ],
+      "residual_mm": 0.07237457155139979
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        52.0,
+        237.22463778939505
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        216.0
+      ],
+      "fitted_base_source_paper_mm": [
+        59.63272319055851,
+        216.0168626205535
+      ],
+      "residual_vector_mm": [
+        -2.367276809441492,
+        0.0168626205534963
+      ],
+      "residual_mm": 2.3673368667115
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        52.0,
+        229.8755563853622
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        208.0
+      ],
+      "fitted_base_source_paper_mm": [
+        60.070829853821316,
+        208.5899739884019
+      ],
+      "residual_vector_mm": [
+        -1.9291701461786843,
+        0.5899739884019084
+      ],
+      "residual_mm": 2.01736629294185
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        28.2,
+        230.09367438386852
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        208.0
+      ],
+      "fitted_base_source_paper_mm": [
+        38.43177242456623,
+        208.34702621358312
+      ],
+      "residual_vector_mm": [
+        0.4317724245662333,
+        0.3470262135831206
+      ],
+      "residual_mm": 0.5539445996935445
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        28.000000000000007,
+        223.59999999999997
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        202.0
+      ],
+      "fitted_base_source_paper_mm": [
+        38.61386063989003,
+        201.8054607629976
+      ],
+      "residual_vector_mm": [
+        0.6138606398900279,
+        -0.1945392370024024
+      ],
+      "residual_mm": 0.6439490662619766
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        52.20000000000003,
+        223.59999999999994
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        202.0
+      ],
+      "fitted_base_source_paper_mm": [
+        60.58554769658255,
+        202.26314863642497
+      ],
+      "residual_vector_mm": [
+        -1.4144523034174483,
+        0.26314863642497244
+      ],
+      "residual_mm": 1.43872253179522
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        52.2,
+        216.50663375066128
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        194.0
+      ],
+      "fitted_base_source_paper_mm": [
+        60.91087055372082,
+        195.12059394167028
+      ],
+      "residual_vector_mm": [
+        -1.0891294462791805,
+        1.120593941670279
+      ],
+      "residual_mm": 1.562668785399045
+    },
+    {
+      "zone": "TOP_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        28.0,
+        216.65940398518782
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        194.0
+      ],
+      "fitted_base_source_paper_mm": [
+        38.952633629924655,
+        194.8307641300715
+      ],
+      "residual_vector_mm": [
+        0.9526336299246552,
+        0.8307641300714863
+      ],
+      "residual_mm": 1.2639936205048101
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        86.00000000000001,
+        235.6
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        216.0
+      ],
+      "fitted_base_source_paper_mm": [
+        91.67740531493477,
+        214.95536645783696
+      ],
+      "residual_vector_mm": [
+        -1.3225946850652264,
+        -1.0446335421630408
+      ],
+      "residual_mm": 1.6853830242336272
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        111.59999999999995,
+        235.6
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        216.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.52479749416156,
+        215.31886288572377
+      ],
+      "residual_vector_mm": [
+        -0.47520250583843904,
+        -0.6811371142762255
+      ],
+      "residual_mm": 0.8305210352541804
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        111.6,
+        228.6
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        208.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.88229751284649,
+        208.21230830833008
+      ],
+      "residual_vector_mm": [
+        -0.11770248715350817,
+        0.21230830833007985
+      ],
+      "residual_mm": 0.2427523290683367
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        86.00000000000001,
+        228.6
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        208.0
+      ],
+      "fitted_base_source_paper_mm": [
+        92.05615533903921,
+        207.8639327062118
+      ],
+      "residual_vector_mm": [
+        -0.9438446609607922,
+        -0.13606729378818727
+      ],
+      "residual_mm": 0.953602145794059
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        86.59999999999998,
+        222.40000000000003
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        202.0
+      ],
+      "fitted_base_source_paper_mm": [
+        92.92359615834299,
+        201.60265750101377
+      ],
+      "residual_vector_mm": [
+        -0.07640384165701164,
+        -0.39734249898623375
+      ],
+      "residual_mm": 0.40462156210535155
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        111.20000000000002,
+        222.40000000000003
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        202.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.76444810423813,
+        201.9243151297994
+      ],
+      "residual_vector_mm": [
+        -0.23555189576187274,
+        -0.07568487020060388
+      ],
+      "residual_mm": 0.24741239899062137
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        111.20000000000002,
+        215.00000000000003
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        194.0
+      ],
+      "fitted_base_source_paper_mm": [
+        117.0418754757623,
+        194.43888318180925
+      ],
+      "residual_vector_mm": [
+        0.04187547576229633,
+        0.43888318180924557
+      ],
+      "residual_mm": 0.4408764030262064
+    },
+    {
+      "zone": "TOP_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        86.6,
+        215.00000000000006
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        194.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.22261030992618,
+        194.13258601687912
+      ],
+      "residual_vector_mm": [
+        0.22261030992618203,
+        0.13258601687911664
+      ],
+      "residual_mm": 0.2591030720722937
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        144.2,
+        235.39999999999998
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        216.0
+      ],
+      "fitted_base_source_paper_mm": [
+        149.1665203420655,
+        215.48543140880224
+      ],
+      "residual_vector_mm": [
+        1.1665203420654962,
+        -0.514568591197758
+      ],
+      "residual_mm": 1.2749708010381444
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        166.60000000000008,
+        235.39999999999998
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        216.0
+      ],
+      "fitted_base_source_paper_mm": [
+        172.23053172020272,
+        215.6794346870742
+      ],
+      "residual_vector_mm": [
+        0.23053172020271973,
+        -0.32056531292579393
+      ],
+      "residual_mm": 0.39485059689816504
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        166.60000000000002,
+        228.2
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        208.0
+      ],
+      "fitted_base_source_paper_mm": [
+        172.5490904461212,
+        208.33700867444665
+      ],
+      "residual_vector_mm": [
+        0.5490904461211983,
+        0.3370086744466505
+      ],
+      "residual_mm": 0.6442632727960402
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        144.2,
+        228.19999999999996
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        208.0
+      ],
+      "fitted_base_source_paper_mm": [
+        149.50420407286163,
+        208.15661413936633
+      ],
+      "residual_vector_mm": [
+        1.5042040728616257,
+        0.15661413936632584
+      ],
+      "residual_mm": 1.5123352410966817
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        143.39999999999995,
+        222.0
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        202.0
+      ],
+      "fitted_base_source_paper_mm": [
+        148.93997918503914,
+        201.85005351786185
+      ],
+      "residual_vector_mm": [
+        0.9399791850391352,
+        -0.14994648213814799
+      ],
+      "residual_mm": 0.9518638641173657
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        165.99999999999991,
+        222.0
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        202.0
+      ],
+      "fitted_base_source_paper_mm": [
+        172.15749846464666,
+        202.02177869228657
+      ],
+      "residual_vector_mm": [
+        0.15749846464666462,
+        0.02177869228657414
+      ],
+      "residual_mm": 0.15899709998540837
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        166.0,
+        214.2
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        194.0
+      ],
+      "fitted_base_source_paper_mm": [
+        172.3944750884403,
+        194.09693407795487
+      ],
+      "residual_vector_mm": [
+        0.3944750884402879,
+        0.09693407795487019
+      ],
+      "residual_mm": 0.40621030374540457
+    },
+    {
+      "zone": "TOP_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        143.4,
+        214.2
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        194.0
+      ],
+      "fitted_base_source_paper_mm": [
+        149.19785955300327,
+        193.94008334084307
+      ],
+      "residual_vector_mm": [
+        1.1978595530032692,
+        -0.05991665915692579
+      ],
+      "residual_mm": 1.1993571256159357
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        28.599999999999984,
+        162.60000000000005
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        141.0
+      ],
+      "fitted_base_source_paper_mm": [
+        40.44736682803307,
+        140.96301834933658
+      ],
+      "residual_vector_mm": [
+        2.4473668280330685,
+        -0.03698165066342085
+      ],
+      "residual_mm": 2.447646223097291
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        52.39999999999998,
+        162.60000000000002
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        141.0
+      ],
+      "fitted_base_source_paper_mm": [
+        61.893662003064264,
+        141.28971014080287
+      ],
+      "residual_vector_mm": [
+        -0.10633799693573565,
+        0.2897101408028675
+      ],
+      "residual_mm": 0.30860935707836507
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        52.39999999999998,
+        153.99999999999997
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        133.0
+      ],
+      "fitted_base_source_paper_mm": [
+        61.74773790436647,
+        132.7743296760025
+      ],
+      "residual_vector_mm": [
+        -0.2522620956335331,
+        -0.2256703239974911
+      ],
+      "residual_mm": 0.3384719486553567
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        28.599999999999987,
+        154.00000000000003
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        133.0
+      ],
+      "fitted_base_source_paper_mm": [
+        40.32571421990044,
+        132.46490870271873
+      ],
+      "residual_vector_mm": [
+        2.3257142199004406,
+        -0.5350912972812694
+      ],
+      "residual_mm": 2.386476341611889
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        28.599999999999984,
+        147.20000000000002
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        127.0
+      ],
+      "fitted_base_source_paper_mm": [
+        40.176270231108795,
+        125.75970990221899
+      ],
+      "residual_vector_mm": [
+        2.176270231108795,
+        -1.2402900977810134
+      ],
+      "residual_mm": 2.504889547557729
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        52.79999999999997,
+        147.20000000000002
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        127.0
+      ],
+      "fitted_base_source_paper_mm": [
+        61.94386482970973,
+        126.0599735766066
+      ],
+      "residual_vector_mm": [
+        -0.05613517029026838,
+        -0.9400264233934053
+      ],
+      "residual_mm": 0.9417010321866038
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        52.79999999999999,
+        140.0
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        119.0
+      ],
+      "fitted_base_source_paper_mm": [
+        61.71370807652961,
+        118.95935282250389
+      ],
+      "residual_vector_mm": [
+        -0.2862919234703867,
+        -0.04064717749611191
+      ],
+      "residual_mm": 0.2891630309752168
+    },
+    {
+      "zone": "MIDDLE_LEFT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        28.599999999999987,
+        140.00000000000003
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        119.0
+      ],
+      "fitted_base_source_paper_mm": [
+        39.966775313555374,
+        118.67379145102875
+      ],
+      "residual_vector_mm": [
+        1.9667753135553738,
+        -0.32620854897125184
+      ],
+      "residual_mm": 1.9936441887741072
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        86.79999999999998,
+        161.30800916945867
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        141.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.91392835656,
+        140.37993949463223
+      ],
+      "residual_vector_mm": [
+        0.9139283565600067,
+        -0.6200605053677748
+      ],
+      "residual_mm": 1.1044184312303988
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        110.99999999999997,
+        161.1108587550697
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        141.0
+      ],
+      "fitted_base_source_paper_mm": [
+        117.18767669029226,
+        140.37527653977082
+      ],
+      "residual_vector_mm": [
+        0.18767669029226397,
+        -0.6247234602291769
+      ],
+      "residual_mm": 0.6523050987381398
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        111.0,
+        153.99183414363804
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        133.0
+      ],
+      "fitted_base_source_paper_mm": [
+        117.01199133837109,
+        133.29254753080815
+      ],
+      "residual_vector_mm": [
+        0.011991338371089455,
+        0.2925475308081502
+      ],
+      "residual_mm": 0.2927931863583501
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        86.8,
+        154.00439227145623
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        133.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.75542565220644,
+        133.1282649848418
+      ],
+      "residual_vector_mm": [
+        0.7554256522064406,
+        0.12826498484179183
+      ],
+      "residual_mm": 0.7662374451486897
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        87.20000000000002,
+        147.7999999999999
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        127.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.95730889377764,
+        126.98256808562614
+      ],
+      "residual_vector_mm": [
+        0.9573088937776362,
+        -0.017431914373858604
+      ],
+      "residual_mm": 0.9574675920074261
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        110.8,
+        147.79999999999993
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        127.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.6227115153334,
+        127.1423646197116
+      ],
+      "residual_vector_mm": [
+        -0.37728848466659315,
+        0.14236461971159997
+      ],
+      "residual_mm": 0.40325461635007054
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        110.8,
+        139.17393796951188
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        119.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.28664904409708,
+        118.59341431336881
+      ],
+      "residual_vector_mm": [
+        -0.713350955902925,
+        -0.406585686631189
+      ],
+      "residual_mm": 0.8210855661019576
+    },
+    {
+      "zone": "MIDDLE_CENTER",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        87.20000000000002,
+        139.2493630013618
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        119.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.64844225666307,
+        118.5253082644213
+      ],
+      "residual_vector_mm": [
+        0.6484422566630741,
+        -0.4746917355787019
+      ],
+      "residual_mm": 0.8036227996100038
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        141.39999999999992,
+        162.40000000000006
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        141.0
+      ],
+      "fitted_base_source_paper_mm": [
+        147.32562560006843,
+        141.82194716231172
+      ],
+      "residual_vector_mm": [
+        -0.6743743999315654,
+        0.8219471623117158
+      ],
+      "residual_mm": 1.0631923480327259
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        163.79999999999993,
+        162.40000000000006
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        141.0
+      ],
+      "fitted_base_source_paper_mm": [
+        170.13027823140126,
+        141.8840912554698
+      ],
+      "residual_vector_mm": [
+        -1.8697217685987368,
+        0.8840912554697979
+      ],
+      "residual_mm": 2.068206188940105
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        163.8,
+        153.80000000000004
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        133.0
+      ],
+      "fitted_base_source_paper_mm": [
+        169.8689978870701,
+        133.28833942058492
+      ],
+      "residual_vector_mm": [
+        -2.131002112929906,
+        0.28833942058491857
+      ],
+      "residual_mm": 2.150420802255914
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        141.4,
+        153.80000000000004
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        133.0
+      ],
+      "fitted_base_source_paper_mm": [
+        147.0871890115633,
+        133.24245021512803
+      ],
+      "residual_vector_mm": [
+        -0.9128109884366893,
+        0.24245021512803078
+      ],
+      "residual_mm": 0.944460696602243
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        141.99999999999994,
+        147.31858029059802
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        127.0
+      ],
+      "fitted_base_source_paper_mm": [
+        147.4607228278831,
+        126.79131074086933
+      ],
+      "residual_vector_mm": [
+        -0.539277172116897,
+        -0.20868925913066505
+      ],
+      "residual_mm": 0.5782482816601388
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        164.5999999999999,
+        147.11815440327965
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        127.0
+      ],
+      "fitted_base_source_paper_mm": [
+        170.43675350998032,
+        126.62395908809386
+      ],
+      "residual_vector_mm": [
+        -1.5632464900196794,
+        -0.37604091190614497
+      ],
+      "residual_mm": 1.607839032983729
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        164.59999999999997,
+        140.40000000000006
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        119.0
+      ],
+      "fitted_base_source_paper_mm": [
+        170.1340203007243,
+        119.9348659401786
+      ],
+      "residual_vector_mm": [
+        -1.865979699275698,
+        0.9348659401785966
+      ],
+      "residual_mm": 2.08706841387987
+    },
+    {
+      "zone": "MIDDLE_RIGHT",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        142.0,
+        140.40000000000006
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        119.0
+      ],
+      "fitted_base_source_paper_mm": [
+        147.16820476684808,
+        119.91566377472225
+      ],
+      "residual_vector_mm": [
+        -0.8317952331519223,
+        0.9156637747222476
+      ],
+      "residual_mm": 1.237062431016663
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        29.199999999999978,
+        85.01294343978458
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        66.0
+      ],
+      "fitted_base_source_paper_mm": [
+        37.155803571703665,
+        65.02785327424596
+      ],
+      "residual_vector_mm": [
+        -0.8441964282963355,
+        -0.9721467257540439
+      ],
+      "residual_mm": 1.287531306781547
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        55.0,
+        84.99758287600494
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        66.0
+      ],
+      "fitted_base_source_paper_mm": [
+        60.20860409600702,
+        65.19415806180307
+      ],
+      "residual_vector_mm": [
+        -1.7913959039929779,
+        -0.8058419381969344
+      ],
+      "residual_mm": 1.9643015334209282
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        54.999999999999986,
+        78.79999999999995
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        58.0
+      ],
+      "fitted_base_source_paper_mm": [
+        59.61994978019294,
+        59.18494238449881
+      ],
+      "residual_vector_mm": [
+        -2.3800502198070603,
+        1.184942384498811
+      ],
+      "residual_mm": 2.6587078634903394
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        29.19999999999999,
+        78.80000000000001
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        58.0
+      ],
+      "fitted_base_source_paper_mm": [
+        36.58474689684299,
+        59.01725646240326
+      ],
+      "residual_vector_mm": [
+        -1.4152531031570135,
+        1.0172564624032603
+      ],
+      "residual_mm": 1.742914816133236
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        32.199999999999996,
+        71.64102698194444
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        52.0
+      ],
+      "fitted_base_source_paper_mm": [
+        38.518330621200434,
+        52.125477690067854
+      ],
+      "residual_vector_mm": [
+        0.5183306212004339,
+        0.1254776900678536
+      ],
+      "residual_mm": 0.5333022441156535
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        57.6,
+        71.87886391812998
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        52.0
+      ],
+      "fitted_base_source_paper_mm": [
+        61.27417008769631,
+        52.49828736735831
+      ],
+      "residual_vector_mm": [
+        -0.7258299123036878,
+        0.4982873673583086
+      ],
+      "residual_mm": 0.8804086335694653
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        57.60000000000001,
+        63.19999999999999
+      ],
+      "base_source_paper_mm": [
+        62.0,
+        44.0
+      ],
+      "fitted_base_source_paper_mm": [
+        60.32041502462202,
+        44.115186912207946
+      ],
+      "residual_vector_mm": [
+        -1.6795849753779777,
+        0.11518691220794608
+      ],
+      "residual_mm": 1.6835301346454845
+    },
+    {
+      "zone": "BOTTOM_LEFT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        32.2,
+        63.19999999999996
+      ],
+      "base_source_paper_mm": [
+        38.0,
+        44.0
+      ],
+      "fitted_base_source_paper_mm": [
+        37.615115846737105,
+        43.99047311965937
+      ],
+      "residual_vector_mm": [
+        -0.38488415326289527,
+        -0.009526880340629873
+      ],
+      "residual_mm": 0.3850020426983739
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        91.63375751826815,
+        86.51457635366478
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        66.0
+      ],
+      "fitted_base_source_paper_mm": [
+        94.28165080593055,
+        66.81702425880069
+      ],
+      "residual_vector_mm": [
+        1.2816508059305534,
+        0.8170242588006857
+      ],
+      "residual_mm": 1.5199202044223397
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        115.54379274052374,
+        86.64219877950956
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        66.0
+      ],
+      "fitted_base_source_paper_mm": [
+        117.19797561010475,
+        66.969130407591
+      ],
+      "residual_vector_mm": [
+        0.1979756101047485,
+        0.9691304075909954
+      ],
+      "residual_mm": 0.9891451304605591
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        116.14379032258061,
+        77.40000000000009
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        58.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.83670999535555,
+        57.95982577486159
+      ],
+      "residual_vector_mm": [
+        -0.16329000464445187,
+        -0.04017422513840785
+      ],
+      "residual_mm": 0.16815943025074923
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "UPPER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        91.57862903225808,
+        77.40000000000009
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        58.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.32482441044881,
+        57.95106821920479
+      ],
+      "residual_vector_mm": [
+        0.3248244104488123,
+        -0.04893178079520766
+      ],
+      "residual_mm": 0.3284892947954449
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        93.39999999999999,
+        70.53408569917124
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        52.0
+      ],
+      "fitted_base_source_paper_mm": [
+        94.30770020980485,
+        51.289064576586426
+      ],
+      "residual_vector_mm": [
+        1.3077002098048496,
+        -0.7109354234135736
+      ],
+      "residual_mm": 1.4884586037199303
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        117.79999999999998,
+        70.14254981484751
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        52.0
+      ],
+      "fitted_base_source_paper_mm": [
+        117.64120705023332,
+        50.89900884032155
+      ],
+      "residual_vector_mm": [
+        0.6412070502333194,
+        -1.1009911596784505
+      ],
+      "residual_mm": 1.2740989031307632
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        117.79999999999998,
+        63.80000000000001
+      ],
+      "base_source_paper_mm": [
+        117.0,
+        44.0
+      ],
+      "fitted_base_source_paper_mm": [
+        116.89525643208583,
+        44.741366057385704
+      ],
+      "residual_vector_mm": [
+        -0.10474356791416994,
+        0.7413660573857044
+      ],
+      "residual_mm": 0.7487288201098005
+    },
+    {
+      "zone": "BOTTOM_CENTER",
+      "slot": "LOWER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        93.39999999999999,
+        63.80000000000001
+      ],
+      "base_source_paper_mm": [
+        93.0,
+        44.0
+      ],
+      "fitted_base_source_paper_mm": [
+        93.53652617718768,
+        44.76480662437198
+      ],
+      "residual_vector_mm": [
+        0.5365261771876817,
+        0.7648066243719782
+      ],
+      "residual_mm": 0.9342320437080328
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        148.60000000000002,
+        84.63688867788036
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        66.0
+      ],
+      "fitted_base_source_paper_mm": [
+        149.6411365939107,
+        64.95348588510504
+      ],
+      "residual_vector_mm": [
+        1.6411365939106872,
+        -1.0465141148949613
+      ],
+      "residual_mm": 1.9464123696039224
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        170.8,
+        84.09227798878646
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        66.0
+      ],
+      "fitted_base_source_paper_mm": [
+        172.14410852647816,
+        64.32028667928164
+      ],
+      "residual_vector_mm": [
+        0.1441085264781634,
+        -1.6797133207183634
+      ],
+      "residual_mm": 1.685883776303224
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        170.8,
+        78.00000000000014
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        58.0
+      ],
+      "fitted_base_source_paper_mm": [
+        171.47651460526544,
+        58.355059089711425
+      ],
+      "residual_vector_mm": [
+        -0.5234853947345641,
+        0.35505908971142475
+      ],
+      "residual_mm": 0.632537679262752
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "UPPER",
+      "direction": "CCW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        148.6,
+        78.00000000000014
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        58.0
+      ],
+      "fitted_base_source_paper_mm": [
+        148.9331739840759,
+        58.4669461048449
+      ],
+      "residual_vector_mm": [
+        0.9331739840758928,
+        0.46694610484490084
+      ],
+      "residual_mm": 1.043480881178903
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_left",
+      "physical_paper_mm": [
+        150.20000000000002,
+        71.66053471444556
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        52.0
+      ],
+      "fitted_base_source_paper_mm": [
+        149.82144878014242,
+        52.274963567866656
+      ],
+      "residual_vector_mm": [
+        1.8214487801424184,
+        0.27496356786665643
+      ],
+      "residual_mm": 1.8420859432546206
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "top_right",
+      "physical_paper_mm": [
+        172.07569375098183,
+        71.87090147826035
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        52.0
+      ],
+      "fitted_base_source_paper_mm": [
+        172.0769161444041,
+        52.355412445455094
+      ],
+      "residual_vector_mm": [
+        0.07691614440409467,
+        0.35541244545509443
+      ],
+      "residual_mm": 0.363640068824053
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_right",
+      "physical_paper_mm": [
+        172.3198872717521,
+        62.69514494022587
+      ],
+      "base_source_paper_mm": [
+        172.0,
+        44.0
+      ],
+      "fitted_base_source_paper_mm": [
+        171.19231517567198,
+        43.40251626008067
+      ],
+      "residual_vector_mm": [
+        -0.807684824328021,
+        -0.5974837399193333
+      ],
+      "residual_mm": 1.0046599399387734
+    },
+    {
+      "zone": "BOTTOM_RIGHT",
+      "slot": "LOWER",
+      "direction": "CW",
+      "corner": "bottom_left",
+      "physical_paper_mm": [
+        150.20000000000002,
+        62.55124784896503
+      ],
+      "base_source_paper_mm": [
+        148.0,
+        44.0
+      ],
+      "fitted_base_source_paper_mm": [
+        148.71634936855037,
+        43.406006293318626
+      ],
+      "residual_vector_mm": [
+        0.7163493685503681,
+        -0.5939937066813741
+      ],
+      "residual_mm": 0.9305831190170974
+    }
+  ]
+}

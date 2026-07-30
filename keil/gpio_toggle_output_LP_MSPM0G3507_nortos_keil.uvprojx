@@ -674,6 +674,26 @@
               <FileType>5</FileType>
               <FilePath>..\APP\Inc\app_writer_identity.h</FilePath>
             </File>
+            <File>
+              <FileName>app_actuator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_actuator.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_actuator.h</FilePath>
+            </File>
+            <File>
+              <FileName>app_puzzle_frame.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\Src\app_puzzle_frame.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_puzzle_frame.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\APP\Inc\app_puzzle_frame.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -738,6 +758,36 @@
               <FileName>bsp_writer_job.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BSP\Inc\bsp_writer_job.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_tb6612.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_tb6612.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_tb6612.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_tb6612.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_quadrature_encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_quadrature_encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_quadrature_encoder.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_quadrature_encoder.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_magnet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_magnet.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_magnet.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\Inc\bsp_magnet.h</FilePath>
             </File>
           </Files>
         </Group>

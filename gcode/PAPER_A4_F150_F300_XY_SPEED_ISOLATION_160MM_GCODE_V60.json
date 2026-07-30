@@ -1,0 +1,94 @@
+{
+  "id": "PAPER_A4_F150_F300_XY_SPEED_ISOLATION_160MM_GCODE_V60",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_YSHIFT15_GCODE_V28",
+  "decision_rule": {
+    "F150_and_F300_same_slope": "static paper mapping or mechanism geometry error",
+    "F300_materially_worse_than_F150": "dynamic tracking, acceleration, rigidity, or lost-step error"
+  },
+  "strokes": [
+    {
+      "id": "H_F150_UPPER",
+      "axis": "X",
+      "feed_mm_min": 150,
+      "physical_start_mm": [
+        25.0,
+        230.0
+      ],
+      "physical_end_mm": [
+        185.0,
+        230.0
+      ]
+    },
+    {
+      "id": "H_F300_LOWER",
+      "axis": "X",
+      "feed_mm_min": 300,
+      "physical_start_mm": [
+        25.0,
+        215.0
+      ],
+      "physical_end_mm": [
+        185.0,
+        215.0
+      ]
+    },
+    {
+      "id": "V_F150_LEFT",
+      "axis": "Y",
+      "feed_mm_min": 150,
+      "physical_start_mm": [
+        155.0,
+        235.0
+      ],
+      "physical_end_mm": [
+        155.0,
+        75.0
+      ]
+    },
+    {
+      "id": "V_F300_RIGHT",
+      "axis": "Y",
+      "feed_mm_min": 300,
+      "physical_start_mm": [
+        170.0,
+        235.0
+      ],
+      "physical_end_mm": [
+        170.0,
+        75.0
+      ]
+    }
+  ],
+  "mapping": {
+    "base_quadratic_enabled": true,
+    "old_grid4x7_residual_enabled": false,
+    "v51_photo_quadratic_enabled": false,
+    "firmware_global_translation_user_mm": [
+      0.0,
+      15.0
+    ]
+  },
+  "motion": {
+    "paper_subdivision_max_mm": 0.5,
+    "stroke_count": 4,
+    "g1_count": 1280
+  },
+  "safety": {
+    "path_sample_count": 1752,
+    "minimum_joint_margin_deg": 0.285482391107732,
+    "minimum_at_shifted_user_mm": [
+      68.98028144484388,
+      15.932197155804282
+    ],
+    "minimum_at_angles_deg": [
+      0.512400391107732,
+      135.57343412472667,
+      135.06103373361896
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_F150_F300_XY_SPEED_ISOLATION_160MM_GCODE_V60.gcode",
+    "line_count": 1317,
+    "sha256": "ca0f9113e6ee7870e36d60185c12506eab28d46ad490733ab5e949585dc621c0"
+  }
+}

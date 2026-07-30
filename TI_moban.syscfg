@@ -17,9 +17,14 @@ const GPIO5 = GPIO.addInstance();
 const GPIO6 = GPIO.addInstance();
 const GPIO7 = GPIO.addInstance();
 const GPIO8 = GPIO.addInstance();
+const GPIO9 = GPIO.addInstance();
+const GPIO10 = GPIO.addInstance();
+const GPIO11 = GPIO.addInstance();
+const GPIO12 = GPIO.addInstance();
 const PWM   = scripting.addModule("/ti/driverlib/PWM", {}, false);
 const PWM1  = PWM.addInstance();
 const PWM2  = PWM.addInstance();
+const PWM3  = PWM.addInstance();
 
 /**
  * Write custom configuration values to the imported modules.
@@ -76,6 +81,50 @@ GPIO8.associatedPins[0].assignedPin      = "27";
 GPIO8.associatedPins[0].direction        = scripting.forceWrite("INPUT");
 GPIO8.associatedPins[0].internalResistor = "PULL_UP";
 
+/* TB6612 channel A. STBY is hard-wired to 3.3 V. */
+GPIO9.$name = "ROTATE_MOTOR_CTRL";
+GPIO9.port  = "PORTB";
+GPIO9.associatedPins.create(2);
+GPIO9.associatedPins[0].$name        = "AIN1_PIN";
+GPIO9.associatedPins[0].assignedPin   = "0";
+GPIO9.associatedPins[0].initialValue  = "CLEARED";
+GPIO9.associatedPins[1].$name        = "AIN2_PIN";
+GPIO9.associatedPins[1].assignedPin   = "1";
+GPIO9.associatedPins[1].initialValue  = "CLEARED";
+
+/* N20 quadrature encoder; software disables it until explicitly enabled. */
+GPIO10.$name = "ROTATION_ENCODER";
+GPIO10.port  = "PORTB";
+GPIO10.associatedPins.create(2);
+GPIO10.associatedPins[0].$name        = "ENCODER_A_PIN";
+GPIO10.associatedPins[0].assignedPin   = "11";
+GPIO10.associatedPins[0].direction     = scripting.forceWrite("INPUT");
+GPIO10.associatedPins[0].interruptEn   = true;
+GPIO10.associatedPins[0].polarity      = "RISE_FALL";
+GPIO10.associatedPins[1].$name        = "ENCODER_B_PIN";
+GPIO10.associatedPins[1].assignedPin   = "14";
+GPIO10.associatedPins[1].direction     = scripting.forceWrite("INPUT");
+GPIO10.associatedPins[1].interruptEn   = true;
+GPIO10.associatedPins[1].polarity      = "RISE_FALL";
+
+/* Active-high buzzer and active-high electromagnet MOS trigger. */
+GPIO11.$name = "ACTUATOR_OUTPUT_A";
+GPIO11.port  = "PORTA";
+GPIO11.associatedPins.create(2);
+GPIO11.associatedPins[0].$name        = "BUZZER_PIN";
+GPIO11.associatedPins[0].assignedPin   = "2";
+GPIO11.associatedPins[0].initialValue  = "CLEARED";
+GPIO11.associatedPins[1].$name        = "MAGNET_PIN";
+GPIO11.associatedPins[1].assignedPin   = "30";
+GPIO11.associatedPins[1].initialValue  = "CLEARED";
+
+/* Active-high completion/status LED. */
+GPIO12.$name = "STATUS_LED";
+GPIO12.port  = "PORTB";
+GPIO12.associatedPins[0].$name        = "LED_PIN";
+GPIO12.associatedPins[0].assignedPin   = "10";
+GPIO12.associatedPins[0].initialValue  = "CLEARED";
+
 const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
 PWM1.$name                              = "STEP";
@@ -104,6 +153,20 @@ PWM2.ccp0PinConfig.hideOutputInversion  = scripting.forceWrite(false);
 PWM2.ccp0PinConfig.onlyInternalResistor = scripting.forceWrite(false);
 PWM2.ccp0PinConfig.passedPeripheralType = scripting.forceWrite("Digital");
 
+/* TB6612 PWMA: PA7/TIMG7_CCP1, 32 kHz, default 0% duty. */
+PWM3.$name                              = "ROTATE_MOTOR_PWM";
+PWM3.timerStartTimer                    = true;
+PWM3.ccIndex                            = [1];
+PWM3.peripheral.$assign                 = "TIMG7";
+PWM3.peripheral.ccp1Pin.$assign         = "PA7";
+PWM3.PWM_CHANNEL_1.$name                = "ROTATION_PWM_CHANNEL";
+PWM3.PWM_CHANNEL_1.dutyCycle            = 0;
+PWM3.ccp1PinConfig.$name                = "ROTATION_PWM_PIN";
+PWM3.ccp1PinConfig.direction            = scripting.forceWrite("OUTPUT");
+PWM3.ccp1PinConfig.hideOutputInversion  = scripting.forceWrite(false);
+PWM3.ccp1PinConfig.onlyInternalResistor = scripting.forceWrite(false);
+PWM3.ccp1PinConfig.passedPeripheralType = scripting.forceWrite("Digital");
+
 const SYSCTL = scripting.addModule("/ti/driverlib/SYSCTL", {}, false);
 
 /**
@@ -119,6 +182,13 @@ GPIO5.associatedPins[0].pin.$suggestSolution = "PB26";
 GPIO6.associatedPins[0].pin.$suggestSolution = "PA29";
 GPIO7.associatedPins[0].pin.$suggestSolution = "PB23";
 GPIO8.associatedPins[0].pin.$suggestSolution = "PB27";
+GPIO9.associatedPins[0].pin.$suggestSolution = "PB0";
+GPIO9.associatedPins[1].pin.$suggestSolution = "PB1";
+GPIO10.associatedPins[0].pin.$suggestSolution = "PB11";
+GPIO10.associatedPins[1].pin.$suggestSolution = "PB14";
+GPIO11.associatedPins[0].pin.$suggestSolution = "PA2";
+GPIO11.associatedPins[1].pin.$suggestSolution = "PA30";
+GPIO12.associatedPins[0].pin.$suggestSolution = "PB10";
 Board.peripheral.$suggestSolution            = "DEBUGSS";
 Board.peripheral.swclkPin.$suggestSolution   = "PA20";
 Board.peripheral.swdioPin.$suggestSolution   = "PA19";

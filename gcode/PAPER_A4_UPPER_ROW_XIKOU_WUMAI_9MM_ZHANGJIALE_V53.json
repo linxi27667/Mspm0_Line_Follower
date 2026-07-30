@@ -1,0 +1,90 @@
+{
+  "id": "PAPER_A4_UPPER_ROW_XIKOU_WUMAI_9MM_ZHANGJIALE_V53",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_YSHIFT15_GCODE_V28",
+  "text": "张佳乐作品",
+  "font": {
+    "file": "XIKOU_WUMAI_YAYA_JING_1d6c6baa.gfont",
+    "sha256": "9377ADD7793C0B7965E21E6B7660DD6E1B6A90EE455DA076E36FB8D483C14B3A",
+    "name": "吸口雾霾压压惊",
+    "em_size": 400,
+    "geometry": "unmodified gfont path points and command order",
+    "character_path_counts": [
+      10,
+      10,
+      7,
+      5,
+      12
+    ]
+  },
+  "workspace_policy": {
+    "retained_rows": [
+      "UPPER",
+      "MIDDLE"
+    ],
+    "discarded_rows": [
+      "LOWER"
+    ],
+    "nominal_physical_y_mm": [
+      110.0,
+      240.0
+    ]
+  },
+  "layout": {
+    "logical_content_left_mm": 30.0,
+    "logical_content_top_mm": 220.0,
+    "nominal_physical_content_top_mm": 235.0,
+    "visible_height_mm": 9.0,
+    "character_gap_mm": 1.875,
+    "logical_bounds_with_approaches_mm": [
+      29.60237701894126,
+      209.33707255675156,
+      77.50213135199866,
+      221.4672025117428
+    ],
+    "nominal_physical_bounds_with_approaches_mm": [
+      29.60237701894126,
+      224.33707255675156,
+      77.50213135199866,
+      236.4672025117428
+    ]
+  },
+  "mapping": {
+    "base_quadratic_enabled": true,
+    "old_grid4x7_residual_enabled": false,
+    "v51_photo_quadratic_enabled": false,
+    "firmware_paper_map_enabled": false,
+    "firmware_global_translation_user_mm": [
+      0.0,
+      15.0
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 150,
+    "tangent_approach_mm": 1.875,
+    "paper_subdivision_max_mm": 0.4,
+    "stroke_count": 44,
+    "g1_count": 457
+  },
+  "safety": {
+    "path_sample_count": 878,
+    "minimum_joint_margin_deg": 0.32346553866933336,
+    "minimum_at_shifted_user_mm": [
+      68.96492839680671,
+      16.085039544771547
+    ],
+    "minimum_at_angles_deg": [
+      0.5503835386693333,
+      135.56673580590734,
+      135.016352267238
+    ],
+    "nominal_physical_paper_y_bounds_mm": [
+      224.33707255675156,
+      236.4672025117428
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_UPPER_ROW_XIKOU_WUMAI_9MM_ZHANGJIALE_V53.gcode",
+    "line_count": 696,
+    "sha256": "a2f9ea3cb0fb7e9f7c226ed085bcfa968ea9d1e3b02f74ccbd5cc01e76813b34"
+  }
+}

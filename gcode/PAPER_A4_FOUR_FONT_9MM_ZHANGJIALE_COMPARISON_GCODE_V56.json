@@ -1,0 +1,162 @@
+{
+  "id": "PAPER_A4_FOUR_FONT_9MM_ZHANGJIALE_COMPARISON_GCODE_V56",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_YSHIFT15_GCODE_V28",
+  "text_per_font": "张佳乐作品",
+  "visible_height_mm": 9.0,
+  "order": [
+    "A_TOP_LEFT",
+    "B_TOP_RIGHT",
+    "C_MIDDLE_LEFT",
+    "D_MIDDLE_RIGHT"
+  ],
+  "groups": [
+    {
+      "option": "A",
+      "font_name": "陈手写",
+      "font_file": "CHEN_HANDWRITING_cf5b1677.gfont",
+      "font_sha256": "1B1D959A1B75106C8F94D1D95A9930FDF7DD54BA445C6CED0B84E55368F9644B",
+      "character_path_counts": [
+        7,
+        7,
+        5,
+        7,
+        9
+      ],
+      "logical_left_mm": 30.0,
+      "logical_top_mm": 220.0,
+      "nominal_physical_top_mm": 235.0,
+      "logical_bounds_with_approaches_mm": [
+        28.125,
+        211.0,
+        80.6547256097561,
+        221.7896499588157
+      ],
+      "stroke_count": 35,
+      "g1_count": 519
+    },
+    {
+      "option": "B",
+      "font_name": "aa郭敬明字体",
+      "font_file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+      "font_sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+      "character_path_counts": [
+        7,
+        8,
+        5,
+        7,
+        9
+      ],
+      "logical_left_mm": 115.0,
+      "logical_top_mm": 220.0,
+      "nominal_physical_top_mm": 235.0,
+      "logical_bounds_with_approaches_mm": [
+        114.29027199559366,
+        211.0,
+        164.152097446712,
+        221.5802082330062
+      ],
+      "stroke_count": 36,
+      "g1_count": 445
+    },
+    {
+      "option": "C",
+      "font_name": "没有如果",
+      "font_file": "MEIYOU_RUGUO_e31cdaaa.gfont",
+      "font_sha256": "569C56EE629D29E1F1172D66F1FE8205E810801A6437FA8490006FE1CB3DD6D6",
+      "character_path_counts": [
+        7,
+        8,
+        4,
+        7,
+        9
+      ],
+      "logical_left_mm": 30.0,
+      "logical_top_mm": 155.0,
+      "nominal_physical_top_mm": 170.0,
+      "logical_bounds_with_approaches_mm": [
+        28.2815075884866,
+        146.0,
+        75.07296050179487,
+        156.73736930283766
+      ],
+      "stroke_count": 35,
+      "g1_count": 462
+    },
+    {
+      "option": "D",
+      "font_name": "宋体",
+      "font_file": "SONG_ec900461.gfont",
+      "font_sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+      "character_path_counts": [
+        15,
+        9,
+        13,
+        11,
+        6
+      ],
+      "logical_left_mm": 115.0,
+      "logical_top_mm": 155.0,
+      "nominal_physical_top_mm": 170.0,
+      "logical_bounds_with_approaches_mm": [
+        113.41267123287672,
+        144.37158869226977,
+        166.16940898765463,
+        156.60867622626492
+      ],
+      "stroke_count": 54,
+      "g1_count": 552
+    }
+  ],
+  "workspace_policy": {
+    "retained_rows": [
+      "UPPER",
+      "MIDDLE"
+    ],
+    "discarded_rows": [
+      "LOWER"
+    ],
+    "nominal_physical_y_mm": [
+      110.0,
+      240.0
+    ]
+  },
+  "mapping": {
+    "base_quadratic_enabled": true,
+    "old_grid4x7_residual_enabled": false,
+    "v51_photo_quadratic_enabled": false,
+    "firmware_paper_map_enabled": false,
+    "firmware_global_translation_user_mm": [
+      0.0,
+      15.0
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 150,
+    "tangent_approach_mm": 1.875,
+    "paper_subdivision_max_mm": 0.4,
+    "stroke_count": 160,
+    "g1_count": 1978
+  },
+  "safety": {
+    "path_sample_count": 3467,
+    "minimum_joint_margin_deg": 0.300687881114153,
+    "minimum_at_shifted_user_mm": [
+      68.98253551699858,
+      15.984803082039955
+    ],
+    "minimum_at_angles_deg": [
+      0.527605881114153,
+      135.57414390889284,
+      135.0465380277787
+    ],
+    "nominal_physical_paper_y_bounds_mm": [
+      159.37158869226977,
+      236.7896499588157
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_FOUR_FONT_9MM_ZHANGJIALE_COMPARISON_GCODE_V56.gcode",
+    "line_count": 2814,
+    "sha256": "60db5043935c696c990b2769e001f1268c5ddd95acf1e497e951f1c04ce9f03f"
+  }
+}

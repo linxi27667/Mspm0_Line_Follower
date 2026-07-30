@@ -3,6 +3,8 @@
 #include "app_stepper.h"
 #include "app_servo.h"
 #include "app_key.h"
+#include "app_actuator.h"
+#include "app_puzzle_frame.h"
 #include "TASK/writer_rehome.h"
 #include "TASK/writer_test.h"
 #include "TASK/writer_cloud.h"
@@ -38,12 +40,30 @@ int main(void)
     elog_start();
     SysTick_Config(CPUCLK_FREQ / 1000u);
     App_Key_Init(s_sys_tick);
+    if (!App_Actuator_Init()) {
+        elog_e("BOOT", "actuator driver init failed; outputs forced off");
+        App_Actuator_AllOutputsOff();
+        while (1) {
+            __WFI();
+        }
+    }
 
     elog_i("LOG", "EasyLogger output=SEGGER_RTT channel=0 level=VERBOSE");
     elog_i("BOOT", "writer_robot bare-metal start");
     elog_i("PIN", "STAGE1=PA10/PA11 STAGE2=PA8/PA9 SERVO=PA12 UART1_TX=PB4 UART1_RX=PB5 STAGE1_LIMIT=PA26 STAGE2_LIMIT=PA27");
+    elog_i("ACT",
+           "ROTATE_PWM=PA7 AIN1=PB0 AIN2=PB1 STBY=3V3 "
+           "ENC_A=PB11 ENC_B=PB14 ENC_IRQ=DISABLED "
+           "MAGNET=PA30 LED=PB10 BUZZER=PA2 outputs=OFF");
     elog_i("KEY", "active_low pull_up debounce_ms=%u KEY1_REHOME=PB26 KEY2_AREA_MARK=PA29 KEY3_ORIGIN_MARK=PB23 KEY4_RESERVED=PB27",
            APP_KEY_DEBOUNCE_MS);
+    elog_i("FRAME",
+           "machine_home=%s paper_zero=P4 paper_frame=%s "
+           "axes=X_RIGHT_Y_DOWN "
+           "paper_region=TRAPEZOID_0_0__199_0__160_243__40_243 "
+           "relation=INDEPENDENT",
+           APP_PUZZLE_MACHINE_HOME_TEXT,
+           APP_PUZZLE_PAPER_FRAME_TEXT);
     elog_i("CFG", "CPUCLK=%uHz STEP1_CLK=%uHz STEP2_CLK=%uHz", CPUCLK_FREQ, STEPPER_X_PWM_CLK_FREQ, STEPPER_Y_PWM_CLK_FREQ);
     App_Vision_UART_Init();
     if (App_Servo_System_Init() != 0) {
@@ -79,7 +99,8 @@ int main(void)
              */
             App_Key_Clear_Events();
             elog_w("KEY",
-                   "KEY1 PB26 accepted action=NONBLOCKING_FULL_REHOME");
+                   "KEY1 PB26 accepted action=NONBLOCKING_FULL_REHOME "
+                   "zero_type=MECHANICAL_HOME paper_zero=UNCHANGED");
             if (WriterRehome_Is_Active()) {
                 WriterRehome_Abort();
             }
@@ -134,7 +155,10 @@ int main(void)
                     WriterCloud_Init(true);
                 }
                 elog_i("BOOT",
-                       "homing complete; panel actions unlocked");
+                       "mechanical_homing complete machine_home=%s "
+                       "paper_zero=P4 paper_frame=%s panel_actions=UNLOCKED",
+                       APP_PUZZLE_MACHINE_HOME_TEXT,
+                       APP_PUZZLE_PAPER_FRAME_TEXT);
             } else {
                 writer_rehome_state_t failed_state =
                     WriterRehome_Get_State();
@@ -182,8 +206,11 @@ int main(void)
         if (App_Key_Take_Press(APP_KEY_3_ORIGIN_MARK)) {
             if (WriterTest_Trigger_Paper_Origin_Mark()) {
                 elog_i("KEY",
-                       "KEY3 PB23 accepted action=A4_LANDSCAPE_ORIGIN_MARK "
-                       "paper_x100=0 paper_y100=0");
+                       "KEY3 PB23 accepted action=PAPER_ZERO_MARK "
+                       "origin=P4 frame=%s paper_x100=0 paper_y100=0 "
+                       "machine_home=%s",
+                       APP_PUZZLE_PAPER_FRAME_TEXT,
+                       APP_PUZZLE_MACHINE_HOME_TEXT);
             } else {
                 elog_w("KEY",
                        "KEY3 PB23 rejected "

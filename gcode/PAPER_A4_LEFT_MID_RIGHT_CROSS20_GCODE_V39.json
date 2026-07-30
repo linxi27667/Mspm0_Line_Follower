@@ -1,0 +1,110 @@
+{
+  "test_id": "PAPER_A4_LEFT_MID_RIGHT_CROSS20_GCODE_V39",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "paper_map_enabled": false,
+  "coordinate_contract": "raw_user_basis_not_paper_axes",
+  "nominal_paper_row_y_mm": 185.0,
+  "raw_user_stroke_length_mm": 20.0,
+  "feed_mm_min": 180,
+  "crosses": [
+    {
+      "name": "LEFT",
+      "nominal_paper_center_mm": [
+        45.0,
+        185.0
+      ],
+      "command_user_center_mm": [
+        222.90425856496918,
+        -1.6569707475324431
+      ],
+      "horizontal_user_mm": [
+        [
+          212.90425856496918,
+          -1.6569707475324431
+        ],
+        [
+          232.90425856496918,
+          -1.6569707475324431
+        ]
+      ],
+      "vertical_user_mm": [
+        [
+          222.90425856496918,
+          -11.656970747532442
+        ],
+        [
+          222.90425856496918,
+          8.343029252467558
+        ]
+      ]
+    },
+    {
+      "name": "MIDDLE",
+      "nominal_paper_center_mm": [
+        105.0,
+        185.0
+      ],
+      "command_user_center_mm": [
+        262.5809339506306,
+        54.96315590148639
+      ],
+      "horizontal_user_mm": [
+        [
+          252.5809339506306,
+          54.96315590148639
+        ],
+        [
+          272.5809339506306,
+          54.96315590148639
+        ]
+      ],
+      "vertical_user_mm": [
+        [
+          262.5809339506306,
+          44.96315590148639
+        ],
+        [
+          262.5809339506306,
+          64.96315590148639
+        ]
+      ]
+    },
+    {
+      "name": "RIGHT",
+      "nominal_paper_center_mm": [
+        165.0,
+        185.0
+      ],
+      "command_user_center_mm": [
+        298.5213228343796,
+        104.53858953710964
+      ],
+      "horizontal_user_mm": [
+        [
+          288.5213228343796,
+          104.53858953710964
+        ],
+        [
+          308.5213228343796,
+          104.53858953710964
+        ]
+      ],
+      "vertical_user_mm": [
+        [
+          298.5213228343796,
+          94.53858953710964
+        ],
+        [
+          298.5213228343796,
+          114.53858953710964
+        ]
+      ]
+    }
+  ],
+  "decision": {
+    "length_changes_by_position": "kinematic_jacobian_error",
+    "fixed_scale_error_everywhere": "global_steps_per_degree_error",
+    "forward_reverse_length_diff": "mechanical_backlash"
+  },
+  "gcode_sha256": "ee0816ee5fa3a4af3c74769bf839e98f75d361a45a3bb38a9c66dbd9b12f9083"
+}

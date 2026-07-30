@@ -1,0 +1,143 @@
+{
+  "id": "PAPER_A4_MEASURED_S_BOW_CORRECTED_XY_LINES_F300_GCODE_V61",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_YSHIFT15_GCODE_V28",
+  "temporary_validation_only": true,
+  "measurement_model": {
+    "vertical": {
+      "distance_down_mm": [
+        0.0,
+        7.0,
+        55.0,
+        125.0,
+        160.0
+      ],
+      "observed_x_error_mm": [
+        0.0,
+        0.0,
+        -2.0,
+        0.0,
+        4.0
+      ],
+      "interpolation": "PCHIP",
+      "dense_error_range_mm": [
+        -2.0,
+        4.0
+      ]
+    },
+    "horizontal": {
+      "distance_right_mm": [
+        0.0,
+        40.0,
+        92.5,
+        160.0
+      ],
+      "observed_y_error_mm": [
+        0.0,
+        -2.0,
+        0.0,
+        4.0
+      ],
+      "interpolation": "PCHIP",
+      "dense_error_range_mm": [
+        -2.0,
+        4.0
+      ]
+    },
+    "observed_x_scale": 1.03125,
+    "x_scale_reference_mm": 105.0
+  },
+  "strokes": [
+    {
+      "id": "H_CORRECTED_UPPER",
+      "target_start_physical_mm": [
+        25.0,
+        230.0
+      ],
+      "target_end_physical_mm": [
+        185.0,
+        230.0
+      ],
+      "prewarped_physical_bounds_mm": [
+        27.424242424242422,
+        226.0,
+        182.57575757575756,
+        232.0
+      ]
+    },
+    {
+      "id": "H_CORRECTED_LOWER",
+      "target_start_physical_mm": [
+        25.0,
+        215.0
+      ],
+      "target_end_physical_mm": [
+        185.0,
+        215.0
+      ],
+      "prewarped_physical_bounds_mm": [
+        27.784883338594273,
+        211.0,
+        182.9363984901094,
+        217.0
+      ]
+    },
+    {
+      "id": "V_CORRECTED_LEFT",
+      "target_start_physical_mm": [
+        155.0,
+        235.0
+      ],
+      "target_end_physical_mm": [
+        155.0,
+        75.0
+      ],
+      "prewarped_physical_bounds_mm": [
+        149.4848484848485,
+        72.98651636257195,
+        155.4848484848485,
+        232.98651636257196
+      ]
+    },
+    {
+      "id": "V_CORRECTED_RIGHT",
+      "target_start_physical_mm": [
+        170.0,
+        235.0
+      ],
+      "target_end_physical_mm": [
+        170.0,
+        75.0
+      ],
+      "prewarped_physical_bounds_mm": [
+        164.03030303030303,
+        72.03139183801129,
+        170.03030303030303,
+        232.0313918380113
+      ]
+    }
+  ],
+  "motion": {
+    "feed_mm_min": 300,
+    "target_subdivision_max_mm": 0.5,
+    "stroke_count": 4,
+    "g1_count": 1280
+  },
+  "safety": {
+    "path_sample_count": 1746,
+    "minimum_joint_margin_deg": 0.29304257171180015,
+    "minimum_at_shifted_user_mm": [
+      68.98583907582606,
+      15.953824226413394
+    ],
+    "minimum_at_angles_deg": [
+      0.5199605717118001,
+      135.57557680322262,
+      135.0556162315108
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_MEASURED_S_BOW_CORRECTED_XY_LINES_F300_GCODE_V61.gcode",
+    "line_count": 1315,
+    "sha256": "e5a09a54c91a3d2be80ff28562f3f852ab69c55b08a3024505d39aeaafcdf729"
+  }
+}

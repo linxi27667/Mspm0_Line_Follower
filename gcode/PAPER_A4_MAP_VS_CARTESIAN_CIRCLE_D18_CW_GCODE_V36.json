@@ -1,0 +1,283 @@
+{
+  "id": "PAPER_A4_MAP_VS_CARTESIAN_CIRCLE_D18_CW_GCODE_V36",
+  "purpose": "isolate paper-coordinate mapping from Cartesian kinematics and joint execution",
+  "pair_contract": {
+    "left": "A_PAPER_CIRCLE",
+    "right": "B_CARTESIAN_CIRCLE",
+    "direction": "CW",
+    "radius_mm": 9.0,
+    "diameter_mm": 18.0,
+    "segments_per_circle": 72,
+    "feed_mm_min": 180,
+    "tangent_approach_user_mm": 6.0
+  },
+  "layout": {
+    "column_centers_mm": [
+      52.0,
+      105.0,
+      158.0
+    ],
+    "row_centers_mm": [
+      65.0,
+      220.0
+    ],
+    "pair_offset_x_mm": 11.0,
+    "source_bounds_mm": [
+      32.0,
+      55.77261394813419,
+      178.59088014092345,
+      230.60973367398105
+    ]
+  },
+  "circles": [
+    {
+      "zone_id": "LOWER_LEFT",
+      "mode": "A_PAPER_CIRCLE",
+      "nominal_paper_center_mm": [
+        41.0,
+        65.0
+      ],
+      "target_user_center_mm": [
+        313.8771752182899,
+        -64.90752947121267
+      ],
+      "source_extent_mm": [
+        18.0,
+        18.0
+      ],
+      "target_user_extent_mm": [
+        19.44303866839806,
+        18.58791751827841
+      ]
+    },
+    {
+      "zone_id": "LOWER_LEFT",
+      "mode": "B_CARTESIAN_CIRCLE",
+      "nominal_paper_center_mm": [
+        63.0,
+        65.0
+      ],
+      "target_user_center_mm": [
+        329.25564231359203,
+        -45.92075312073545
+      ],
+      "source_extent_mm": [
+        16.48524547464408,
+        18.514898424279522
+      ],
+      "target_user_extent_mm": [
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "zone_id": "LOWER_MIDDLE",
+      "mode": "A_PAPER_CIRCLE",
+      "nominal_paper_center_mm": [
+        94.0,
+        65.0
+      ],
+      "target_user_center_mm": [
+        349.49316847363144,
+        -20.048643901117536
+      ],
+      "source_extent_mm": [
+        18.0,
+        18.0
+      ],
+      "target_user_extent_mm": [
+        16.829642325410134,
+        19.122150850825797
+      ]
+    },
+    {
+      "zone_id": "LOWER_MIDDLE",
+      "mode": "B_CARTESIAN_CIRCLE",
+      "nominal_paper_center_mm": [
+        116.0,
+        65.0
+      ],
+      "target_user_center_mm": [
+        362.85084898246924,
+        -2.319436790603092
+      ],
+      "source_extent_mm": [
+        18.276805315052982,
+        18.511194670553515
+      ],
+      "target_user_extent_mm": [
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "zone_id": "LOWER_RIGHT",
+      "mode": "A_PAPER_CIRCLE",
+      "nominal_paper_center_mm": [
+        147.0,
+        65.0
+      ],
+      "target_user_center_mm": [
+        381.506036538975,
+        21.916190147246407
+      ],
+      "source_extent_mm": [
+        18.0,
+        18.0
+      ],
+      "target_user_extent_mm": [
+        17.13823930288953,
+        18.24075198034297
+      ]
+    },
+    {
+      "zone_id": "LOWER_RIGHT",
+      "mode": "B_CARTESIAN_CIRCLE",
+      "nominal_paper_center_mm": [
+        169.0,
+        65.0
+      ],
+      "target_user_center_mm": [
+        394.63406789146967,
+        38.593877363156984
+      ],
+      "source_extent_mm": [
+        19.02924438645985,
+        18.155472641574015
+      ],
+      "target_user_extent_mm": [
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "zone_id": "UPPER_LEFT",
+      "mode": "A_PAPER_CIRCLE",
+      "nominal_paper_center_mm": [
+        41.0,
+        220.0
+      ],
+      "target_user_center_mm": [
+        195.0663292634083,
+        16.778698719185776
+      ],
+      "source_extent_mm": [
+        18.0,
+        18.0
+      ],
+      "target_user_extent_mm": [
+        17.109584184828208,
+        23.018324023565278
+      ]
+    },
+    {
+      "zone_id": "UPPER_LEFT",
+      "mode": "B_CARTESIAN_CIRCLE",
+      "nominal_paper_center_mm": [
+        63.0,
+        220.0
+      ],
+      "target_user_center_mm": [
+        208.7348028737211,
+        37.54115735113331
+      ],
+      "source_extent_mm": [
+        16.61841198132,
+        16.962861915034694
+      ],
+      "target_user_extent_mm": [
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "zone_id": "UPPER_MIDDLE",
+      "mode": "A_PAPER_CIRCLE",
+      "nominal_paper_center_mm": [
+        94.0,
+        220.0
+      ],
+      "target_user_center_mm": [
+        227.89805173841663,
+        65.38060144136207
+      ],
+      "source_extent_mm": [
+        18.0,
+        18.0
+      ],
+      "target_user_extent_mm": [
+        17.96378655256393,
+        20.424206295507084
+      ]
+    },
+    {
+      "zone_id": "UPPER_MIDDLE",
+      "mode": "B_CARTESIAN_CIRCLE",
+      "nominal_paper_center_mm": [
+        116.0,
+        220.0
+      ],
+      "target_user_center_mm": [
+        241.42074339219462,
+        84.13456317826665
+      ],
+      "source_extent_mm": [
+        17.527067468030822,
+        17.203089182415283
+      ],
+      "target_user_extent_mm": [
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "zone_id": "UPPER_RIGHT",
+      "mode": "A_PAPER_CIRCLE",
+      "nominal_paper_center_mm": [
+        147.0,
+        220.0
+      ],
+      "target_user_center_mm": [
+        260.45612825235855,
+        109.955068259567
+      ],
+      "source_extent_mm": [
+        18.0,
+        18.0
+      ],
+      "target_user_extent_mm": [
+        17.972214188328394,
+        19.00476909648829
+      ]
+    },
+    {
+      "zone_id": "UPPER_RIGHT",
+      "mode": "B_CARTESIAN_CIRCLE",
+      "nominal_paper_center_mm": [
+        169.0,
+        220.0
+      ],
+      "target_user_center_mm": [
+        273.9610663466978,
+        127.85968356680117
+      ],
+      "source_extent_mm": [
+        17.984621033616804,
+        18.26108119405157
+      ],
+      "target_user_extent_mm": [
+        18.0,
+        17.999999999999986
+      ]
+    }
+  ],
+  "gcode": {
+    "file": "PAPER_A4_MAP_VS_CARTESIAN_CIRCLE_D18_CW_GCODE_V36.gcode",
+    "line_count": 917,
+    "g0_count": 24,
+    "g1_count": 864,
+    "m3_count": 12,
+    "m5_count": 13,
+    "sha256": "B4E3E190D128340DB9418586FDFADBEEE1A58F4F2B2AB4BA645CBE1A657F3FDC"
+  }
+}

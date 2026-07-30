@@ -1,0 +1,20 @@
+固定摆放作者坐标轴 V2。全程抬笔，每一步完成并观察后再发送下一文件。
+
+作者坐标方向（当前固定俯视照片）：
+  +X = 照片向上
+  -X = 照片向下
+  +Y = 照片向左
+  -Y = 照片向右
+
+01  FIXED_LAYOUT_AUTHOR_AXIS_01_ALIGN_V2.gcode       M801  作者 ALIGN=(150,20) mm
+02  FIXED_LAYOUT_AUTHOR_AXIS_02_X_PLUS_10_V2.gcode   M802  +X 10 mm，预期照片向上
+03  FIXED_LAYOUT_AUTHOR_AXIS_03_X_RETURN_V2.gcode    M803  回 ALIGN
+04  FIXED_LAYOUT_AUTHOR_AXIS_04_X_MINUS_10_V2.gcode  M804  -X 10 mm，预期照片向下
+05  FIXED_LAYOUT_AUTHOR_AXIS_05_X_CENTER_V2.gcode    M805  回 ALIGN
+06  FIXED_LAYOUT_AUTHOR_AXIS_06_Y_PLUS_10_V2.gcode   M806  +Y 10 mm，预期照片向左
+07  FIXED_LAYOUT_AUTHOR_AXIS_07_Y_RETURN_V2.gcode    M807  回 ALIGN
+08  FIXED_LAYOUT_AUTHOR_AXIS_08_Y_MINUS_10_V2.gcode  M808  -Y 10 mm，预期照片向右
+09  FIXED_LAYOUT_AUTHOR_AXIS_09_Y_CENTER_V2.gcode    M809  回 ALIGN并结束
+
+每步前可发送 STATUS。任何方向不符或机械异常，立即发送 STOP。
+V2 只继承作者坐标轴方向和 ALIGN 机器坐标，不继承旧纸面原点或旧绘图路径。

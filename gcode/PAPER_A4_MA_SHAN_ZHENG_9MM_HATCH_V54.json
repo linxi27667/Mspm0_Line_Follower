@@ -1,0 +1,58 @@
+{
+  "generator": "generate_ma_shan_zheng_gcode.py",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_YSHIFT15_GCODE_V28",
+  "text": "张佳乐作品",
+  "font": {
+    "family": "Ma Shan Zheng",
+    "style": "Regular",
+    "file": "assets\\ma_shan_zheng\\MaShanZheng-Regular.ttf",
+    "sha256": "6D2546BB189C732A8CA29AF9E22457B152387D158AA459E4AC2CE1E51788B7FB",
+    "source": "https://github.com/google/fonts/tree/main/ofl/mashanzheng",
+    "license": "SIL Open Font License 1.1"
+  },
+  "plot": {
+    "mode": "hatch",
+    "logical_left_mm": 30.0,
+    "logical_top_mm": 220.0,
+    "visible_width_mm": 45.78703703703703,
+    "visible_height_mm": 9.0,
+    "hatch_spacing_mm": 0.45,
+    "outline_simplify_mm": null,
+    "paper_subdivision_max_mm": 0.4,
+    "path_count": 198,
+    "g1_count": 615
+  },
+  "mapping": {
+    "base_quadratic_enabled": true,
+    "firmware_global_translation_user_mm": [
+      0.0,
+      15.0
+    ]
+  },
+  "safety": {
+    "physical_paper_bounds_mm": [
+      30.25925925925926,
+      226.37962962962962,
+      75.78703703703704,
+      234.5462962962963
+    ],
+    "path_sample_count": 1547,
+    "minimum_joint_margin_deg": 0.3513799542169451,
+    "minimum_at_shifted_user_mm": [
+      68.93278899269106,
+      16.218687470215833
+    ],
+    "minimum_at_angles_deg": [
+      0.5782979542169451,
+      135.55338339056453,
+      134.9750854363476
+    ],
+    "maximum_mapped_draw_step_mm": 0.4738770008996765
+  },
+  "gcode": {
+    "file": "gcode\\PAPER_A4_MA_SHAN_ZHENG_9MM_HATCH_V54.gcode",
+    "line_count": 1423,
+    "sha256": "34e1b09ef1c761e7d0b499cc1763599603c2dc9f6596873e449efc7260e966f6"
+  },
+  "preview": "docs\\diagnostics\\PAPER_A4_MA_SHAN_ZHENG_9MM_HATCH_V54_PREVIEW.png"
+}

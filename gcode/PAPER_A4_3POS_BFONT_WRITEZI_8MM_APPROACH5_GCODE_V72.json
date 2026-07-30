@@ -1,0 +1,55 @@
+{
+  "id": "PAPER_A4_3POS_BFONT_WRITEZI_8MM_APPROACH5_GCODE_V72",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32",
+  "text": "写字",
+  "repetitions": 3,
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified gfont paths; rigid translation only"
+  },
+  "layout": {
+    "visible_height_mm": 8.0,
+    "character_gap_mm": 1.0,
+    "content_top_mm": 190.0,
+    "group_centers_x_mm": [
+      40.0,
+      100.0,
+      160.0
+    ],
+    "bounds_mm": [
+      28.9275752904287,
+      178.92251212048703,
+      167.42918636133226,
+      194.77104595137718
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0
+  },
+  "safety": {
+    "safe_samples": 750,
+    "min_joint_margin_deg": 0.26709837193601427,
+    "min_margin_user_mm": [
+      68.98512236521266,
+      15.860894672765335
+    ],
+    "stroke_count": 30,
+    "motion_line_count": 201
+  },
+  "gcode": {
+    "file": "PAPER_A4_3POS_BFONT_WRITEZI_8MM_APPROACH5_GCODE_V72.gcode",
+    "line_count": 313,
+    "sha256": "0AF428D96F9251CFBAC82A6DEB6C54519F0065398B752DBE71FB00D94FC4BFAE"
+  }
+}

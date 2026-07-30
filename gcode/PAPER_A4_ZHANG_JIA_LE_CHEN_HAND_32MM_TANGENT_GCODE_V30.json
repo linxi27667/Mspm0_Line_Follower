@@ -1,0 +1,69 @@
+{
+  "id": "PAPER_A4_ZHANG_JIA_LE_CHEN_HAND_32MM_TANGENT_GCODE_V30",
+  "text": "张佳乐",
+  "font": {
+    "file": "CHEN_HANDWRITING_cf5b1677.gfont",
+    "sha256": "1B1D959A1B75106C8F94D1D95A9930FDF7DD54BA445C6CED0B84E55368F9644B",
+    "name": "陈手写",
+    "em_size": 400,
+    "glyph_count": 2576
+  },
+  "layout": {
+    "visible_height_mm": 32.0,
+    "character_gap_mm": 7.0,
+    "row_center_mm": [
+      105.0,
+      130.0
+    ],
+    "scale_mm_per_font_unit": 0.09917356622535974,
+    "bounds_mm": [
+      44.47106838649635,
+      108.04311730607924,
+      161.13442734856085,
+      146.0
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          50.47106838649635,
+          114.52891761576977,
+          81.4132210488086,
+          145.33884692721367
+        ],
+        "stroke_count": 7
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          88.4132210488086,
+          114.0,
+          123.59504366725497,
+          146.0
+        ],
+        "stroke_count": 7
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          130.59504366725497,
+          114.39669426490144,
+          159.5289316135037,
+          143.22314014568994
+        ],
+        "stroke_count": 5
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 180,
+    "tangent_approach_mm": 6.0,
+    "stroke_count": 19,
+    "g1_count": 55
+  },
+  "gcode": {
+    "file": "PAPER_A4_ZHANG_JIA_LE_CHEN_HAND_32MM_TANGENT_GCODE_V30.gcode",
+    "line_count": 136,
+    "sha256": "AB979343E5FC4634E5A664D06BEFDA38B0F296546C615622BAB8A84B2EB80110"
+  }
+}

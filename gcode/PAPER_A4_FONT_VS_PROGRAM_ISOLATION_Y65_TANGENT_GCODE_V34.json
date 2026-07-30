@@ -1,0 +1,63 @@
+{
+  "id": "PAPER_A4_FONT_VS_PROGRAM_ISOLATION_Y65_TANGENT_GCODE_V34",
+  "purpose": "separate font geometry from generator/firmware/mechanics",
+  "paper_region": "lower blank area below Y=100 mm",
+  "panels": [
+    {
+      "id": "A",
+      "title": "A 几何控制",
+      "source": "explicit paper-space lines; no font parser",
+      "bounds_mm": [
+        35.0,
+        50.0,
+        68.0,
+        81.0
+      ],
+      "stroke_count": 9
+    },
+    {
+      "id": "B",
+      "title": "B aa郭敬明字体张",
+      "source": "AA_GUO_JINGMING_b7c9ccc1.gfont:D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+      "bounds_mm": [
+        85.59959729659352,
+        49.0,
+        124.40040270340648,
+        81.0
+      ],
+      "stroke_count": 7
+    },
+    {
+      "id": "C",
+      "title": "C 宋体张",
+      "source": "SONG_ec900461.gfont:A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+      "bounds_mm": [
+        143.46282973621103,
+        49.0,
+        176.53717026378897,
+        81.0
+      ],
+      "stroke_count": 15
+    }
+  ],
+  "layout": {
+    "row_center_y_mm": 65.0,
+    "bounds_with_approach_mm": [
+      29.0,
+      47.903642286501814,
+      182.53534216594653,
+      87.0
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 180,
+    "tangent_approach_mm": 6.0,
+    "stroke_count": 31,
+    "g1_count": 71
+  },
+  "gcode": {
+    "file": "PAPER_A4_FONT_VS_PROGRAM_ISOLATION_Y65_TANGENT_GCODE_V34.gcode",
+    "line_count": 200,
+    "sha256": "C78EDA324750BDBF7D55CEE94F89681BD76E4553E83537A483DE4172C1A2B414"
+  }
+}

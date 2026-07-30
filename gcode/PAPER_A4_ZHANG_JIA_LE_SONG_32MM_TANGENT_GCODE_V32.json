@@ -1,0 +1,79 @@
+{
+  "id": "PAPER_A4_ZHANG_JIA_LE_SONG_32MM_TANGENT_GCODE_V32",
+  "trial_after": {
+    "id": "PAPER_A4_ZHANG_JIA_LE_AA_GUO_32MM_TANGENT_GCODE_V31",
+    "reason": "V31 Zhang glyph showed an unwanted lower bow vertical and a short vertical lead near the lower-right stroke"
+  },
+  "text": "张佳乐",
+  "font": {
+    "file": "SONG_ec900461.gfont",
+    "sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+    "name": "宋体",
+    "em_size": 600,
+    "glyph_count": 2598,
+    "geometry": "unmodified gfont path points and command order"
+  },
+  "coordinate_contract": {
+    "gfont_y": "positive downward",
+    "paper_y": "positive upward",
+    "transform_y": "paper_y = baseline_y - source_y * scale"
+  },
+  "layout": {
+    "visible_height_mm": 32.0,
+    "character_gap_mm": 7.0,
+    "row_center_mm": [
+      105.0,
+      130.0
+    ],
+    "scale_mm_per_font_unit": 0.07373271889400922,
+    "bounds_mm": [
+      45.474654377880185,
+      108.884835346101,
+      165.4839758676777,
+      151.23136811099627
+    ],
+    "characters": [
+      {
+        "character": "张",
+        "bounds_mm": [
+          50.44239631336406,
+          114.00000000000001,
+          82.22119815668202,
+          144.74654377880185
+        ],
+        "stroke_count": 15
+      },
+      {
+        "character": "佳",
+        "bounds_mm": [
+          89.22119815668202,
+          114.88479262672811,
+          120.04147465437788,
+          146.0
+        ],
+        "stroke_count": 9
+      },
+      {
+        "character": "乐",
+        "bounds_mm": [
+          127.04147465437788,
+          115.4746543778802,
+          159.55760368663596,
+          144.08294930875576
+        ],
+        "stroke_count": 13
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 180,
+    "tangent_approach_mm": 6.0,
+    "stroke_count": 37,
+    "g1_count": 80
+  },
+  "gcode": {
+    "file": "PAPER_A4_ZHANG_JIA_LE_SONG_32MM_TANGENT_GCODE_V32.gcode",
+    "line_count": 233,
+    "sha256": "C0EDF0F9877C2EF549CCD3191278CFD28C5DA3FAB089CCD910FFF80B0DE64056"
+  }
+}

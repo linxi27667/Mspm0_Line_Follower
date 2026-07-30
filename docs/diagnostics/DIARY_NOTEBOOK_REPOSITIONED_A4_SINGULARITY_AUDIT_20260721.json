@@ -1,0 +1,429 @@
+{
+  "artifact": "DIARY_NOTEBOOK_REPOSITIONED_A4_SINGULARITY_AUDIT_20260721",
+  "model": {
+    "l1_mm": 205.0,
+    "l2_mm": 203.0,
+    "offset_mm": [
+      -129.0,
+      128.0
+    ],
+    "stage1_steps_per_degree": 40.09921646118164,
+    "stage2_steps_per_degree": 40.11579132080078,
+    "theta_hard_range_deg": [
+      0.22691798210144043,
+      135.0
+    ],
+    "psi_hard_range_deg": [
+      135.17738342285156,
+      255.0
+    ],
+    "beta_hard_range_deg": [
+      1.0,
+      179.0
+    ]
+  },
+  "paper_mapping": {
+    "usable_paper_rectangle_mm": [
+      15.0,
+      15.0,
+      282.0,
+      195.0
+    ],
+    "command_shift_mm": [
+      139.0,
+      -68.0
+    ],
+    "align_machine_mm": [
+      150.0,
+      20.0
+    ],
+    "align_paper_mm": [
+      11.0,
+      88.0
+    ]
+  },
+  "full_paper_grid": {
+    "samples": 48508,
+    "theta_deg": {
+      "minimum": 29.751204768674047,
+      "minimum_at_paper_mm": [
+        15.0,
+        38.0
+      ],
+      "maximum": 123.49368484029662,
+      "maximum_at_paper_mm": [
+        282.0,
+        15.0
+      ]
+    },
+    "psi_deg": {
+      "minimum": 147.04932411345104,
+      "minimum_at_paper_mm": [
+        15.0,
+        195.0
+      ],
+      "maximum": 219.81368707109868,
+      "maximum_at_paper_mm": [
+        142.0,
+        15.0
+      ]
+    },
+    "beta_deg": {
+      "minimum": 36.31980581538197,
+      "minimum_at_paper_mm": [
+        282.0,
+        195.0
+      ],
+      "maximum": 157.65576569895023,
+      "maximum_at_paper_mm": [
+        15.0,
+        15.0
+      ]
+    },
+    "radius_mm": {
+      "minimum": 79.07718112313378,
+      "minimum_at_paper_mm": [
+        15.0,
+        15.0
+      ],
+      "maximum": 387.67818394636237,
+      "maximum_at_paper_mm": [
+        282.0,
+        195.0
+      ]
+    },
+    "theta_lower_limit_margin_deg": {
+      "minimum": 29.524286786572606,
+      "minimum_at_paper_mm": [
+        15.0,
+        38.0
+      ],
+      "maximum": 123.26676685819518,
+      "maximum_at_paper_mm": [
+        282.0,
+        15.0
+      ]
+    },
+    "theta_upper_limit_margin_deg": {
+      "minimum": 11.506315159703377,
+      "minimum_at_paper_mm": [
+        282.0,
+        15.0
+      ],
+      "maximum": 105.24879523132596,
+      "maximum_at_paper_mm": [
+        15.0,
+        38.0
+      ]
+    },
+    "psi_lower_limit_margin_deg": {
+      "minimum": 11.871940690599473,
+      "minimum_at_paper_mm": [
+        15.0,
+        195.0
+      ],
+      "maximum": 84.63630364824712,
+      "maximum_at_paper_mm": [
+        142.0,
+        15.0
+      ]
+    },
+    "psi_upper_limit_margin_deg": {
+      "minimum": 35.186312928901316,
+      "minimum_at_paper_mm": [
+        142.0,
+        15.0
+      ],
+      "maximum": 107.95067588654896,
+      "maximum_at_paper_mm": [
+        15.0,
+        195.0
+      ]
+    },
+    "beta_distance_from_0deg_singularity": {
+      "minimum": 36.31980581538197,
+      "minimum_at_paper_mm": [
+        282.0,
+        195.0
+      ],
+      "maximum": 157.65576569895023,
+      "maximum_at_paper_mm": [
+        15.0,
+        15.0
+      ]
+    },
+    "beta_distance_from_180deg_singularity": {
+      "minimum": 22.344234301049767,
+      "minimum_at_paper_mm": [
+        15.0,
+        15.0
+      ],
+      "maximum": 143.68019418461802,
+      "maximum_at_paper_mm": [
+        282.0,
+        195.0
+      ]
+    },
+    "inner_radial_singularity_gap_mm": {
+      "minimum": 77.07718112313378,
+      "minimum_at_paper_mm": [
+        15.0,
+        15.0
+      ],
+      "maximum": 385.67818394636237,
+      "maximum_at_paper_mm": [
+        282.0,
+        195.0
+      ]
+    },
+    "outer_radial_singularity_gap_mm": {
+      "minimum": 20.321816053637633,
+      "minimum_at_paper_mm": [
+        282.0,
+        195.0
+      ],
+      "maximum": 328.92281887686624,
+      "maximum_at_paper_mm": [
+        15.0,
+        15.0
+      ]
+    },
+    "normalized_abs_sin_beta": {
+      "minimum": 0.3801703399138652,
+      "minimum_at_paper_mm": [
+        15.0,
+        15.0
+      ],
+      "maximum": 0.9999999999886552,
+      "maximum_at_paper_mm": [
+        213.0,
+        123.0
+      ]
+    },
+    "jacobian_condition_number": {
+      "minimum": 1.0098522179173715,
+      "minimum_at_paper_mm": [
+        213.0,
+        123.0
+      ],
+      "maximum": 5.063563113267673,
+      "maximum_at_paper_mm": [
+        15.0,
+        15.0
+      ]
+    },
+    "combined_pose_margin_deg": {
+      "minimum": 11.506315159703377,
+      "minimum_at_paper_mm": [
+        282.0,
+        15.0
+      ],
+      "maximum": 59.50904161970692,
+      "maximum_at_paper_mm": [
+        135.0,
+        87.0
+      ]
+    }
+  },
+  "routed_text_integer_pulse_path": {
+    "samples": 266680,
+    "theta_deg": {
+      "minimum": 29.751204768674047,
+      "minimum_at_paper_mm": [
+        15.0186767578125,
+        42.7740478515625
+      ],
+      "maximum": 119.85271594153183,
+      "maximum_at_paper_mm": [
+        279.266357421875,
+        39.334625244140625
+      ]
+    },
+    "psi_deg": {
+      "minimum": 147.67252009630172,
+      "minimum_at_paper_mm": [
+        15.1063232421875,
+        192.02471923828125
+      ],
+      "maximum": 212.21069608032016,
+      "maximum_at_paper_mm": [
+        146.252685546875,
+        36.206947326660156
+      ]
+    },
+    "beta_deg": {
+      "minimum": 49.63328125557129,
+      "minimum_at_paper_mm": [
+        276.2613220214844,
+        174.9353790283203
+      ],
+      "maximum": 155.73615721051894,
+      "maximum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ]
+    },
+    "radius_mm": {
+      "minimum": 85.76891214583662,
+      "minimum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ],
+      "maximum": 370.3244432115403,
+      "maximum_at_paper_mm": [
+        276.2613220214844,
+        174.9353790283203
+      ]
+    },
+    "theta_lower_limit_margin_deg": {
+      "minimum": 29.524286786572606,
+      "minimum_at_paper_mm": [
+        15.0186767578125,
+        42.7740478515625
+      ],
+      "maximum": 119.62579795943039,
+      "maximum_at_paper_mm": [
+        279.266357421875,
+        39.334625244140625
+      ]
+    },
+    "theta_upper_limit_margin_deg": {
+      "minimum": 15.147284058468173,
+      "minimum_at_paper_mm": [
+        279.266357421875,
+        39.334625244140625
+      ],
+      "maximum": 105.24879523132596,
+      "maximum_at_paper_mm": [
+        15.0186767578125,
+        42.7740478515625
+      ]
+    },
+    "psi_lower_limit_margin_deg": {
+      "minimum": 12.495136673450162,
+      "minimum_at_paper_mm": [
+        15.1063232421875,
+        192.02471923828125
+      ],
+      "maximum": 77.0333126574686,
+      "maximum_at_paper_mm": [
+        146.252685546875,
+        36.206947326660156
+      ]
+    },
+    "psi_upper_limit_margin_deg": {
+      "minimum": 42.78930391967984,
+      "minimum_at_paper_mm": [
+        146.252685546875,
+        36.206947326660156
+      ],
+      "maximum": 107.32747990369828,
+      "maximum_at_paper_mm": [
+        15.1063232421875,
+        192.02471923828125
+      ]
+    },
+    "beta_distance_from_0deg_singularity": {
+      "minimum": 49.63328125557129,
+      "minimum_at_paper_mm": [
+        276.2613220214844,
+        174.9353790283203
+      ],
+      "maximum": 155.73615721051894,
+      "maximum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ]
+    },
+    "beta_distance_from_180deg_singularity": {
+      "minimum": 24.26384278948106,
+      "minimum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ],
+      "maximum": 130.3667187444287,
+      "maximum_at_paper_mm": [
+        276.2613220214844,
+        174.9353790283203
+      ]
+    },
+    "inner_radial_singularity_gap_mm": {
+      "minimum": 83.76891214583662,
+      "minimum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ],
+      "maximum": 368.3244432115403,
+      "maximum_at_paper_mm": [
+        276.2613220214844,
+        174.9353790283203
+      ]
+    },
+    "outer_radial_singularity_gap_mm": {
+      "minimum": 37.67555678845969,
+      "minimum_at_paper_mm": [
+        276.2613220214844,
+        174.9353790283203
+      ],
+      "maximum": 322.2310878541634,
+      "maximum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ]
+    },
+    "normalized_abs_sin_beta": {
+      "minimum": 0.41093912438910163,
+      "minimum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ],
+      "maximum": 0.9999999999998979,
+      "maximum_at_paper_mm": [
+        210.70819091796875,
+        125.80059814453125
+      ]
+    },
+    "jacobian_condition_number": {
+      "minimum": 1.0098522167592847,
+      "minimum_at_paper_mm": [
+        210.70819091796875,
+        125.80059814453125
+      ],
+      "maximum": 4.65218191370946,
+      "maximum_at_paper_mm": [
+        16.480987548828125,
+        21.57855224609375
+      ]
+    },
+    "combined_pose_margin_deg": {
+      "minimum": 12.495136673450162,
+      "minimum_at_paper_mm": [
+        15.1063232421875,
+        192.02471923828125
+      ],
+      "maximum": 59.48730256534367,
+      "maximum_at_paper_mm": [
+        135.0836181640625,
+        87.01528930664062
+      ]
+    }
+  },
+  "routing": {
+    "maximum_source_error": 0.07018839054346611,
+    "maximum_raw_penup_span": 264.4189478838459,
+    "maximum_routed_penup_span": 132.2638650576944,
+    "maximum_draw_span": 10.700467279516344,
+    "inserted_waypoints": 9.0,
+    "epsilon_skips": 388.0,
+    "duplicate_skips": 280.0
+  },
+  "conclusion": {
+    "ik_dead_zone_reached": false,
+    "inner_or_outer_radial_singularity_reached": false,
+    "jacobian_singularity_reached": false,
+    "joint_hard_limit_reached": false,
+    "model_check_passed": true,
+    "physical_collision_proven_absent": false,
+    "reason_physical_collision_not_proven": "the model contains link geometry and limits, but no bodies for the pen, paper holder, table, wiring, or self-collision volumes"
+  }
+}

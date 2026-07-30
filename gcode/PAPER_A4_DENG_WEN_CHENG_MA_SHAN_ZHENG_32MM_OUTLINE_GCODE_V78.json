@@ -1,0 +1,74 @@
+{
+  "id": "PAPER_A4_DENG_WEN_CHENG_MA_SHAN_ZHENG_32MM_OUTLINE_GCODE_V78",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_AMASS_PLANNER_V33",
+  "required_paper_map": "A4_BASE_QUADRATIC_XSCALE_NO_SBOW_CAL_V8",
+  "text": "邓文成",
+  "font": {
+    "family": "Ma Shan Zheng",
+    "style": "Regular",
+    "file": "assets\\ma_shan_zheng\\MaShanZheng-Regular.ttf",
+    "sha256": "6D2546BB189C732A8CA29AF9E22457B152387D158AA459E4AC2CE1E51788B7FB",
+    "source": "https://github.com/google/fonts/tree/main/ofl/mashanzheng",
+    "license": "SIL Open Font License 1.1"
+  },
+  "layout": {
+    "visible_width_mm": 100.15896885069817,
+    "visible_height_mm": 32.0,
+    "row_center_mm": [
+      105.0,
+      155.0
+    ],
+    "drawing_bounds_mm": [
+      54.98925886143931,
+      139.0,
+      155.07948442534908,
+      170.9656283566058
+    ],
+    "motion_bounds_mm": [
+      54.98925886143931,
+      139.0,
+      155.07948442534908,
+      172.21562912936255
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0,
+    "outline_simplify_mm": 0.15
+  },
+  "safety": {
+    "home_exit": {
+      "sample_count": 173,
+      "minimum_joint_margin_deg": 0.2859217285951512,
+      "minimum_margin_user_mm": [
+        68.98687425521412,
+        15.927056931811078
+      ]
+    },
+    "writing_sequence": {
+      "sample_count": 907,
+      "minimum_joint_margin_deg": 39.78138921202864,
+      "minimum_margin_user_mm": [
+        300.11805601940074,
+        92.46586146151542
+      ],
+      "required_minimum_margin_deg": 15.0
+    },
+    "path_count": 9,
+    "g0_count": 18,
+    "g1_count": 235
+  },
+  "gcode": {
+    "file": "PAPER_A4_DENG_WEN_CHENG_MA_SHAN_ZHENG_32MM_OUTLINE_GCODE_V78.gcode",
+    "line_count": 298,
+    "sha256": "AADAE0833A7AFB6624D9CD7474B6C26BBA74BF2702A3F7044D86950652B4BE95"
+  },
+  "preview": "docs\\diagnostics\\PAPER_A4_DENG_WEN_CHENG_MA_SHAN_ZHENG_32MM_OUTLINE_GCODE_V78_PREVIEW.png"
+}

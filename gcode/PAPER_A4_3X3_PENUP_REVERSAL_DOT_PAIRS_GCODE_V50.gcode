@@ -1,0 +1,229 @@
+; PAPER_A4_3X3_PENUP_REVERSAL_DOT_PAIRS_GCODE_V50
+; firmware=PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27
+; purpose=pen_up_reversal_isolation
+; map=BASE_QUADRATIC_ONLY old_grid4x7_residual=DISABLED
+; layout=3x3 zones=9 logical_targets_per_zone=2
+; each_target_marked_twice_from_opposite_directions
+; all_approach_motion_pen_up=1 pen_down_travel=0
+G21
+G90
+G94
+F150
+S1000
+M5
+; zone=TOP_LEFT target=H approach=+X
+G0 X189.953 Y6.711
+G0 X196.515 Y16.475
+M3
+G4 P0.25
+M5
+; zone=TOP_LEFT target=H approach=-X
+G0 X202.998 Y26.086
+G0 X196.515 Y16.475
+M3
+G4 P0.25
+M5
+; zone=TOP_LEFT target=V approach=+Y
+G0 X211.306 Y22.340
+G0 X204.286 Y27.989
+M3
+G4 P0.25
+M5
+; zone=TOP_LEFT target=V approach=-Y
+G0 X197.370 Y33.716
+G0 X204.286 Y27.989
+M3
+G4 P0.25
+M5
+; zone=TOP_CENTER target=H approach=+X
+G0 X225.073 Y58.514
+G0 X231.204 Y67.435
+M3
+G4 P0.25
+M5
+; zone=TOP_CENTER target=H approach=-X
+G0 X237.256 Y76.201
+G0 X231.204 Y67.435
+M3
+G4 P0.25
+M5
+; zone=TOP_CENTER target=V approach=+Y
+G0 X245.611 Y72.088
+G0 X238.457 Y77.936
+M3
+G4 P0.25
+M5
+; zone=TOP_CENTER target=V approach=-Y
+G0 X231.407 Y83.862
+G0 X238.457 Y77.936
+M3
+G4 P0.25
+M5
+; zone=TOP_RIGHT target=H approach=+X
+G0 X257.820 Y105.677
+G0 X263.519 Y113.754
+M3
+G4 P0.25
+M5
+; zone=TOP_RIGHT target=H approach=-X
+G0 X269.140 Y121.677
+G0 X263.519 Y113.754
+M3
+G4 P0.25
+M5
+; zone=TOP_RIGHT target=V approach=+Y
+G0 X277.543 Y117.196
+G0 X270.255 Y123.244
+M3
+G4 P0.25
+M5
+; zone=TOP_RIGHT target=V approach=-Y
+G0 X263.071 Y129.368
+G0 X270.255 Y123.244
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_LEFT target=H approach=+X
+G0 X244.754 Y-33.188
+G0 X251.499 Y-23.696
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_LEFT target=H approach=-X
+G0 X258.166 Y-14.356
+G0 X251.499 Y-23.696
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_LEFT target=V approach=+Y
+G0 X267.296 Y-17.580
+G0 X259.490 Y-12.507
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_LEFT target=V approach=-Y
+G0 X251.789 Y-7.358
+G0 X259.490 Y-12.507
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_CENTER target=H approach=+X
+G0 X280.882 Y17.123
+G0 X287.195 Y25.772
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_CENTER target=H approach=-X
+G0 X293.431 Y34.267
+G0 X287.195 Y25.772
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_CENTER target=V approach=+Y
+G0 X302.609 Y30.676
+G0 X294.668 Y35.948
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_CENTER target=V approach=-Y
+G0 X286.833 Y41.296
+G0 X294.668 Y35.948
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_RIGHT target=H approach=+X
+G0 X314.636 Y62.794
+G0 X320.518 Y70.599
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_RIGHT target=H approach=-X
+G0 X326.322 Y78.251
+G0 X320.518 Y70.599
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_RIGHT target=V approach=+Y
+G0 X335.548 Y74.292
+G0 X327.474 Y79.763
+M3
+G4 P0.25
+M5
+; zone=MIDDLE_RIGHT target=V approach=-Y
+G0 X319.504 Y85.310
+G0 X327.474 Y79.763
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_LEFT target=H approach=+X
+G0 X305.450 Y-68.761
+G0 X312.378 Y-59.540
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_LEFT target=H approach=-X
+G0 X319.228 Y-50.472
+G0 X312.378 Y-59.540
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_LEFT target=V approach=+Y
+G0 X329.181 Y-53.172
+G0 X320.589 Y-48.677
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_LEFT target=V approach=-Y
+G0 X312.102 Y-44.104
+G0 X320.589 Y-48.677
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_CENTER target=H approach=+X
+G0 X342.585 Y-19.942
+G0 X349.082 Y-11.565
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_CENTER target=H approach=-X
+G0 X355.500 Y-3.340
+G0 X349.082 Y-11.565
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_CENTER target=V approach=+Y
+G0 X365.501 Y-6.409
+G0 X356.775 Y-1.714
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_CENTER target=V approach=-Y
+G0 X348.153 Y3.058
+G0 X356.775 Y-1.714
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_RIGHT target=H approach=+X
+G0 X377.347 Y24.237
+G0 X383.412 Y31.771
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_RIGHT target=H approach=-X
+G0 X389.399 Y39.151
+G0 X383.412 Y31.771
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_RIGHT target=V approach=+Y
+G0 X399.448 Y35.715
+G0 X390.587 Y40.609
+M3
+G4 P0.25
+M5
+; zone=BOTTOM_RIGHT target=V approach=-Y
+G0 X381.831 Y45.579
+G0 X390.587 Y40.609
+M3
+G4 P0.25
+M5

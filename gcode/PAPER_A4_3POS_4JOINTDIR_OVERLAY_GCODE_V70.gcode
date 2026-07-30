@@ -1,0 +1,94 @@
+; PAPER_A4_3POS_4JOINTDIR_OVERLAY_GCODE_V70
+; firmware_required=PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32
+; coordinates=STANDARD_A4_PHYSICAL_PAPER_MM
+; purpose=DETERMINISTIC_BIDIRECTIONAL_JOINT_OFFSET_CALIBRATION
+; same_direction_repeatability=ALREADY_CONFIRMED_NOT_UNDER_TEST
+; each_nominal_line_is_drawn_once_in_each_opposite_direction
+; H_LR=STAGE1_POS_STAGE2_NEG H_RL=STAGE1_NEG_STAGE2_POS
+; V_BT=STAGE1_NEG_STAGE2_NEG V_TB=STAGE1_POS_STAGE2_POS
+; groups=LEFT_MIDDLE_RIGHT line_length=16mm
+G21
+G90
+G94
+F300
+S1000
+M5
+; BEGIN_GROUP_L
+; group=L axis=H direction=LR joint_signs=1,-1
+G0 X27.000 Y176.000
+G0 X32.000 Y176.000
+M3
+G1 X48.000 Y176.000
+M5
+; group=L axis=H direction=RL joint_signs=-1,1
+G0 X53.000 Y176.000
+G0 X48.000 Y176.000
+M3
+G1 X32.000 Y176.000
+M5
+; group=L axis=V direction=BT joint_signs=-1,-1
+G0 X54.000 Y155.000
+G0 X54.000 Y160.000
+M3
+G1 X54.000 Y176.000
+M5
+; group=L axis=V direction=TB joint_signs=1,1
+G0 X54.000 Y181.000
+G0 X54.000 Y176.000
+M3
+G1 X54.000 Y160.000
+M5
+; END_GROUP_L
+; BEGIN_GROUP_M
+; group=M axis=H direction=LR joint_signs=1,-1
+G0 X87.000 Y176.000
+G0 X92.000 Y176.000
+M3
+G1 X108.000 Y176.000
+M5
+; group=M axis=H direction=RL joint_signs=-1,1
+G0 X113.000 Y176.000
+G0 X108.000 Y176.000
+M3
+G1 X92.000 Y176.000
+M5
+; group=M axis=V direction=BT joint_signs=-1,-1
+G0 X114.000 Y155.000
+G0 X114.000 Y160.000
+M3
+G1 X114.000 Y176.000
+M5
+; group=M axis=V direction=TB joint_signs=1,1
+G0 X114.000 Y181.000
+G0 X114.000 Y176.000
+M3
+G1 X114.000 Y160.000
+M5
+; END_GROUP_M
+; BEGIN_GROUP_R
+; group=R axis=H direction=LR joint_signs=1,-1
+G0 X147.000 Y176.000
+G0 X152.000 Y176.000
+M3
+G1 X168.000 Y176.000
+M5
+; group=R axis=H direction=RL joint_signs=-1,1
+G0 X173.000 Y176.000
+G0 X168.000 Y176.000
+M3
+G1 X152.000 Y176.000
+M5
+; group=R axis=V direction=BT joint_signs=-1,-1
+G0 X174.000 Y155.000
+G0 X174.000 Y160.000
+M3
+G1 X174.000 Y176.000
+M5
+; group=R axis=V direction=TB joint_signs=1,1
+G0 X174.000 Y181.000
+G0 X174.000 Y176.000
+M3
+G1 X174.000 Y160.000
+M5
+; END_GROUP_R
+M5

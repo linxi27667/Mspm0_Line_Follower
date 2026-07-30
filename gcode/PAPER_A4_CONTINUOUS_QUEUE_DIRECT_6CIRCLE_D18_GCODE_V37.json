@@ -1,0 +1,84 @@
+{
+  "test_id": "PAPER_A4_CONTINUOUS_QUEUE_DIRECT_6CIRCLE_D18_GCODE_V37",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "paper_map_enabled": false,
+  "row_y_mm": 140.0,
+  "radius_mm": 9.0,
+  "segments_per_circle": 72,
+  "feed_mm_min": 180,
+  "circles": [
+    {
+      "name": "LEFT_CW",
+      "nominal_paper_center_mm": [
+        41.0,
+        140.0
+      ],
+      "command_user_center_mm": [
+        252.32085276319293,
+        -29.430591019254983
+      ],
+      "direction": "CW"
+    },
+    {
+      "name": "LEFT_CCW",
+      "nominal_paper_center_mm": [
+        63.0,
+        140.0
+      ],
+      "command_user_center_mm": [
+        268.6940597040527,
+        -8.022009452357914
+      ],
+      "direction": "CCW"
+    },
+    {
+      "name": "MIDDLE_CW",
+      "nominal_paper_center_mm": [
+        94.0,
+        140.0
+      ],
+      "command_user_center_mm": [
+        289.6313518796572,
+        19.787739862014405
+      ],
+      "direction": "CW"
+    },
+    {
+      "name": "MIDDLE_CCW",
+      "nominal_paper_center_mm": [
+        116.0,
+        140.0
+      ],
+      "command_user_center_mm": [
+        302.99812834116597,
+        37.86765500222383
+      ],
+      "direction": "CCW"
+    },
+    {
+      "name": "RIGHT_CW",
+      "nominal_paper_center_mm": [
+        147.0,
+        140.0
+      ],
+      "command_user_center_mm": [
+        321.8332686192358,
+        63.25918601584137
+      ],
+      "direction": "CW"
+    },
+    {
+      "name": "RIGHT_CCW",
+      "nominal_paper_center_mm": [
+        169.0,
+        140.0
+      ],
+      "command_user_center_mm": [
+        335.2102045294759,
+        81.23703281993863
+      ],
+      "direction": "CCW"
+    }
+  ],
+  "gcode_sha256": "bb2535e239bc3503a629b3d34faa7936596a0f6e4c96cd484947302360b5762d"
+}

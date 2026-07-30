@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="780" height="654" viewBox="0 0 780 654"
+     role="img" aria-labelledby="title description">
+  <title id="title">V28 三位置八方向轨迹校准示意图</title>
+  <desc id="description">
+    A4 竖放；纸面原点在左下角。下、中、上三个区域各包含八条独立的
+    20 毫米直线，分别测试水平、竖直和两种对角线的正反方向。
+  </desc>
+  <defs>
+    <marker id="arrow-h" markerUnits="userSpaceOnUse" markerWidth="4"
+            markerHeight="4" refX="3.5" refY="2" orient="auto">
+      <path d="M0,0 L4,2 L0,4 Z" fill="#d1495b"/>
+    </marker>
+    <marker id="arrow-v" markerUnits="userSpaceOnUse" markerWidth="4"
+            markerHeight="4" refX="3.5" refY="2" orient="auto">
+      <path d="M0,0 L4,2 L0,4 Z" fill="#2563a8"/>
+    </marker>
+    <marker id="arrow-s" markerUnits="userSpaceOnUse" markerWidth="4"
+            markerHeight="4" refX="3.5" refY="2" orient="auto">
+      <path d="M0,0 L4,2 L0,4 Z" fill="#228b5a"/>
+    </marker>
+    <marker id="arrow-b" markerUnits="userSpaceOnUse" markerWidth="4"
+            markerHeight="4" refX="3.5" refY="2" orient="auto">
+      <path d="M0,0 L4,2 L0,4 Z" fill="#7c4dba"/>
+    </marker>
+    <g id="eight-direction-pattern" fill="none" stroke-width="2.4"
+       stroke-linecap="round" vector-effect="non-scaling-stroke">
+      <rect x="-40" y="-35" width="80" height="64" rx="2"
+            stroke="#b8c0cc" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <line x1="-35" y1="24" x2="-15" y2="24"
+            stroke="#d1495b" marker-end="url(#arrow-h)"/>
+      <line x1="35" y1="24" x2="15" y2="24"
+            stroke="#d1495b" marker-end="url(#arrow-h)"/>
+      <line x1="-25" y1="-2" x2="-25" y2="18"
+            stroke="#2563a8" marker-end="url(#arrow-v)"/>
+      <line x1="25" y1="18" x2="25" y2="-2"
+            stroke="#2563a8" marker-end="url(#arrow-v)"/>
+      <line x1="-32.071068" y1="-15.071068"
+            x2="-17.928932" y2="-0.928932"
+            stroke="#228b5a" marker-end="url(#arrow-s)"/>
+      <line x1="32.071068" y1="-0.928932"
+            x2="17.928932" y2="-15.071068"
+            stroke="#228b5a" marker-end="url(#arrow-s)"/>
+      <line x1="-32.071068" y1="-16.928932"
+            x2="-17.928932" y2="-31.071068"
+            stroke="#7c4dba" marker-end="url(#arrow-b)"/>
+      <line x1="32.071068" y1="-31.071068"
+            x2="17.928932" y2="-16.928932"
+            stroke="#7c4dba" marker-end="url(#arrow-b)"/>
+    </g>
+  </defs>
+
+  <rect width="780" height="654" fill="#f4f6f8"/>
+  <text x="390" y="20" text-anchor="middle"
+        font-family="Segoe UI, Microsoft YaHei, sans-serif"
+        font-size="16" font-weight="600" fill="#172033">
+    V28：三位置 × 八方向 × 20 mm（F180）
+  </text>
+  <rect x="75" y="30" width="420" height="594" rx="2"
+        fill="#fffef9" stroke="#263238" stroke-width="2"/>
+  <text x="84" y="50" font-family="Segoe UI, Microsoft YaHei, sans-serif"
+        font-size="11" fill="#64748b">A4 210 × 297 mm，竖放</text>
+
+  <g transform="translate(75 624) scale(2 -2)">
+    <use xlink:href="#eight-direction-pattern"
+         transform="translate(105 56.667)"/>
+    <use xlink:href="#eight-direction-pattern"
+         transform="translate(105 130)"/>
+    <use xlink:href="#eight-direction-pattern"
+         transform="translate(105 203.667)"/>
+  </g>
+
+  <g font-family="Segoe UI, Microsoft YaHei, sans-serif" fill="#172033">
+    <text x="505" y="221" font-size="13" font-weight="600">
+      上部 Y=203.667
+    </text>
+    <text x="505" y="368" font-size="13" font-weight="600">
+      中部 Y=130.000
+    </text>
+    <text x="505" y="515" font-size="13" font-weight="600">
+      下部 Y=56.667
+    </text>
+
+    <text x="525" y="66" font-size="14" font-weight="600">每组从上到下</text>
+    <line x1="527" y1="88" x2="567" y2="88"
+          stroke="#d1495b" stroke-width="3"/>
+    <text x="580" y="92" font-size="12">水平：左 +X，右 −X</text>
+    <line x1="527" y1="116" x2="567" y2="116"
+          stroke="#2563a8" stroke-width="3"/>
+    <text x="580" y="120" font-size="12">竖直：左 +Y，右 −Y</text>
+    <line x1="527" y1="144" x2="567" y2="130"
+          stroke="#228b5a" stroke-width="3"/>
+    <text x="580" y="141" font-size="12">/：左 +X+Y，右 −X−Y</text>
+    <line x1="527" y1="158" x2="567" y2="172"
+          stroke="#7c4dba" stroke-width="3"/>
+    <text x="580" y="169" font-size="12">\：左 +X−Y，右 −X+Y</text>
+
+    <text x="525" y="566" font-size="12" fill="#475569">
+      每条线单独执行：G0 → M3 → G1 → M5
+    </text>
+    <text x="525" y="586" font-size="12" fill="#475569">
+      箭头仅表示落笔运动方向
+    </text>
+  </g>
+
+  <g stroke="#334155" fill="none" stroke-width="1.5">
+    <line x1="87" y1="607" x2="127" y2="607"/>
+    <path d="M127 607 L121 603 M127 607 L121 611"/>
+    <line x1="87" y1="607" x2="87" y2="567"/>
+    <path d="M87 567 L83 573 M87 567 L91 573"/>
+  </g>
+  <g font-family="Segoe UI, Microsoft YaHei, sans-serif"
+     font-size="11" fill="#334155">
+    <text x="132" y="611">+X</text>
+    <text x="78" y="560">+Y</text>
+    <text x="84" y="620">纸面原点</text>
+  </g>
+</svg>

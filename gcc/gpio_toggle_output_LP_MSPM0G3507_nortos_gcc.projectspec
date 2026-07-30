@@ -10,8 +10,8 @@
     </applicability>
 
     <project
-        title="gpio_toggle_output"
-        name="gpio_toggle_output_LP_MSPM0G3507_nortos_gcc"
+        title="TI_moban"
+        name="TI_moban_LP_MSPM0G3507_nortos_gcc"
         configurations="Debug"
         toolChain="GNU"
         connection="TIXDS110_Connection.xml"
@@ -63,13 +63,13 @@
             --compiler gcc
         "
         sourceLookupPath="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/ti/driverlib"
-        description="GPIO toggling an output pin">
+        description="writer robot stepper configuration">
 
         <property name="buildProfile" value="release"/>
         <property name="isHybrid" value="true"/>
         <file path="../gpio_toggle_output.c" openOnCreation="false" excludeFromBuild="false" action="copy">
         </file>
-        <file path="../gpio_toggle_output.syscfg" openOnCreation="true" excludeFromBuild="false" action="copy">
+        <file path="../TI_moban.syscfg" openOnCreation="true" excludeFromBuild="false" action="copy">
         </file>
         <file path="../README.md" openOnCreation="true" excludeFromBuild="false" action="copy">
         </file>

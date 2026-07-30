@@ -1,0 +1,33 @@
+{
+  "id": "PAPER_A4_DIRECTIONAL_CROSS_PROBE_GCODE_V75",
+  "firmware_minimum": "PAPER_A4_STANDARD_GCODE_AMASS_PLANNER_V33",
+  "expected": {
+    "cross_total_mm": 16.0,
+    "cross_arm_mm": 8.0,
+    "overlay_total_mm": 20.0
+  },
+  "comparison": {
+    "A_vs_B": "horizontal traversal direction only",
+    "A_vs_C": "vertical traversal direction only",
+    "B_vs_D": "vertical traversal direction only",
+    "C_vs_D": "horizontal traversal direction only"
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0,
+    "stroke_count": 14
+  },
+  "safety": {
+    "sample_count": 324,
+    "minimum_joint_margin_deg": 29.742458493223097,
+    "minimum_margin_at_paper_mm": [
+      165.0,
+      202.0
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_DIRECTIONAL_CROSS_PROBE_GCODE_V75.gcode",
+    "line_count": 106,
+    "sha256": "9A0809AF364A30DFD294242B8FF0BE8AB92DC9EB27FE4FE0BEDF713020159DC1"
+  }
+}

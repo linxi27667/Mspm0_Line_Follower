@@ -1,0 +1,368 @@
+{
+  "id": "PAPER_A4_3POS_4JOINTDIR_OVERLAY_GCODE_V70",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32",
+  "purpose": "fit deterministic joint-direction offsets after same-direction repeatability was already confirmed",
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "layout": {
+    "group_x_mm": [
+      40.0,
+      100.0,
+      160.0
+    ],
+    "horizontal_y_mm": 176.0,
+    "vertical_center_y_mm": 168.0,
+    "line_length_mm": 16.0,
+    "tangent_approach_mm": 5.0
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "same_direction_repeatability_under_test": false,
+    "joint_direction_combinations": [
+      [
+        1,
+        -1
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        -1,
+        -1
+      ],
+      [
+        1,
+        1
+      ]
+    ]
+  },
+  "safety": {
+    "bounds_mm": [
+      27.0,
+      155.0,
+      174.0,
+      181.0
+    ],
+    "safe_samples": 584,
+    "min_joint_margin_deg": 0.2384869729572588,
+    "min_margin_user_mm": [
+      68.98322786204758,
+      15.759587294340358
+    ],
+    "direction_records": [
+      {
+        "group": "L",
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          32.0,
+          176.0
+        ],
+        "end_mm": [
+          48.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          2386,
+          7800
+        ],
+        "end_joint_steps": [
+          2488,
+          7680
+        ]
+      },
+      {
+        "group": "L",
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          48.0,
+          176.0
+        ],
+        "end_mm": [
+          32.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          2488,
+          7680
+        ],
+        "end_joint_steps": [
+          2386,
+          7800
+        ]
+      },
+      {
+        "group": "L",
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          54.0,
+          160.0
+        ],
+        "end_mm": [
+          54.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          2717,
+          7815
+        ],
+        "end_joint_steps": [
+          2526,
+          7635
+        ]
+      },
+      {
+        "group": "L",
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          54.0,
+          176.0
+        ],
+        "end_mm": [
+          54.0,
+          160.0
+        ],
+        "start_joint_steps": [
+          2526,
+          7635
+        ],
+        "end_joint_steps": [
+          2717,
+          7815
+        ]
+      },
+      {
+        "group": "M",
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          92.0,
+          176.0
+        ],
+        "end_mm": [
+          108.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          2779,
+          7358
+        ],
+        "end_joint_steps": [
+          2889,
+          7242
+        ]
+      },
+      {
+        "group": "M",
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          108.0,
+          176.0
+        ],
+        "end_mm": [
+          92.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          2889,
+          7242
+        ],
+        "end_joint_steps": [
+          2779,
+          7358
+        ]
+      },
+      {
+        "group": "M",
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          114.0,
+          160.0
+        ],
+        "end_mm": [
+          114.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          3076,
+          7337
+        ],
+        "end_joint_steps": [
+          2931,
+          7199
+        ]
+      },
+      {
+        "group": "M",
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          114.0,
+          176.0
+        ],
+        "end_mm": [
+          114.0,
+          160.0
+        ],
+        "start_joint_steps": [
+          2931,
+          7199
+        ],
+        "end_joint_steps": [
+          3076,
+          7337
+        ]
+      },
+      {
+        "group": "R",
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          152.0,
+          176.0
+        ],
+        "end_mm": [
+          168.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          3203,
+          6921
+        ],
+        "end_joint_steps": [
+          3323,
+          6801
+        ]
+      },
+      {
+        "group": "R",
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          168.0,
+          176.0
+        ],
+        "end_mm": [
+          152.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          3323,
+          6801
+        ],
+        "end_joint_steps": [
+          3203,
+          6921
+        ]
+      },
+      {
+        "group": "R",
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          174.0,
+          160.0
+        ],
+        "end_mm": [
+          174.0,
+          176.0
+        ],
+        "start_joint_steps": [
+          3489,
+          6870
+        ],
+        "end_joint_steps": [
+          3369,
+          6755
+        ]
+      },
+      {
+        "group": "R",
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          174.0,
+          176.0
+        ],
+        "end_mm": [
+          174.0,
+          160.0
+        ],
+        "start_joint_steps": [
+          3369,
+          6755
+        ],
+        "end_joint_steps": [
+          3489,
+          6870
+        ]
+      }
+    ],
+    "stroke_count": 12,
+    "motion_line_count": 36
+  },
+  "gcode": {
+    "file": "PAPER_A4_3POS_4JOINTDIR_OVERLAY_GCODE_V70.gcode",
+    "line_count": 94,
+    "sha256": "7BF6C86EF8E252F3DA7FAF0949181CEE9DF296F159EB78FFE24C84F44C5A3636"
+  }
+}

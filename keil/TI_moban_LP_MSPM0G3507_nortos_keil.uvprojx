@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>gpio_toggle_output_LP_MSPM0G3507_nortos_keil</TargetName>
+      <TargetName>TI_moban_LP_MSPM0G3507_nortos_keil</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>6210000::V6.21::ARMCLANG</pCCUsed>
@@ -21,7 +21,7 @@
           <Cpu>IRAM(0x20000000,0x00008000) IRAM2(0x20200000,0x00008000) IROM(0x00000000,0x00020000) IROM2(0x00400000,0x00020000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC8000 -FN1 -FF0MSPM0G_MainFlash_128KB -FS00 -FL020000 -FP0($$Device:MSPM0G3507$02_Flash_Programming\FlashARM\MSPM0G_MainFlash_128KB.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20200000 -FC8000 -FN1 -FF0MSPM0G1X0X_G3X0X_MAIN_128KB -FS00 -FL020000 -FP0($$Device:MSPM0G3507$02_Flash_Programming\FlashARM\MSPM0G1X0X_G3X0X_MAIN_128KB.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
           <RegisterFile></RegisterFile>
           <MemoryEnv></MemoryEnv>
@@ -46,10 +46,10 @@
             <ExitCodeStop>0</ExitCodeStop>
             <ButtonStop>0</ButtonStop>
             <NotGenerated>0</NotGenerated>
-            <InvalidFlash>1</InvalidFlash>
+            <InvalidFlash>0</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>gpio_toggle_output_LP_MSPM0G3507_nortos_keil</OutputName>
+          <OutputName>TI_moban_LP_MSPM0G3507_nortos_keil</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -72,7 +72,7 @@
           <BeforeMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>cmd.exe /C "$P../../../../../../tools/keil/syscfg.bat '$P' gpio_toggle_output.syscfg"</UserProg1Name>
+            <UserProg1Name>cmd.exe /C "C:\ti\mspm0_sdk_1_30_00_03\tools\keil\syscfg.bat" $P TI_moban.syscfg</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>__MSPM0G3507__</Define>
               <Undefine></Undefine>
-              <IncludePath>../../../../../../source/third_party/CMSIS/Core/Include,../../../../../../source</IncludePath>
+              <IncludePath>C:\ti\mspm0_sdk_1_30_00_03\source\third_party\CMSIS\Core\Include,C:\ti\mspm0_sdk_1_30_00_03\source,..,..\MID\Inc,..\MID\Src,..\COMM\Inc,..\COMM\Src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -417,7 +417,47 @@
             <File>
               <FileName>driverlib.a</FileName>
               <FileType>4</FileType>
-              <FilePath>../../../../../../source/ti/driverlib/lib/keil/m0p/mspm0g1x0x_g3x0x/driverlib.a</FilePath>
+              <FilePath>C:\ti\mspm0_sdk_1_30_00_03\source\ti\driverlib\lib\keil\m0p\mspm0g1x0x_g3x0x\driverlib.a</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MID</GroupName>
+          <Files>
+            <File>
+              <FileName>mid_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MID\Src\mid_pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>mid_pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\MID\Inc\mid_pid.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>COMM</GroupName>
+          <Files>
+            <File>
+              <FileName>comm_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\COMM\Src\comm_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\COMM\Inc\comm_uart.h</FilePath>
+            </File>
+            <File>
+              <FileName>comm_sw_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\COMM\Src\comm_sw_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_sw_i2c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\COMM\Inc\comm_sw_i2c.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,0 +1,69 @@
+{
+  "id": "PAPER_A4_3POS_BFONT_WRITEZI_8MM_V33_CAL_GCODE_V77",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_AMASS_PLANNER_V33",
+  "required_paper_map": "A4_BASE_QUADRATIC_XSCALE_NO_SBOW_CAL_V8",
+  "text": "写字",
+  "repetitions": 3,
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified gfont paths; rigid translation only"
+  },
+  "layout": {
+    "visible_height_mm": 8.0,
+    "character_gap_mm": 1.0,
+    "content_top_mm": 190.0,
+    "group_centers_x_mm": [
+      40.0,
+      100.0,
+      160.0
+    ],
+    "bounds_mm": [
+      28.9275752904287,
+      178.92251212048703,
+      167.42918636133226,
+      194.77104595137718
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0
+  },
+  "safety": {
+    "home_exit": {
+      "sample_count": 141,
+      "minimum_joint_margin_deg": 0.26709837193601427,
+      "minimum_margin_user_mm": [
+        68.98512236521266,
+        15.860894672765335
+      ],
+      "first_approach_joint_margin_deg": 44.712925963062446,
+      "note": "The home pose is the configured joint-minimum reference; this value covers only the initial pen-up departure."
+    },
+    "writing_sequence": {
+      "sample_count": 610,
+      "minimum_joint_margin_deg": 32.420045787219266,
+      "minimum_margin_user_mm": [
+        292.3526155149036,
+        117.60586601831709
+      ],
+      "required_minimum_margin_deg": 15.0
+    },
+    "stroke_count": 30,
+    "motion_line_count": 201
+  },
+  "gcode": {
+    "file": "PAPER_A4_3POS_BFONT_WRITEZI_8MM_V33_CAL_GCODE_V77.gcode",
+    "line_count": 313,
+    "sha256": "F9E9A93F43B8A16FEEBB965C58041207C9D0080055F3CDC848A52C37FD36B65C"
+  }
+}

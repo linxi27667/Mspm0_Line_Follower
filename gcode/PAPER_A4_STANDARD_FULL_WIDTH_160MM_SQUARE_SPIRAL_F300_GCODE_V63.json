@@ -1,0 +1,42 @@
+{
+  "id": "PAPER_A4_STANDARD_FULL_WIDTH_160MM_SQUARE_SPIRAL_F300_GCODE_V63",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_SBOW_PAPERMAP_YSHIFT15_V29",
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true,
+    "firmware_s_bow_correction": true
+  },
+  "pattern": {
+    "type": "open clockwise inward square spiral",
+    "outer_size_mm": 160.0,
+    "pitch_mm": 15.0,
+    "bounds_mm": [
+      25.0,
+      75.0,
+      185.0,
+      235.0
+    ],
+    "vertex_count": 23,
+    "segment_count": 22,
+    "segment_length_range_mm": [
+      10.0,
+      160.0
+    ],
+    "all_source_segments_axis_aligned": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "stroke_count": 1,
+    "g0_count": 1,
+    "g1_count": 22,
+    "firmware_draw_subdivision_max_mm": 1.0
+  },
+  "gcode": {
+    "file": "PAPER_A4_STANDARD_FULL_WIDTH_160MM_SQUARE_SPIRAL_F300_GCODE_V63.gcode",
+    "line_count": 40,
+    "sha256": "a56c118fdfc1212ecaa0ec38df71dbe76de1f87a8609dce6586040e722ef1db6"
+  }
+}

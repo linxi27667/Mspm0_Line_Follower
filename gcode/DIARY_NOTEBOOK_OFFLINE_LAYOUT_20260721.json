@@ -1,0 +1,147 @@
+{
+  "artifact": "DIARY_NOTEBOOK_OFFLINE_LAYOUT_20260721",
+  "runnable_on_robot": false,
+  "blocking_reasons": [
+    "V36 only accepts M801 ALIGN and M807 TEXT; ordinary G-code is disabled",
+    "continuous handwriting over this rectangle has not been physically calibrated",
+    "four glyphs use disclosed composite single-line fallbacks"
+  ],
+  "source": {
+    "docx": "C:\\Users\\zjl\\Desktop\\日记本.docx",
+    "docx_sha256": "EA36C6DEEF17968A1B18B49750D2A6B5F7CE5ECDD03572A4995E01151EBFAAE9",
+    "fixed_text_file": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\gcode\\DIARY_NOTEBOOK_SOURCE_20260721.txt",
+    "fixed_text_sha256": "19A3A4BB9885145B41087A3A63466275C1FF29F35A4896B149FAA8954AFC631A",
+    "characters_including_newline": 243,
+    "characters_excluding_whitespace": 240,
+    "unique_nonspace_characters": 120
+  },
+  "kenjoy": {
+    "mode": "笔记",
+    "selected_origin": "右上",
+    "origin_id_from_decompiled_logic": 1,
+    "origin_internal_offset": [
+      0.0,
+      0.0
+    ],
+    "font_file": "C:\\Users\\zjl\\Downloads\\25.11.11drawbot完整资料包\\生成gcode\\奎享雕刻软件（绿色版）（生成gcode）\\奎享雕刻软件（绿色版）\\gcodeFonts\\ec900461-6461-471a-9236-3309b1bd18b8_download.gfont",
+    "font_sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+    "font_name": "宋体",
+    "font_em_size": 600,
+    "original_missing_characters": "粿麟婷鹏",
+    "composite_fallbacks": {
+      "粿": [
+        "米",
+        "果"
+      ],
+      "麟": [
+        "鹿",
+        "米",
+        "夕",
+        "牛"
+      ],
+      "婷": [
+        "女",
+        "亭"
+      ],
+      "鹏": [
+        "朋",
+        "鸟"
+      ]
+    },
+    "unresolved_characters": ""
+  },
+  "layout": {
+    "paper": "A4 landscape",
+    "paper_origin": "lower-left",
+    "paper_size_mm": [
+      297.0,
+      210.0
+    ],
+    "safe_rectangle_mm": [
+      150.0,
+      15.0,
+      275.0,
+      125.0
+    ],
+    "line_pitch_mm": 15.0,
+    "font_size_percent": 95.0,
+    "word_gap_mm": 0.6,
+    "page_count": 3,
+    "local_y_correction_applied": false,
+    "local_y_correction_reason": "V34's 1.095 factor is validated only around y=65 and must not be extrapolated across multi-line pages"
+  },
+  "pages": [
+    {
+      "page": 1,
+      "lines": [
+        "日记",
+        "  今天是星期二，是2026年",
+        "4月28日。此时此刻，我和我的",
+        "团队正在等待着“智汇杯”的",
+        "决赛，我们前面还有一个队",
+        "伍，我一点都不紧张。谢谢大",
+        "家，我的演讲到此结束。哦，对"
+      ],
+      "glyph_count": 82,
+      "stroke_count": 875,
+      "path_point_count": 3187,
+      "path_bounds_mm": [
+        150.0,
+        22.42,
+        273.89,
+        122.9175
+      ],
+      "composite_characters": ""
+    },
+    {
+      "page": 2,
+      "lines": [
+        "了，我的晚饭吃的是桂哥爆",
+        "炒牛肉粿条，吃的太快，没品",
+        "尝到一点美味。我变成了勤",
+        "劳的小蜜蜂，在大家饥饿的",
+        "时候，我提出了去小吃街买",
+        "晚饭，我是好人。我的左边坐",
+        "的是梁伟麟，我左边的左边"
+      ],
+      "glyph_count": 86,
+      "stroke_count": 1132,
+      "path_point_count": 4055,
+      "path_bounds_mm": [
+        150.0,
+        22.42,
+        272.427083,
+        123.27375
+      ],
+      "composite_characters": "粿麟"
+    },
+    {
+      "page": 3,
+      "lines": [
+        "是张佳乐，我是张瑞婷，我后",
+        "面是罗诗辉，我后面的左边",
+        "是罗诗辉的队友，我后面的",
+        "后面是梁伟鹏，我后面的后",
+        "面的左边是老戴。妈的，还有",
+        "多久到我们，真服了！"
+      ],
+      "glyph_count": 72,
+      "stroke_count": 856,
+      "path_point_count": 3020,
+      "path_bounds_mm": [
+        150.0,
+        37.42,
+        273.86,
+        123.17875
+      ],
+      "composite_characters": "婷鹏"
+    }
+  ],
+  "preview_files": [
+    "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_OFFLINE_PREVIEW_20260721_PAGE_01.png",
+    "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_OFFLINE_PREVIEW_20260721_PAGE_02.png",
+    "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_OFFLINE_PREVIEW_20260721_PAGE_03.png",
+    "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_OFFLINE_PREVIEW_20260721_CONTACT_SHEET.png",
+    "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_OFFLINE_PREVIEW_20260721_COMPOSITE_GLYPHS.png"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "id": "PAPER_A4_ENDPOINT_CONVERGENCE_PROBE_GCODE_V76",
+  "firmware_minimum": "PAPER_A4_STANDARD_GCODE_AMASS_PLANNER_V33",
+  "geometry": {
+    "radius_mm": 10.0,
+    "directions_deg": [
+      0,
+      45,
+      90,
+      135,
+      180,
+      225,
+      270,
+      315
+    ],
+    "inbound_centers_mm": [
+      [
+        45.0,
+        190.0
+      ],
+      [
+        105.0,
+        190.0
+      ],
+      [
+        165.0,
+        190.0
+      ]
+    ],
+    "outbound_centers_mm": [
+      [
+        45.0,
+        145.0
+      ],
+      [
+        105.0,
+        145.0
+      ],
+      [
+        165.0,
+        145.0
+      ]
+    ]
+  },
+  "interpretation": {
+    "inbound": "all eight physical endpoints should converge",
+    "outbound": "all eight physical starts should share one center",
+    "column_difference": "pose dependence, not a global constant deadband"
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0,
+    "stroke_count": 48
+  },
+  "safety": {
+    "sample_count": 720,
+    "minimum_joint_margin_deg": 28.40420315631627,
+    "minimum_margin_at_paper_mm": [
+      174.89949493661166,
+      199.89949493661166
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_ENDPOINT_CONVERGENCE_PROBE_GCODE_V76.gcode",
+    "line_count": 309,
+    "sha256": "5BC090F3E023F234117C05E5250ACD319ADE53A52AD2F177D9AD78CA8B9C64D9"
+  }
+}

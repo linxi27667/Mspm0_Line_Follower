@@ -1,0 +1,150 @@
+{
+  "id": "PAPER_A4_STANDARD_UPPER_4FONT_6MM_WRITER_TEST_TIMESTAMP_GCODE_V66",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_RIGHT_SBOW_PAPERMAP_YSHIFT15_V30",
+  "requested_text": "写字机第好多次测试，7.25  5.23am",
+  "fonts": [
+    {
+      "option": "K",
+      "label": "ZHENG_KAI_KAITI",
+      "family": "KaiTi",
+      "style": "Regular",
+      "kind": "ttf",
+      "file": "C:\\Windows\\Fonts\\simkai.ttf",
+      "sha256": "A6ACF69A7A6E8A4CBA014266036ECA8629560038CC50783F46917748FABEFBE5",
+      "rendered_text": "写字机第好多次测试，7.25  5.23am",
+      "source_geometry": "TTF_FILLED_OUTLINE_CONTOURS",
+      "synthesized_glyphs": false,
+      "row_top_mm": 230.0,
+      "visible_size_mm": [
+        99.86065573770492,
+        6.0
+      ],
+      "bounds_mm": [
+        30.0,
+        224.00614754098362,
+        129.86065573770492,
+        230.3868907108248
+      ],
+      "stroke_count": 49
+    },
+    {
+      "option": "B",
+      "label": "B_AA_GUO_JINGMING",
+      "family": "aa郭敬明字体",
+      "style": "single-line",
+      "kind": "gfont",
+      "file": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\assets\\kenjoy_gfont\\AA_GUO_JINGMING_b7c9ccc1.gfont",
+      "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+      "rendered_text": "写字机第好多次测试，7。25  5。23am",
+      "source_geometry": "UNMODIFIED_GFONT_PATH_POINTS_AND_COMMAND_ORDER",
+      "synthesized_glyphs": false,
+      "row_top_mm": 216.0,
+      "visible_size_mm": [
+        88.84100418674463,
+        6.0
+      ],
+      "bounds_mm": [
+        29.66325332596835,
+        210.0,
+        118.84100418674463,
+        217.0357097917336
+      ],
+      "stroke_count": 71
+    },
+    {
+      "option": "M",
+      "label": "MA_SHAN_ZHENG",
+      "family": "Ma Shan Zheng",
+      "style": "Regular",
+      "kind": "ttf",
+      "file": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\assets\\ma_shan_zheng\\MaShanZheng-Regular.ttf",
+      "sha256": "6D2546BB189C732A8CA29AF9E22457B152387D158AA459E4AC2CE1E51788B7FB",
+      "rendered_text": "写字机第好多次测试，7.25  5.23am",
+      "source_geometry": "TTF_FILLED_OUTLINE_CONTOURS",
+      "synthesized_glyphs": false,
+      "row_top_mm": 202.0,
+      "visible_size_mm": [
+        82.88454011741682,
+        6.0
+      ],
+      "bounds_mm": [
+        30.0,
+        196.0199700504314,
+        112.86692759295498,
+        202.71847232621784
+      ],
+      "stroke_count": 47
+    },
+    {
+      "option": "Y",
+      "label": "YOUYUAN",
+      "family": "YouYuan",
+      "style": "Regular",
+      "kind": "ttf",
+      "file": "C:\\Windows\\Fonts\\SIMYOU.TTF",
+      "sha256": "E4440E07E02FA6B5A8F497DA52FCAB0AA711B399D43FF28A2BA246C603363930",
+      "rendered_text": "写字机第好多次测试，7.25  5.23am",
+      "source_geometry": "TTF_FILLED_OUTLINE_CONTOURS",
+      "synthesized_glyphs": false,
+      "row_top_mm": 188.0,
+      "visible_size_mm": [
+        98.77901109989908,
+        6.0
+      ],
+      "bounds_mm": [
+        30.0,
+        182.0,
+        128.7790110998991,
+        188.90938446014127
+      ],
+      "stroke_count": 47
+    }
+  ],
+  "layout": {
+    "visible_height_mm": 6.0,
+    "content_left_mm": 30.0,
+    "row_top_mm": [
+      230.0,
+      216.0,
+      202.0,
+      188.0
+    ],
+    "upper_validated_band_mm": [
+      180.0,
+      232.0
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 1.2,
+    "firmware_draw_subdivision_max_mm": 1.0
+  },
+  "safety": {
+    "safe_samples": 4358,
+    "min_joint_margin_deg": 0.30774218331243275,
+    "min_margin_user_mm": [
+      68.98171626081029,
+      16.011116302019538
+    ],
+    "stroke_count": 214,
+    "stroke_count_by_font": {
+      "K": 49,
+      "B": 71,
+      "M": 47,
+      "Y": 47
+    },
+    "motion_line_count": 2708
+  },
+  "gcode": {
+    "file": "PAPER_A4_STANDARD_UPPER_4FONT_6MM_WRITER_TEST_TIMESTAMP_GCODE_V66.gcode",
+    "line_count": 3387,
+    "sha256": "43696D0DB2121EDEA5C25653E5B426728F45EFD72C9C978EEF881DFB96760BC3"
+  }
+}

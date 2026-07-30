@@ -1,0 +1,1036 @@
+{
+  "id": "PAPER_A4_3POS_SHORTSTROKE_APPROACH_OVERLAY_GCODE_V71",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32",
+  "purpose": "isolate tangent approach length on bidirectional short strokes",
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "layout": {
+    "group_x_mm": [
+      40.0,
+      100.0,
+      160.0
+    ],
+    "approach_rows": [
+      {
+        "row": "A1P2",
+        "approach_mm": 1.2,
+        "horizontal_y_mm": 226.0
+      },
+      {
+        "row": "A3",
+        "approach_mm": 3.0,
+        "horizontal_y_mm": 210.0
+      },
+      {
+        "row": "A5",
+        "approach_mm": 5.0,
+        "horizontal_y_mm": 194.0
+      }
+    ],
+    "line_length_mm": 4.0
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "line_length_under_test": false,
+    "same_direction_repeatability_under_test": false
+  },
+  "safety": {
+    "bounds_mm": [
+      33.0,
+      182.0,
+      169.0,
+      226.0
+    ],
+    "safe_samples": 1036,
+    "min_joint_margin_deg": 0.31082042650149055,
+    "min_margin_user_mm": [
+      68.98004842654662,
+      16.02393624950469
+    ],
+    "stroke_count": 36,
+    "records": [
+      {
+        "row": "A1P2",
+        "group": "L",
+        "approach_mm": 1.2,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          38.0,
+          226.0
+        ],
+        "end_mm": [
+          42.0,
+          226.0
+        ],
+        "start_joint_steps": [
+          1852,
+          7095
+        ],
+        "end_joint_steps": [
+          1892,
+          7080
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "L",
+        "approach_mm": 1.2,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          42.0,
+          226.0
+        ],
+        "end_mm": [
+          38.0,
+          226.0
+        ],
+        "start_joint_steps": [
+          1892,
+          7080
+        ],
+        "end_joint_steps": [
+          1852,
+          7095
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "L",
+        "approach_mm": 1.2,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          49.0,
+          219.0
+        ],
+        "end_mm": [
+          49.0,
+          223.0
+        ],
+        "start_joint_steps": [
+          2026,
+          7140
+        ],
+        "end_joint_steps": [
+          1989,
+          7090
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "L",
+        "approach_mm": 1.2,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          49.0,
+          223.0
+        ],
+        "end_mm": [
+          49.0,
+          219.0
+        ],
+        "start_joint_steps": [
+          1989,
+          7090
+        ],
+        "end_joint_steps": [
+          2026,
+          7140
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "M",
+        "approach_mm": 1.2,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          98.0,
+          226.0
+        ],
+        "end_mm": [
+          102.0,
+          226.0
+        ],
+        "start_joint_steps": [
+          2408,
+          6815
+        ],
+        "end_joint_steps": [
+          2443,
+          6793
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "M",
+        "approach_mm": 1.2,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          102.0,
+          226.0
+        ],
+        "end_mm": [
+          98.0,
+          226.0
+        ],
+        "start_joint_steps": [
+          2443,
+          6793
+        ],
+        "end_joint_steps": [
+          2408,
+          6815
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "M",
+        "approach_mm": 1.2,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          109.0,
+          219.0
+        ],
+        "end_mm": [
+          109.0,
+          223.0
+        ],
+        "start_joint_steps": [
+          2551,
+          6824
+        ],
+        "end_joint_steps": [
+          2523,
+          6784
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "M",
+        "approach_mm": 1.2,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          109.0,
+          223.0
+        ],
+        "end_mm": [
+          109.0,
+          219.0
+        ],
+        "start_joint_steps": [
+          2523,
+          6784
+        ],
+        "end_joint_steps": [
+          2551,
+          6824
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "R",
+        "approach_mm": 1.2,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          158.0,
+          226.0
+        ],
+        "end_mm": [
+          162.0,
+          226.0
+        ],
+        "start_joint_steps": [
+          2923,
+          6455
+        ],
+        "end_joint_steps": [
+          2958,
+          6429
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "R",
+        "approach_mm": 1.2,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          162.0,
+          226.0
+        ],
+        "end_mm": [
+          158.0,
+          226.0
+        ],
+        "start_joint_steps": [
+          2958,
+          6429
+        ],
+        "end_joint_steps": [
+          2923,
+          6455
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "R",
+        "approach_mm": 1.2,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          169.0,
+          219.0
+        ],
+        "end_mm": [
+          169.0,
+          223.0
+        ],
+        "start_joint_steps": [
+          3055,
+          6443
+        ],
+        "end_joint_steps": [
+          3034,
+          6408
+        ]
+      },
+      {
+        "row": "A1P2",
+        "group": "R",
+        "approach_mm": 1.2,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          169.0,
+          223.0
+        ],
+        "end_mm": [
+          169.0,
+          219.0
+        ],
+        "start_joint_steps": [
+          3034,
+          6408
+        ],
+        "end_joint_steps": [
+          3055,
+          6443
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "L",
+        "approach_mm": 3.0,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          38.0,
+          210.0
+        ],
+        "end_mm": [
+          42.0,
+          210.0
+        ],
+        "start_joint_steps": [
+          2017,
+          7308
+        ],
+        "end_joint_steps": [
+          2053,
+          7288
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "L",
+        "approach_mm": 3.0,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          42.0,
+          210.0
+        ],
+        "end_mm": [
+          38.0,
+          210.0
+        ],
+        "start_joint_steps": [
+          2053,
+          7288
+        ],
+        "end_joint_steps": [
+          2017,
+          7308
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "L",
+        "approach_mm": 3.0,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          49.0,
+          203.0
+        ],
+        "end_mm": [
+          49.0,
+          207.0
+        ],
+        "start_joint_steps": [
+          2188,
+          7341
+        ],
+        "end_joint_steps": [
+          2146,
+          7291
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "L",
+        "approach_mm": 3.0,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          49.0,
+          207.0
+        ],
+        "end_mm": [
+          49.0,
+          203.0
+        ],
+        "start_joint_steps": [
+          2146,
+          7291
+        ],
+        "end_joint_steps": [
+          2188,
+          7341
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "M",
+        "approach_mm": 3.0,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          98.0,
+          210.0
+        ],
+        "end_mm": [
+          102.0,
+          210.0
+        ],
+        "start_joint_steps": [
+          2527,
+          6980
+        ],
+        "end_joint_steps": [
+          2559,
+          6956
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "M",
+        "approach_mm": 3.0,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          102.0,
+          210.0
+        ],
+        "end_mm": [
+          98.0,
+          210.0
+        ],
+        "start_joint_steps": [
+          2559,
+          6956
+        ],
+        "end_joint_steps": [
+          2527,
+          6980
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "M",
+        "approach_mm": 3.0,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          109.0,
+          203.0
+        ],
+        "end_mm": [
+          109.0,
+          207.0
+        ],
+        "start_joint_steps": [
+          2670,
+          6981
+        ],
+        "end_joint_steps": [
+          2639,
+          6942
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "M",
+        "approach_mm": 3.0,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          109.0,
+          207.0
+        ],
+        "end_mm": [
+          109.0,
+          203.0
+        ],
+        "start_joint_steps": [
+          2639,
+          6942
+        ],
+        "end_joint_steps": [
+          2670,
+          6981
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "R",
+        "approach_mm": 3.0,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          158.0,
+          210.0
+        ],
+        "end_mm": [
+          162.0,
+          210.0
+        ],
+        "start_joint_steps": [
+          3015,
+          6596
+        ],
+        "end_joint_steps": [
+          3048,
+          6569
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "R",
+        "approach_mm": 3.0,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          162.0,
+          210.0
+        ],
+        "end_mm": [
+          158.0,
+          210.0
+        ],
+        "start_joint_steps": [
+          3048,
+          6569
+        ],
+        "end_joint_steps": [
+          3015,
+          6596
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "R",
+        "approach_mm": 3.0,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          169.0,
+          203.0
+        ],
+        "end_mm": [
+          169.0,
+          207.0
+        ],
+        "start_joint_steps": [
+          3148,
+          6579
+        ],
+        "end_joint_steps": [
+          3124,
+          6546
+        ]
+      },
+      {
+        "row": "A3",
+        "group": "R",
+        "approach_mm": 3.0,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          169.0,
+          207.0
+        ],
+        "end_mm": [
+          169.0,
+          203.0
+        ],
+        "start_joint_steps": [
+          3124,
+          6546
+        ],
+        "end_joint_steps": [
+          3148,
+          6579
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "L",
+        "approach_mm": 5.0,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          38.0,
+          194.0
+        ],
+        "end_mm": [
+          42.0,
+          194.0
+        ],
+        "start_joint_steps": [
+          2200,
+          7521
+        ],
+        "end_joint_steps": [
+          2231,
+          7496
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "L",
+        "approach_mm": 5.0,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          42.0,
+          194.0
+        ],
+        "end_mm": [
+          38.0,
+          194.0
+        ],
+        "start_joint_steps": [
+          2231,
+          7496
+        ],
+        "end_joint_steps": [
+          2200,
+          7521
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "L",
+        "approach_mm": 5.0,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          49.0,
+          187.0
+        ],
+        "end_mm": [
+          49.0,
+          191.0
+        ],
+        "start_joint_steps": [
+          2365,
+          7539
+        ],
+        "end_joint_steps": [
+          2319,
+          7490
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "L",
+        "approach_mm": 5.0,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          49.0,
+          191.0
+        ],
+        "end_mm": [
+          49.0,
+          187.0
+        ],
+        "start_joint_steps": [
+          2319,
+          7490
+        ],
+        "end_joint_steps": [
+          2365,
+          7539
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "M",
+        "approach_mm": 5.0,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          98.0,
+          194.0
+        ],
+        "end_mm": [
+          102.0,
+          194.0
+        ],
+        "start_joint_steps": [
+          2658,
+          7140
+        ],
+        "end_joint_steps": [
+          2689,
+          7114
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "M",
+        "approach_mm": 5.0,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          102.0,
+          194.0
+        ],
+        "end_mm": [
+          98.0,
+          194.0
+        ],
+        "start_joint_steps": [
+          2689,
+          7114
+        ],
+        "end_joint_steps": [
+          2658,
+          7140
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "M",
+        "approach_mm": 5.0,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          109.0,
+          187.0
+        ],
+        "end_mm": [
+          109.0,
+          191.0
+        ],
+        "start_joint_steps": [
+          2800,
+          7134
+        ],
+        "end_joint_steps": [
+          2766,
+          7096
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "M",
+        "approach_mm": 5.0,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          109.0,
+          191.0
+        ],
+        "end_mm": [
+          109.0,
+          187.0
+        ],
+        "start_joint_steps": [
+          2766,
+          7096
+        ],
+        "end_joint_steps": [
+          2800,
+          7134
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "R",
+        "approach_mm": 5.0,
+        "axis": "H",
+        "direction": "LR",
+        "joint_signs": [
+          1,
+          -1
+        ],
+        "start_mm": [
+          158.0,
+          194.0
+        ],
+        "end_mm": [
+          162.0,
+          194.0
+        ],
+        "start_joint_steps": [
+          3118,
+          6732
+        ],
+        "end_joint_steps": [
+          3150,
+          6703
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "R",
+        "approach_mm": 5.0,
+        "axis": "H",
+        "direction": "RL",
+        "joint_signs": [
+          -1,
+          1
+        ],
+        "start_mm": [
+          162.0,
+          194.0
+        ],
+        "end_mm": [
+          158.0,
+          194.0
+        ],
+        "start_joint_steps": [
+          3150,
+          6703
+        ],
+        "end_joint_steps": [
+          3118,
+          6732
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "R",
+        "approach_mm": 5.0,
+        "axis": "V",
+        "direction": "BT",
+        "joint_signs": [
+          -1,
+          -1
+        ],
+        "start_mm": [
+          169.0,
+          187.0
+        ],
+        "end_mm": [
+          169.0,
+          191.0
+        ],
+        "start_joint_steps": [
+          3252,
+          6709
+        ],
+        "end_joint_steps": [
+          3225,
+          6677
+        ]
+      },
+      {
+        "row": "A5",
+        "group": "R",
+        "approach_mm": 5.0,
+        "axis": "V",
+        "direction": "TB",
+        "joint_signs": [
+          1,
+          1
+        ],
+        "start_mm": [
+          169.0,
+          191.0
+        ],
+        "end_mm": [
+          169.0,
+          187.0
+        ],
+        "start_joint_steps": [
+          3225,
+          6677
+        ],
+        "end_joint_steps": [
+          3252,
+          6709
+        ]
+      }
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_3POS_SHORTSTROKE_APPROACH_OVERLAY_GCODE_V71.gcode",
+    "line_count": 249,
+    "sha256": "CF526C8B76279FB9354134DDDEBF801FC21EF091483B8DA3183687B169F4392E"
+  }
+}

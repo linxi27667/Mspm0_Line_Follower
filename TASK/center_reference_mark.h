@@ -1,6 +1,6 @@
 /**
  * @file    center_reference_mark.h
- * @brief   Mark the corrected lower-left origin of a landscape A4 sheet.
+ * @brief   Mark the explicit puzzle-paper zero, separate from machine home.
  */
 #ifndef CENTER_REFERENCE_MARK_H
 #define CENTER_REFERENCE_MARK_H
@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 #define CENTER_REFERENCE_MARK_BUILD_ID \
-    "KEY3_ORIGIN_PREKEY_KIN_KEYS_LIMIT135_255_F300_V5"
+    "KEY3_PAPER_P4_ZERO_XRIGHT_YDOWN_V14"
 
 typedef enum {
     CENTER_REFERENCE_MARK_STATE_IDLE = 0,

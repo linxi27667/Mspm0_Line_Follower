@@ -1,0 +1,13 @@
+固定摆放 V1：全程抬笔，每一步完成并观察后再发送下一文件。
+
+01  FIXED_LAYOUT_01_ALIGN_V1.gcode       M801  到独立关节基准位
+02  FIXED_LAYOUT_02_X_PLUS_10_V1.gcode   M802  X +10 mm
+03  FIXED_LAYOUT_03_X_RETURN_V1.gcode    M803  回中心
+04  FIXED_LAYOUT_04_X_MINUS_10_V1.gcode  M804  X -10 mm
+05  FIXED_LAYOUT_05_X_CENTER_V1.gcode    M805  回中心
+06  FIXED_LAYOUT_06_Y_PLUS_10_V1.gcode   M806  Y +10 mm
+07  FIXED_LAYOUT_07_Y_RETURN_V1.gcode    M807  回中心
+08  FIXED_LAYOUT_08_Y_MINUS_10_V1.gcode  M808  Y -10 mm
+09  FIXED_LAYOUT_09_Y_CENTER_V1.gcode    M809  回中心并结束
+
+每一步前可发送 STATUS；任何异常立即发送 STOP 并重新上电归零。

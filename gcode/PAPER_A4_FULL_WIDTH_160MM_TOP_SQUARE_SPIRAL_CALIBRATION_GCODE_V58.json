@@ -1,0 +1,347 @@
+{
+  "id": "PAPER_A4_FULL_WIDTH_160MM_TOP_SQUARE_SPIRAL_CALIBRATION_GCODE_V58",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_YSHIFT15_GCODE_V28",
+  "purpose": "use one continuous full-width path to locate the height or side where regional XY distortion begins",
+  "pattern": {
+    "type": "open clockwise inward square spiral",
+    "outer_size_mm": 160.0,
+    "pitch_mm": 15.0,
+    "physical_bounds_mm": [
+      25.0,
+      75.0,
+      185.0,
+      235.0
+    ],
+    "source_vertex_count": 23,
+    "source_segments": [
+      {
+        "index": 1,
+        "start_mm": [
+          25.0,
+          235.0
+        ],
+        "end_mm": [
+          185.0,
+          235.0
+        ],
+        "axis": "X",
+        "length_mm": 160.0
+      },
+      {
+        "index": 2,
+        "start_mm": [
+          185.0,
+          235.0
+        ],
+        "end_mm": [
+          185.0,
+          75.0
+        ],
+        "axis": "Y",
+        "length_mm": 160.0
+      },
+      {
+        "index": 3,
+        "start_mm": [
+          185.0,
+          75.0
+        ],
+        "end_mm": [
+          25.0,
+          75.0
+        ],
+        "axis": "X",
+        "length_mm": 160.0
+      },
+      {
+        "index": 4,
+        "start_mm": [
+          25.0,
+          75.0
+        ],
+        "end_mm": [
+          25.0,
+          220.0
+        ],
+        "axis": "Y",
+        "length_mm": 145.0
+      },
+      {
+        "index": 5,
+        "start_mm": [
+          25.0,
+          220.0
+        ],
+        "end_mm": [
+          170.0,
+          220.0
+        ],
+        "axis": "X",
+        "length_mm": 145.0
+      },
+      {
+        "index": 6,
+        "start_mm": [
+          170.0,
+          220.0
+        ],
+        "end_mm": [
+          170.0,
+          90.0
+        ],
+        "axis": "Y",
+        "length_mm": 130.0
+      },
+      {
+        "index": 7,
+        "start_mm": [
+          170.0,
+          90.0
+        ],
+        "end_mm": [
+          40.0,
+          90.0
+        ],
+        "axis": "X",
+        "length_mm": 130.0
+      },
+      {
+        "index": 8,
+        "start_mm": [
+          40.0,
+          90.0
+        ],
+        "end_mm": [
+          40.0,
+          205.0
+        ],
+        "axis": "Y",
+        "length_mm": 115.0
+      },
+      {
+        "index": 9,
+        "start_mm": [
+          40.0,
+          205.0
+        ],
+        "end_mm": [
+          155.0,
+          205.0
+        ],
+        "axis": "X",
+        "length_mm": 115.0
+      },
+      {
+        "index": 10,
+        "start_mm": [
+          155.0,
+          205.0
+        ],
+        "end_mm": [
+          155.0,
+          105.0
+        ],
+        "axis": "Y",
+        "length_mm": 100.0
+      },
+      {
+        "index": 11,
+        "start_mm": [
+          155.0,
+          105.0
+        ],
+        "end_mm": [
+          55.0,
+          105.0
+        ],
+        "axis": "X",
+        "length_mm": 100.0
+      },
+      {
+        "index": 12,
+        "start_mm": [
+          55.0,
+          105.0
+        ],
+        "end_mm": [
+          55.0,
+          190.0
+        ],
+        "axis": "Y",
+        "length_mm": 85.0
+      },
+      {
+        "index": 13,
+        "start_mm": [
+          55.0,
+          190.0
+        ],
+        "end_mm": [
+          140.0,
+          190.0
+        ],
+        "axis": "X",
+        "length_mm": 85.0
+      },
+      {
+        "index": 14,
+        "start_mm": [
+          140.0,
+          190.0
+        ],
+        "end_mm": [
+          140.0,
+          120.0
+        ],
+        "axis": "Y",
+        "length_mm": 70.0
+      },
+      {
+        "index": 15,
+        "start_mm": [
+          140.0,
+          120.0
+        ],
+        "end_mm": [
+          70.0,
+          120.0
+        ],
+        "axis": "X",
+        "length_mm": 70.0
+      },
+      {
+        "index": 16,
+        "start_mm": [
+          70.0,
+          120.0
+        ],
+        "end_mm": [
+          70.0,
+          175.0
+        ],
+        "axis": "Y",
+        "length_mm": 55.0
+      },
+      {
+        "index": 17,
+        "start_mm": [
+          70.0,
+          175.0
+        ],
+        "end_mm": [
+          125.0,
+          175.0
+        ],
+        "axis": "X",
+        "length_mm": 55.0
+      },
+      {
+        "index": 18,
+        "start_mm": [
+          125.0,
+          175.0
+        ],
+        "end_mm": [
+          125.0,
+          135.0
+        ],
+        "axis": "Y",
+        "length_mm": 40.0
+      },
+      {
+        "index": 19,
+        "start_mm": [
+          125.0,
+          135.0
+        ],
+        "end_mm": [
+          85.0,
+          135.0
+        ],
+        "axis": "X",
+        "length_mm": 40.0
+      },
+      {
+        "index": 20,
+        "start_mm": [
+          85.0,
+          135.0
+        ],
+        "end_mm": [
+          85.0,
+          160.0
+        ],
+        "axis": "Y",
+        "length_mm": 25.0
+      },
+      {
+        "index": 21,
+        "start_mm": [
+          85.0,
+          160.0
+        ],
+        "end_mm": [
+          110.0,
+          160.0
+        ],
+        "axis": "X",
+        "length_mm": 25.0
+      },
+      {
+        "index": 22,
+        "start_mm": [
+          110.0,
+          160.0
+        ],
+        "end_mm": [
+          110.0,
+          150.0
+        ],
+        "axis": "Y",
+        "length_mm": 10.0
+      }
+    ],
+    "all_source_segments_axis_aligned": true
+  },
+  "mapping": {
+    "base_quadratic_enabled": true,
+    "old_grid4x7_residual_enabled": false,
+    "v51_photo_quadratic_enabled": false,
+    "firmware_paper_map_enabled": false,
+    "firmware_global_translation_user_mm": [
+      0.0,
+      15.0
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 150,
+    "paper_subdivision_max_mm": 0.5,
+    "stroke_count": 1,
+    "g1_count": 4040,
+    "pen_down_is_continuous": true
+  },
+  "safety": {
+    "path_sample_count": 4146,
+    "minimum_joint_margin_deg": 0.2946988468703503,
+    "minimum_at_shifted_user_mm": [
+      68.98583548902022,
+      15.959808626414137
+    ],
+    "minimum_at_angles_deg": [
+      0.5216168468703503,
+      135.57555363766642,
+      135.05393679079606
+    ],
+    "intended_physical_paper_bounds_mm": [
+      25.0,
+      75.0,
+      185.0,
+      235.0
+    ]
+  },
+  "gcode": {
+    "file": "PAPER_A4_FULL_WIDTH_160MM_TOP_SQUARE_SPIRAL_CALIBRATION_GCODE_V58.gcode",
+    "line_count": 4063,
+    "sha256": "45478f38a87d6155104732fe5e2a51f97fb9bc4da7b350c0033036ac7ff5fd87"
+  }
+}

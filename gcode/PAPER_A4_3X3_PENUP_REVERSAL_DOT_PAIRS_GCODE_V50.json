@@ -1,0 +1,818 @@
+{
+  "id": "PAPER_A4_3X3_PENUP_REVERSAL_DOT_PAIRS_GCODE_V50",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "purpose": "If opposite-direction dots split while all travel is pen-up, the residual is drivetrain/joint hysteresis. If they overlap, the CW/CCW rectangle split is pen drag or holder compliance.",
+  "mapping": {
+    "base_quadratic_enabled": true,
+    "old_grid4x7_residual_enabled": false,
+    "firmware_paper_map_enabled": false,
+    "offline_pointwise_map_enabled": true
+  },
+  "motion": {
+    "zone_count": 9,
+    "logical_target_count": 18,
+    "mark_count": 36,
+    "approach_distance_mm": 10.0,
+    "dot_dwell_s": 0.25,
+    "pen_down_travel_count": 0
+  },
+  "marks": [
+    {
+      "index": 1,
+      "zone": "TOP_LEFT",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        44.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        34.0,
+        205.0
+      ],
+      "target_user_mm": [
+        196.51477460637958,
+        16.475238876136057
+      ],
+      "approach_user_mm": [
+        189.95275980434025,
+        6.711402388237246
+      ]
+    },
+    {
+      "index": 2,
+      "zone": "TOP_LEFT",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        44.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        54.0,
+        205.0
+      ],
+      "target_user_mm": [
+        196.51477460637958,
+        16.475238876136057
+      ],
+      "approach_user_mm": [
+        202.99833960991865,
+        26.085690924013992
+      ]
+    },
+    {
+      "index": 3,
+      "zone": "TOP_LEFT",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        56.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        56.0,
+        195.0
+      ],
+      "target_user_mm": [
+        204.28563863480642,
+        27.98937520078708
+      ],
+      "approach_user_mm": [
+        211.30562934574584,
+        22.339862685128743
+      ]
+    },
+    {
+      "index": 4,
+      "zone": "TOP_LEFT",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        56.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        56.0,
+        215.0
+      ],
+      "target_user_mm": [
+        204.28563863480642,
+        27.98937520078708
+      ],
+      "approach_user_mm": [
+        197.37044153359662,
+        33.71580786473596
+      ]
+    },
+    {
+      "index": 5,
+      "zone": "TOP_CENTER",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        99.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        89.0,
+        205.0
+      ],
+      "target_user_mm": [
+        231.20356586940397,
+        67.43459269420639
+      ],
+      "approach_user_mm": [
+        225.073024959116,
+        58.51437062642239
+      ]
+    },
+    {
+      "index": 6,
+      "zone": "TOP_CENTER",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        99.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        109.0,
+        205.0
+      ],
+      "target_user_mm": [
+        231.20356586940397,
+        67.43459269420639
+      ],
+      "approach_user_mm": [
+        237.2556569811917,
+        76.20143032196953
+      ]
+    },
+    {
+      "index": 7,
+      "zone": "TOP_CENTER",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        111.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        111.0,
+        195.0
+      ],
+      "target_user_mm": [
+        238.45666122772923,
+        77.93639171471962
+      ],
+      "approach_user_mm": [
+        245.61096464383377,
+        72.0879291634673
+      ]
+    },
+    {
+      "index": 8,
+      "zone": "TOP_CENTER",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        111.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        111.0,
+        215.0
+      ],
+      "target_user_mm": [
+        238.45666122772923,
+        77.93639171471962
+      ],
+      "approach_user_mm": [
+        231.40715142135426,
+        83.86177441426251
+      ]
+    },
+    {
+      "index": 9,
+      "zone": "TOP_RIGHT",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        154.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        144.0,
+        205.0
+      ],
+      "target_user_mm": [
+        263.51925072779596,
+        113.75406720164524
+      ],
+      "approach_user_mm": [
+        257.8201837092593,
+        105.67745955397606
+      ]
+    },
+    {
+      "index": 10,
+      "zone": "TOP_RIGHT",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        154.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        164.0,
+        205.0
+      ],
+      "target_user_mm": [
+        263.51925072779596,
+        113.75406720164524
+      ],
+      "approach_user_mm": [
+        269.13986794783233,
+        121.67729040929358
+      ]
+    },
+    {
+      "index": 11,
+      "zone": "TOP_RIGHT",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        166.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        166.0,
+        195.0
+      ],
+      "target_user_mm": [
+        270.2545774160195,
+        123.24352891802073
+      ],
+      "approach_user_mm": [
+        277.54319353728926,
+        117.1961163311744
+      ]
+    },
+    {
+      "index": 12,
+      "zone": "TOP_RIGHT",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        166.0,
+        205.0
+      ],
+      "approach_paper_mm": [
+        166.0,
+        215.0
+      ],
+      "target_user_mm": [
+        270.2545774160195,
+        123.24352891802073
+      ],
+      "approach_user_mm": [
+        263.07075490447943,
+        129.3678616531576
+      ]
+    },
+    {
+      "index": 13,
+      "zone": "MIDDLE_LEFT",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        44.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        34.0,
+        130.0
+      ],
+      "target_user_mm": [
+        251.49926474895008,
+        -23.695621773020378
+      ],
+      "approach_user_mm": [
+        244.75409625804917,
+        -33.188162757836466
+      ]
+    },
+    {
+      "index": 14,
+      "zone": "MIDDLE_LEFT",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        44.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        54.0,
+        130.0
+      ],
+      "target_user_mm": [
+        251.49926474895008,
+        -23.695621773020378
+      ],
+      "approach_user_mm": [
+        258.1659834413507,
+        -14.356465228225169
+      ]
+    },
+    {
+      "index": 15,
+      "zone": "MIDDLE_LEFT",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        56.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        56.0,
+        120.0
+      ],
+      "target_user_mm": [
+        259.4899132040108,
+        -12.507040052068621
+      ],
+      "approach_user_mm": [
+        267.29585598792215,
+        -17.57965145554793
+      ]
+    },
+    {
+      "index": 16,
+      "zone": "MIDDLE_LEFT",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        56.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        56.0,
+        140.0
+      ],
+      "target_user_mm": [
+        259.4899132040108,
+        -12.507040052068621
+      ],
+      "approach_user_mm": [
+        251.78876402982905,
+        -7.357508500298774
+      ]
+    },
+    {
+      "index": 17,
+      "zone": "MIDDLE_CENTER",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        99.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        89.0,
+        130.0
+      ],
+      "target_user_mm": [
+        287.1954013007131,
+        25.77160677809498
+      ],
+      "approach_user_mm": [
+        280.88170670156353,
+        17.1226802133937
+      ]
+    },
+    {
+      "index": 18,
+      "zone": "MIDDLE_CENTER",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        99.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        109.0,
+        130.0
+      ],
+      "target_user_mm": [
+        287.1954013007131,
+        25.77160677809498
+      ],
+      "approach_user_mm": [
+        293.43064610136236,
+        34.26714890277539
+      ]
+    },
+    {
+      "index": 19,
+      "zone": "MIDDLE_CENTER",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        111.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        111.0,
+        120.0
+      ],
+      "target_user_mm": [
+        294.6682810856722,
+        35.94785119490896
+      ],
+      "approach_user_mm": [
+        302.60853657474865,
+        30.676289755835654
+      ]
+    },
+    {
+      "index": 20,
+      "zone": "MIDDLE_CENTER",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        111.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        111.0,
+        140.0
+      ],
+      "target_user_mm": [
+        294.6682810856722,
+        35.94785119490896
+      ],
+      "approach_user_mm": [
+        286.83281920632527,
+        41.296332782272806
+      ]
+    },
+    {
+      "index": 21,
+      "zone": "MIDDLE_RIGHT",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        154.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        144.0,
+        130.0
+      ],
+      "target_user_mm": [
+        320.5184314478437,
+        70.59895601857886
+      ],
+      "approach_user_mm": [
+        314.63621074044545,
+        62.793643873992416
+      ]
+    },
+    {
+      "index": 22,
+      "zone": "MIDDLE_RIGHT",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        154.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        164.0,
+        130.0
+      ],
+      "target_user_mm": [
+        320.5184314478437,
+        70.59895601857886
+      ],
+      "approach_user_mm": [
+        326.3222023567416,
+        78.25088372314447
+      ]
+    },
+    {
+      "index": 23,
+      "zone": "MIDDLE_RIGHT",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        166.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        166.0,
+        120.0
+      ],
+      "target_user_mm": [
+        327.4735425627012,
+        79.76286313125507
+      ],
+      "approach_user_mm": [
+        335.5481107569428,
+        74.29235165658777
+      ]
+    },
+    {
+      "index": 24,
+      "zone": "MIDDLE_RIGHT",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        166.0,
+        130.0
+      ],
+      "approach_paper_mm": [
+        166.0,
+        140.0
+      ],
+      "target_user_mm": [
+        327.4735425627012,
+        79.76286313125507
+      ],
+      "approach_user_mm": [
+        319.5037679781891,
+        85.3102947542129
+      ]
+    },
+    {
+      "index": 25,
+      "zone": "BOTTOM_LEFT",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        44.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        34.0,
+        55.0
+      ],
+      "target_user_mm": [
+        312.37839543880995,
+        -59.53972408083408
+      ],
+      "approach_user_mm": [
+        305.4500732590475,
+        -68.76096956256745
+      ]
+    },
+    {
+      "index": 26,
+      "zone": "BOTTOM_LEFT",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        44.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        54.0,
+        55.0
+      ],
+      "target_user_mm": [
+        312.37839543880995,
+        -59.53972408083408
+      ],
+      "approach_user_mm": [
+        319.2282678200721,
+        -50.47186303912159
+      ]
+    },
+    {
+      "index": 27,
+      "zone": "BOTTOM_LEFT",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        56.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        56.0,
+        45.0
+      ],
+      "target_user_mm": [
+        320.58882832050455,
+        -48.676696963581584
+      ],
+      "approach_user_mm": [
+        329.18072317738785,
+        -53.17240725488186
+      ]
+    },
+    {
+      "index": 28,
+      "zone": "BOTTOM_LEFT",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        56.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        56.0,
+        65.0
+      ],
+      "target_user_mm": [
+        320.58882832050455,
+        -48.676696963581584
+      ],
+      "approach_user_mm": [
+        312.1017270733509,
+        -44.10406652399078
+      ]
+    },
+    {
+      "index": 29,
+      "zone": "BOTTOM_CENTER",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        99.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        89.0,
+        55.0
+      ],
+      "target_user_mm": [
+        349.0818772793116,
+        -11.564620796673696
+      ],
+      "approach_user_mm": [
+        342.5850289913004,
+        -19.942251858292252
+      ]
+    },
+    {
+      "index": 30,
+      "zone": "BOTTOM_CENTER",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        99.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        109.0,
+        55.0
+      ],
+      "target_user_mm": [
+        349.0818772793116,
+        -11.564620796673696
+      ],
+      "approach_user_mm": [
+        355.50027576882235,
+        -3.3403741750760094
+      ]
+    },
+    {
+      "index": 31,
+      "zone": "BOTTOM_CENTER",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        111.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        111.0,
+        45.0
+      ],
+      "target_user_mm": [
+        356.77454149090454,
+        -1.7139309835589869
+      ],
+      "approach_user_mm": [
+        365.5007490529529,
+        -6.408591310453257
+      ]
+    },
+    {
+      "index": 32,
+      "zone": "BOTTOM_CENTER",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        111.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        111.0,
+        65.0
+      ],
+      "target_user_mm": [
+        356.77454149090454,
+        -1.7139309835589869
+      ],
+      "approach_user_mm": [
+        348.1531275385857,
+        3.057649491625827
+      ]
+    },
+    {
+      "index": 33,
+      "zone": "BOTTOM_RIGHT",
+      "target_name": "H",
+      "approach_direction": "+X",
+      "target_paper_mm": [
+        154.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        144.0,
+        55.0
+      ],
+      "target_user_mm": [
+        383.4122527151807,
+        31.770603176855218
+      ],
+      "approach_user_mm": [
+        377.34687831892103,
+        24.23658653535149
+      ]
+    },
+    {
+      "index": 34,
+      "zone": "BOTTOM_RIGHT",
+      "target_name": "H",
+      "approach_direction": "-X",
+      "target_paper_mm": [
+        154.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        164.0,
+        55.0
+      ],
+      "target_user_mm": [
+        383.4122527151807,
+        31.770603176855218
+      ],
+      "approach_user_mm": [
+        389.39917731294025,
+        39.15123537833809
+      ]
+    },
+    {
+      "index": 35,
+      "zone": "BOTTOM_RIGHT",
+      "target_name": "V",
+      "approach_direction": "+Y",
+      "target_paper_mm": [
+        166.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        166.0,
+        45.0
+      ],
+      "target_user_mm": [
+        390.58714825667215,
+        40.60895568583216
+      ],
+      "approach_user_mm": [
+        399.4476685238857,
+        35.71534532334389
+      ]
+    },
+    {
+      "index": 36,
+      "zone": "BOTTOM_RIGHT",
+      "target_name": "V",
+      "approach_direction": "-Y",
+      "target_paper_mm": [
+        166.0,
+        55.0
+      ],
+      "approach_paper_mm": [
+        166.0,
+        65.0
+      ],
+      "target_user_mm": [
+        390.58714825667215,
+        40.60895568583216
+      ],
+      "approach_user_mm": [
+        381.83142159918816,
+        45.579486196610965
+      ]
+    }
+  ],
+  "gcode": {
+    "file": "PAPER_A4_3X3_PENUP_REVERSAL_DOT_PAIRS_GCODE_V50.gcode",
+    "line_count": 229,
+    "sha256": "51c3e234b945b353c069615fbe88296027e261f134224aa46c0323d0ea99ad66"
+  }
+}

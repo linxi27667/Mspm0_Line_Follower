@@ -1,0 +1,53 @@
+{
+  "id": "PAPER_A4_STANDARD_BFONT_6MM_NO_SBOW_VERIFY_GCODE_V68",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_NO_SBOW_PAPERMAP_YSHIFT15_V31",
+  "purpose": "single-variable comparison against V30/V66: the font geometry, size, feed, planner and hardware remain unchanged; only the measured 160 mm S-bow static prewarp is disabled in V31",
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified gfont points; rigid Y translation only"
+  },
+  "layout": {
+    "visible_height_mm": 6.0,
+    "content_top_mm": 202.0,
+    "translation_from_v65_mm": [
+      0.0,
+      -28.0
+    ],
+    "bounds_mm": [
+      29.66325332596835,
+      196.0,
+      118.84100418674463,
+      203.0357097917336
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 1.2,
+    "planner_unchanged_from_v30": true
+  },
+  "safety": {
+    "safe_samples": 910,
+    "min_joint_margin_deg": 0.26963559443513274,
+    "min_margin_user_mm": [
+      68.98166554284744,
+      15.87357928794141
+    ],
+    "motion_line_count": 488,
+    "stroke_count": 71
+  },
+  "gcode": {
+    "file": "PAPER_A4_STANDARD_BFONT_6MM_NO_SBOW_VERIFY_GCODE_V68.gcode",
+    "line_count": 719,
+    "sha256": "E57B37A0F037F6423327018C8F9D6DB1D8D938CC628ED9389B25252EE7B698A3"
+  }
+}

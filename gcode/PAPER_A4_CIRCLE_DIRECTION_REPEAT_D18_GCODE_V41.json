@@ -1,0 +1,178 @@
+{
+  "test_id": "PAPER_A4_CIRCLE_DIRECTION_REPEAT_D18_GCODE_V41",
+  "required_firmware": "PAPER_A4_CONTINUOUS_QUEUE_SAFE_HOME_GCODE_V27",
+  "firmware_paper_map_enabled": false,
+  "coordinate_contract": "mapped_center_then_direct_user_circle",
+  "diameter_mm": 18.0,
+  "segments_per_circle": 72,
+  "feed_mm_min": 180,
+  "start_location": "TOP",
+  "tangent_penup_preload_mm": 4.0,
+  "groups": [
+    {
+      "name": "LEFT_CW_REPEAT",
+      "nominal_paper_center_mm": [
+        50.0,
+        230.0
+      ],
+      "command_user_center_mm": [
+        193.4741378152805,
+        33.611837675283695
+      ],
+      "directions": [
+        "CW",
+        "CW"
+      ],
+      "passes": [
+        {
+          "pass": 1,
+          "direction": "CW",
+          "tangent_preload_user_mm": [
+            [
+              185.4741378152805,
+              42.611837675283695
+            ],
+            [
+              189.4741378152805,
+              42.611837675283695
+            ]
+          ],
+          "start_user_mm": [
+            193.4741378152805,
+            42.611837675283695
+          ]
+        },
+        {
+          "pass": 2,
+          "direction": "CW",
+          "tangent_preload_user_mm": [
+            [
+              185.4741378152805,
+              42.611837675283695
+            ],
+            [
+              189.4741378152805,
+              42.611837675283695
+            ]
+          ],
+          "start_user_mm": [
+            193.4741378152805,
+            42.611837675283695
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MIDDLE_CCW_REPEAT",
+      "nominal_paper_center_mm": [
+        105.0,
+        230.0
+      ],
+      "command_user_center_mm": [
+        226.9520676691649,
+        82.05548218204999
+      ],
+      "directions": [
+        "CCW",
+        "CCW"
+      ],
+      "passes": [
+        {
+          "pass": 1,
+          "direction": "CCW",
+          "tangent_preload_user_mm": [
+            [
+              234.9520676691649,
+              91.05548218204999
+            ],
+            [
+              230.9520676691649,
+              91.05548218204999
+            ]
+          ],
+          "start_user_mm": [
+            226.9520676691649,
+            91.05548218204999
+          ]
+        },
+        {
+          "pass": 2,
+          "direction": "CCW",
+          "tangent_preload_user_mm": [
+            [
+              234.9520676691649,
+              91.05548218204999
+            ],
+            [
+              230.9520676691649,
+              91.05548218204999
+            ]
+          ],
+          "start_user_mm": [
+            226.9520676691649,
+            91.05548218204999
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RIGHT_CW_CCW_OVERLAY",
+      "nominal_paper_center_mm": [
+        160.0,
+        230.0
+      ],
+      "command_user_center_mm": [
+        260.74055429798545,
+        126.90339736470699
+      ],
+      "directions": [
+        "CW",
+        "CCW"
+      ],
+      "passes": [
+        {
+          "pass": 1,
+          "direction": "CW",
+          "tangent_preload_user_mm": [
+            [
+              252.74055429798545,
+              135.903397364707
+            ],
+            [
+              256.74055429798545,
+              135.903397364707
+            ]
+          ],
+          "start_user_mm": [
+            260.74055429798545,
+            135.903397364707
+          ]
+        },
+        {
+          "pass": 2,
+          "direction": "CCW",
+          "tangent_preload_user_mm": [
+            [
+              268.74055429798545,
+              135.903397364707
+            ],
+            [
+              264.74055429798545,
+              135.903397364707
+            ]
+          ],
+          "start_user_mm": [
+            260.74055429798545,
+            135.903397364707
+          ]
+        }
+      ]
+    }
+  ],
+  "decision": {
+    "same_direction_overlaps_but_cw_ccw_splits": "deterministic_direction_dependent_hysteresis_or_compliance",
+    "same_direction_also_splits": "random_step_loss_loose_mechanics_or_repeatability_fault",
+    "all_six_traces_overlap_but_shape_is_oval": "direction_effect_not_primary_check_kinematics_or_mapping"
+  },
+  "gcode_sha256": "a6f241fb9645fb0986520cd91189852e8deadf4a432abf6ce9b666e94d9b4711"
+}

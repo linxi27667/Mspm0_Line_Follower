@@ -1,0 +1,90 @@
+{
+  "id": "PAPER_A4_CENTER_BFONT_WRITEZI_SIZE_LADDER_V33_GCODE_V78",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_AMASS_PLANNER_V33",
+  "required_paper_map": "A4_BASE_QUADRATIC_XSCALE_NO_SBOW_CAL_V8",
+  "text": "写字",
+  "center_x_mm": 105.0,
+  "size_rows": [
+    {
+      "visible_height_mm": 12.0,
+      "content_top_mm": 225.0
+    },
+    {
+      "visible_height_mm": 10.0,
+      "content_top_mm": 195.0
+    },
+    {
+      "visible_height_mm": 8.0,
+      "content_top_mm": 165.0
+    },
+    {
+      "visible_height_mm": 6.0,
+      "content_top_mm": 140.0
+    }
+  ],
+  "bounds_by_size_mm": [
+    [
+      91.07425490752189,
+      210.72667782551707,
+      115.89377954199837,
+      229.66823090703497
+    ],
+    [
+      92.50091509897528,
+      182.32459497300204,
+      114.16148295166529,
+      199.71963842920607
+    ],
+    [
+      93.9275752904287,
+      153.92251212048703,
+      112.42918636133224,
+      169.77104595137715
+    ],
+    [
+      95.35423548188211,
+      130.5204292679719,
+      110.69688977099918,
+      144.82245347354828
+    ]
+  ],
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified gfont paths; rigid scale and translation only"
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0
+  },
+  "safety": {
+    "home_exit": {
+      "sample_count": 155,
+      "minimum_joint_margin_deg": 0.39555657939274624,
+      "minimum_margin_user_mm": [
+        68.98325298691354,
+        16.35495691589866
+      ],
+      "first_approach_joint_margin_deg": 34.140887658844406,
+      "note": "The home pose is the configured joint-minimum reference; this value covers only the initial pen-up departure."
+    },
+    "writing_sequence": {
+      "sample_count": 802,
+      "minimum_joint_margin_deg": 33.46168019754515,
+      "minimum_margin_user_mm": [
+        237.54469833131344,
+        95.94200332490462
+      ],
+      "required_minimum_margin_deg": 15.0
+    },
+    "stroke_count": 40,
+    "motion_line_count": 268
+  },
+  "gcode": {
+    "file": "PAPER_A4_CENTER_BFONT_WRITEZI_SIZE_LADDER_V33_GCODE_V78.gcode",
+    "line_count": 411,
+    "sha256": "A27A5E39C189208771F24ADB623FAD91D096304BEA1B213A3B8CF658926AEB41"
+  }
+}

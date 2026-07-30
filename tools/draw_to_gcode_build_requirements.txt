@@ -1,0 +1,2 @@
+-r draw_to_gcode_requirements.txt
+pyinstaller==6.21.0

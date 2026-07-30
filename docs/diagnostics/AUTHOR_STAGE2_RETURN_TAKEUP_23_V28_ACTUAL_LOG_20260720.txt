@@ -1,0 +1,1350 @@
+I/elog            [0] EasyLogger V2.2.99 is initialize success.
+I/BOOT            [0] writer_robot bare-metal start
+I/PIN             [0] STAGE1=PA10/PA11 STAGE2=PA8/PA9 SERVO=PA12 UART1_TX=PB4 UART1_RX=PB5 STAGE1_LIMIT=PA26 STAGE2_LIMIT=PA27
+I/CFG             [0] CPUCLK=32000000Hz STEP1_CLK=32000000Hz STEP2_CLK=32000000Hz
+I/UART            [0] [UART] UART1 ready tx=PB4 rx=PB5 baud=115200 clock=BUSCLK
+I/SERVO           [0] startup PEN_UP angle=9000 settle_ms=700
+I/HOME            [701] author homing start seek=1000 locate=100 pull_off_x100=100 lim1=0 lim2=0
+W/HOME            [1219] stage2 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [2429] stage1 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [2850] fast limits released s1=12 s2=9
+W/HOME            [3250] fast release clearance s1=40 s2=40
+W/HOME            [3776] stage2 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [3776] stage2 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [3780] stage1 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [3781] stage1 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [3781] stage1 limit stop dir=1 home_dir=1 zero_state=1
+W/HOME            [4162] final limits released s1=7 s2=8
+W/HOME            [4563] final release clearance s1=40 s2=40
+W/HOME            [4563] measured home release1=7+40 release2=8+40 theta=40 psi=13537
+I/HOME            [4563] author homing done ok=1 theta=40 psi=13537 stage1=40 stage2=40 lim1=0 lim2=0
+I/TEST            [4564] [TEST] mode=AUTHOR_STAGE2_RETURN_TAKEUP_23_L203_GATED_V28 source=UART_GATED stage1=LOCKED positions=5 leg_pulses=400 return_takeup=23 max_position=1600 marks=9 single_pass=1
+I/MOTION          [4564] [MOTION] author home user_x=6848 user_y=1603 machine_x=-6052 machine_y=14403 theta=40 psi=13537 beta=13497 s1_abs=16 s2_abs=5431
+I/MOTION          [4565] [MOTION] author pulse_per_deg s1=4010 s2=4012 dir_sign1=-1 dir_sign2=1
+I/MOTION          [4565] [MOTION] DIRCOMP_STAGE2_PRELOAD_V2 enable=0 theta_rev=0 psi_rev=0 max_bias=64 preload=0 preload_f=100
+I/IKTEST          [4566] [IKTEST] DRAWBOT_AUTHOR_BASELINE_V1 baseline=1 native_frame=1 L1=20500 L2=20300 offset_x=-12900 offset_y=12800 home_theta=40 home_psi=13537 spd1=4010 spd2=4012 dir_comp=0 cal_xx=82 cal_xy=-40 cal_yx=-6 cal_yy=79
+I/IKTEST          [4567] [IKTEST] HOME theta=40 psi=13537 beta=13497 machine_x=-6052 machine_y=14403 theta2=40 psi2=13537 beta2=13497 err_x=0 err_y=0
+I/IKTEST          [4568] [IKTEST] CAL_0_135 theta=0 psi=13500 beta=13500 machine_x=-6146 machine_y=14354 theta2=0 psi2=13500 beta2=13500 err_x=0 err_y=0
+I/IKTEST          [4569] [IKTEST] USER ORIGIN x=0 y=0 machine_x=-12900 machine_y=12800 theta=-1821 psi=10889 beta=12710 s1_abs=-730 s2_abs=4368 err_x=0 err_y=0
+I/IKTEST          [4570] [IKTEST] USER R10_D0 x=1000 y=0 machine_x=-11900 machine_y=12800 theta=-1696 psi=11232 beta=12928 s1_abs=-680 s2_abs=4506 err_x=0 err_y=0
+I/IKTEST          [4571] [IKTEST] USER R10_D10 x=1000 y=-1000 machine_x=-11900 machine_y=11800 theta=-2037 psi=11113 beta=13150 s1_abs=-817 s2_abs=4458 err_x=0 err_y=0
+I/IKTEST          [4572] [IKTEST] USER R0_D10 x=0 y=-1000 machine_x=-12900 machine_y=11800 theta=-2159 psi=10767 beta=12926 s1_abs=-866 s2_abs=4319 err_x=0 err_y=0
+I/S2CHORD         [4572] [S2CHORD] mode=AUTHOR_STAGE2_RETURN_TAKEUP_23_L203_GATED_V28 no_auto_motion=1 gate=M501_or_RUN start=(21680,17187) positions=0_400_800_1200_1600_1200_800_400_0 motor_offsets=0_400_800_1200_1600_1177_777_377_-23 leg_pulses=400 takeup=23 raw_total=3223 stage1=LOCKED marks=9 s1_scale_guard=4001..4019 s2_scale_guard=3900..4300 joint_margin=1000 paper_margin=3000 single_pass=1 pen=UP
+I/UART            [8442] [UART] RX frame len=4 irq_bytes=3 poll_bytes=1
+I/UART            [8445] [UART] RX frame len=4 irq_bytes=8 poll_bytes=1
+I/UART            [8450] [UART] RX frame len=4 irq_bytes=12 poll_bytes=1
+I/UART            [8454] [UART] RX frame len=4 irq_bytes=16 poll_bytes=1
+I/UART            [8462] [UART] RX frame len=3 irq_bytes=19 poll_bytes=1
+I/UART            [8470] [UART] RX frame len=5 irq_bytes=24 poll_bytes=1
+I/MOTION          [8485] [MOTION] target user_x=21680 user_y=17187 machine_x=8780 machine_y=29987
+I/MOTION          [8486] [MOTION] plan line user_x=6848 user_y=1603 target_user_x=21680 target_user_y=17187 segments=156
+I/MOTION          [8588] [MOTION] plan accepted segments=156
+I/MOTION          [8588] [MOTION] ik user_x=6943 user_y=1703 machine_x=-5957 machine_y=14503 std_x=5957 std_y=14503 r=15679 c2=-70 s2=71 q2=13481 branch=1
+I/MOTION          [8589] [MOTION] fk check machine_x=-5957 machine_y=14503 err_x=0 err_y=0
+I/MOTION          [8589] [MOTION] plan feed=0 master_f=200 theta=94 psi=13575 beta=13481 cur_theta=40 cur_psi=13537 dtheta=54 dpsi=37 dbeta=-17 min_beta=13481 s1_abs=38 s1=22 d1=0 f1=200 s2_log_abs=5446 s2_motor_target=5446 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=15 d2=0 f2=136
+I/BSP             [8590] stepper stop inst=40862000 step=40 target=40
+I/BSP             [8590] stepper stop inst=40860000 step=40 target=40
+I/PWM             [8591] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [8591] dual start s1=22 d1=0 s2=15 d2=0 master=22 freq=200 irq=400
+I/MOTION          [8701] [MOTION] segment done user_x=6943 user_y=1703 machine_x=-5957 machine_y=14503 theta=94 psi=13575 beta=13481 s1_abs=38 s2_log_abs=5446 s2_motor_abs=5446 s2_bias=0 ld1=1 md2=1 plan=1/156
+I/MOTION          [8702] [MOTION] ik user_x=7038 user_y=1803 machine_x=-5862 machine_y=14603 std_x=5862 std_y=14603 r=15735 c2=-70 s2=71 q2=13463 branch=1
+I/MOTION          [8703] [MOTION] fk check machine_x=-5862 machine_y=14603 err_x=0 err_y=0
+I/MOTION          [8703] [MOTION] plan feed=0 master_f=200 theta=148 psi=13612 beta=13463 cur_theta=94 cur_psi=13575 dtheta=54 dpsi=37 dbeta=-17 min_beta=13463 s1_abs=60 s1=22 d1=0 f1=200 s2_log_abs=5460 s2_motor_target=5460 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=14 d2=0 f2=127
+I/BSP             [8704] stepper stop inst=40862000 step=22 target=22
+I/BSP             [8704] stepper stop inst=40860000 step=15 target=15
+I/PWM             [8704] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [8705] dual start s1=22 d1=0 s2=14 d2=0 master=22 freq=200 irq=400
+I/MOTION          [8815] [MOTION] segment done user_x=7038 user_y=1803 machine_x=-5862 machine_y=14603 theta=148 psi=13612 beta=13463 s1_abs=60 s2_log_abs=5460 s2_motor_abs=5460 s2_bias=0 ld1=1 md2=1 plan=2/156
+I/MOTION          [8816] [MOTION] ik user_x=7133 user_y=1903 machine_x=-5767 machine_y=14703 std_x=5767 std_y=14703 r=15793 c2=-70 s2=71 q2=13446 branch=1
+I/MOTION          [8816] [MOTION] fk check machine_x=-5767 machine_y=14703 err_x=0 err_y=0
+I/MOTION          [8817] [MOTION] plan feed=0 master_f=200 theta=202 psi=13648 beta=13446 cur_theta=148 cur_psi=13612 dtheta=54 dpsi=36 dbeta=-18 min_beta=13446 s1_abs=81 s1=21 d1=0 f1=200 s2_log_abs=5475 s2_motor_target=5475 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=15 d2=0 f2=143
+I/BSP             [8817] stepper stop inst=40862000 step=22 target=22
+I/BSP             [8818] stepper stop inst=40860000 step=14 target=14
+I/PWM             [8818] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [8818] dual start s1=21 d1=0 s2=15 d2=0 master=21 freq=200 irq=400
+I/MOTION          [8923] [MOTION] segment done user_x=7133 user_y=1903 machine_x=-5767 machine_y=14703 theta=202 psi=13648 beta=13446 s1_abs=81 s2_log_abs=5475 s2_motor_abs=5475 s2_bias=0 ld1=1 md2=1 plan=3/156
+I/MOTION          [8924] [MOTION] ik user_x=7228 user_y=2003 machine_x=-5672 machine_y=14803 std_x=5672 std_y=14803 r=15852 c2=-70 s2=72 q2=13428 branch=1
+I/MOTION          [8925] [MOTION] fk check machine_x=-5672 machine_y=14803 err_x=0 err_y=0
+I/MOTION          [8925] [MOTION] plan feed=0 master_f=200 theta=256 psi=13684 beta=13428 cur_theta=202 cur_psi=13648 dtheta=54 dpsi=36 dbeta=-18 min_beta=13428 s1_abs=103 s1=22 d1=0 f1=200 s2_log_abs=5489 s2_motor_target=5489 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=14 d2=0 f2=127
+I/BSP             [8926] stepper stop inst=40862000 step=21 target=21
+I/BSP             [8926] stepper stop inst=40860000 step=15 target=15
+I/PWM             [8927] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [8927] dual start s1=22 d1=0 s2=14 d2=0 master=22 freq=200 irq=400
+I/MOTION          [9037] [MOTION] segment done user_x=7228 user_y=2003 machine_x=-5672 machine_y=14803 theta=256 psi=13684 beta=13428 s1_abs=103 s2_log_abs=5489 s2_motor_abs=5489 s2_bias=0 ld1=1 md2=1 plan=4/156
+I/MOTION          [9038] [MOTION] ik user_x=7324 user_y=2103 machine_x=-5576 machine_y=14903 std_x=5576 std_y=14903 r=15912 c2=-70 s2=72 q2=13410 branch=1
+I/MOTION          [9038] [MOTION] fk check machine_x=-5576 machine_y=14903 err_x=0 err_y=0
+I/MOTION          [9039] [MOTION] plan feed=0 master_f=200 theta=310 psi=13719 beta=13410 cur_theta=256 cur_psi=13684 dtheta=54 dpsi=35 dbeta=-18 min_beta=13410 s1_abs=124 s1=21 d1=0 f1=200 s2_log_abs=5504 s2_motor_target=5504 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=15 d2=0 f2=143
+I/BSP             [9040] stepper stop inst=40862000 step=22 target=22
+I/BSP             [9040] stepper stop inst=40860000 step=14 target=14
+I/PWM             [9040] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9040] dual start s1=21 d1=0 s2=15 d2=0 master=21 freq=200 irq=400
+I/MOTION          [9146] [MOTION] segment done user_x=7324 user_y=2103 machine_x=-5576 machine_y=14903 theta=310 psi=13719 beta=13410 s1_abs=124 s2_log_abs=5504 s2_motor_abs=5504 s2_bias=0 ld1=1 md2=1 plan=5/156
+I/MOTION          [9147] [MOTION] ik user_x=7419 user_y=2202 machine_x=-5481 machine_y=15002 std_x=5481 std_y=15002 r=15972 c2=-69 s2=72 q2=13391 branch=1
+I/MOTION          [9147] [MOTION] fk check machine_x=-5481 machine_y=15002 err_x=0 err_y=0
+I/MOTION          [9147] [MOTION] plan feed=0 master_f=200 theta=363 psi=13754 beta=13391 cur_theta=310 cur_psi=13719 dtheta=53 dpsi=35 dbeta=-19 min_beta=13391 s1_abs=146 s1=22 d1=0 f1=200 s2_log_abs=5518 s2_motor_target=5518 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=14 d2=0 f2=127
+I/BSP             [9148] stepper stop inst=40862000 step=21 target=21
+I/BSP             [9149] stepper stop inst=40860000 step=15 target=15
+I/PWM             [9149] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9149] dual start s1=22 d1=0 s2=14 d2=0 master=22 freq=200 irq=400
+I/MOTION          [9259] [MOTION] segment done user_x=7419 user_y=2202 machine_x=-5481 machine_y=15002 theta=363 psi=13754 beta=13391 s1_abs=146 s2_log_abs=5518 s2_motor_abs=5518 s2_bias=0 ld1=1 md2=1 plan=6/156
+I/MOTION          [9260] [MOTION] ik user_x=7514 user_y=2302 machine_x=-5386 machine_y=15102 std_x=5386 std_y=15102 r=16034 c2=-69 s2=72 q2=13372 branch=1
+I/MOTION          [9261] [MOTION] fk check machine_x=-5386 machine_y=15102 err_x=0 err_y=0
+I/MOTION          [9261] [MOTION] plan feed=0 master_f=200 theta=417 psi=13789 beta=13372 cur_theta=363 cur_psi=13754 dtheta=53 dpsi=34 dbeta=-19 min_beta=13372 s1_abs=167 s1=21 d1=0 f1=200 s2_log_abs=5532 s2_motor_target=5532 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=14 d2=0 f2=133
+I/BSP             [9262] stepper stop inst=40862000 step=22 target=22
+I/BSP             [9262] stepper stop inst=40860000 step=14 target=14
+I/PWM             [9262] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9263] dual start s1=21 d1=0 s2=14 d2=0 master=21 freq=200 irq=400
+I/MOTION          [9368] [MOTION] segment done user_x=7514 user_y=2302 machine_x=-5386 machine_y=15102 theta=417 psi=13789 beta=13372 s1_abs=167 s2_log_abs=5532 s2_motor_abs=5532 s2_bias=0 ld1=1 md2=1 plan=7/156
+I/MOTION          [9369] [MOTION] ik user_x=7609 user_y=2402 machine_x=-5291 machine_y=15202 std_x=5291 std_y=15202 r=16097 c2=-69 s2=73 q2=13353 branch=1
+I/MOTION          [9369] [MOTION] fk check machine_x=-5291 machine_y=15202 err_x=0 err_y=0
+I/MOTION          [9370] [MOTION] plan feed=0 master_f=200 theta=470 psi=13823 beta=13353 cur_theta=417 cur_psi=13789 dtheta=53 dpsi=34 dbeta=-19 min_beta=13353 s1_abs=188 s1=21 d1=0 f1=200 s2_log_abs=5545 s2_motor_target=5545 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=13 d2=0 f2=124
+I/BSP             [9371] stepper stop inst=40862000 step=21 target=21
+I/BSP             [9371] stepper stop inst=40860000 step=14 target=14
+I/PWM             [9371] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9371] dual start s1=21 d1=0 s2=13 d2=0 master=21 freq=200 irq=400
+I/MOTION          [9476] [MOTION] segment done user_x=7609 user_y=2402 machine_x=-5291 machine_y=15202 theta=470 psi=13823 beta=13353 s1_abs=188 s2_log_abs=5545 s2_motor_abs=5545 s2_bias=0 ld1=1 md2=1 plan=8/156
+I/MOTION          [9477] [MOTION] ik user_x=7704 user_y=2502 machine_x=-5196 machine_y=15302 std_x=5196 std_y=15302 r=16160 c2=-69 s2=73 q2=13334 branch=1
+I/MOTION          [9478] [MOTION] fk check machine_x=-5196 machine_y=15302 err_x=0 err_y=0
+I/MOTION          [9478] [MOTION] plan feed=0 master_f=200 theta=523 psi=13856 beta=13334 cur_theta=470 cur_psi=13823 dtheta=53 dpsi=33 dbeta=-19 min_beta=13334 s1_abs=210 s1=22 d1=0 f1=200 s2_log_abs=5559 s2_motor_target=5559 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=14 d2=0 f2=127
+I/BSP             [9479] stepper stop inst=40862000 step=21 target=21
+I/BSP             [9479] stepper stop inst=40860000 step=13 target=13
+I/PWM             [9480] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9480] dual start s1=22 d1=0 s2=14 d2=0 master=22 freq=200 irq=400
+I/MOTION          [9590] [MOTION] segment done user_x=7704 user_y=2502 machine_x=-5196 machine_y=15302 theta=523 psi=13856 beta=13334 s1_abs=210 s2_log_abs=5559 s2_motor_abs=5559 s2_bias=0 ld1=1 md2=1 plan=9/156
+I/MOTION          [9591] [MOTION] ik user_x=7799 user_y=2602 machine_x=-5101 machine_y=15402 std_x=5101 std_y=15402 r=16225 c2=-68 s2=73 q2=13314 branch=1
+I/MOTION          [9592] [MOTION] fk check machine_x=-5101 machine_y=15402 err_x=0 err_y=0
+I/MOTION          [9592] [MOTION] plan feed=0 master_f=200 theta=575 psi=13889 beta=13314 cur_theta=523 cur_psi=13856 dtheta=53 dpsi=33 dbeta=-20 min_beta=13314 s1_abs=231 s1=21 d1=0 f1=200 s2_log_abs=5572 s2_motor_target=5572 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=13 d2=0 f2=124
+I/BSP             [9593] stepper stop inst=40862000 step=22 target=22
+I/BSP             [9593] stepper stop inst=40860000 step=14 target=14
+I/PWM             [9593] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9594] dual start s1=21 d1=0 s2=13 d2=0 master=21 freq=200 irq=400
+I/MOTION          [9699] [MOTION] segment done user_x=7799 user_y=2602 machine_x=-5101 machine_y=15402 theta=575 psi=13889 beta=13314 s1_abs=231 s2_log_abs=5572 s2_motor_abs=5572 s2_bias=0 ld1=1 md2=1 plan=10/156
+I/MOTION          [9700] [MOTION] ik user_x=7894 user_y=2702 machine_x=-5006 machine_y=15502 std_x=5006 std_y=15502 r=16290 c2=-68 s2=73 q2=13294 branch=1
+I/MOTION          [9700] [MOTION] fk check machine_x=-5006 machine_y=15502 err_x=0 err_y=0
+I/MOTION          [9701] [MOTION] plan feed=0 master_f=200 theta=628 psi=13922 beta=13294 cur_theta=575 cur_psi=13889 dtheta=52 dpsi=32 dbeta=-20 min_beta=13294 s1_abs=252 s1=21 d1=0 f1=200 s2_log_abs=5585 s2_motor_target=5585 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=13 d2=0 f2=124
+I/BSP             [9702] stepper stop inst=40862000 step=21 target=21
+I/BSP             [9702] stepper stop inst=40860000 step=13 target=13
+I/PWM             [9702] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9702] dual start s1=21 d1=0 s2=13 d2=0 master=21 freq=200 irq=400
+I/MOTION          [9807] [MOTION] segment done user_x=7894 user_y=2702 machine_x=-5006 machine_y=15502 theta=628 psi=13922 beta=13294 s1_abs=252 s2_log_abs=5585 s2_motor_abs=5585 s2_bias=0 ld1=1 md2=1 plan=11/156
+I/MOTION          [9808] [MOTION] ik user_x=7989 user_y=2802 machine_x=-4911 machine_y=15602 std_x=4911 std_y=15602 r=16356 c2=-68 s2=73 q2=13274 branch=1
+I/MOTION          [9809] [MOTION] fk check machine_x=-4911 machine_y=15602 err_x=0 err_y=0
+I/MOTION          [9809] [MOTION] plan feed=0 master_f=200 theta=680 psi=13954 beta=13274 cur_theta=628 cur_psi=13922 dtheta=52 dpsi=32 dbeta=-20 min_beta=13274 s1_abs=273 s1=21 d1=0 f1=200 s2_log_abs=5598 s2_motor_target=5598 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=13 d2=0 f2=124
+I/BSP             [9810] stepper stop inst=40862000 step=21 target=21
+I/BSP             [9810] stepper stop inst=40860000 step=13 target=13
+I/PWM             [9811] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9811] dual start s1=21 d1=0 s2=13 d2=0 master=21 freq=200 irq=400
+I/MOTION          [9916] [MOTION] segment done user_x=7989 user_y=2802 machine_x=-4911 machine_y=15602 theta=680 psi=13954 beta=13274 s1_abs=273 s2_log_abs=5598 s2_motor_abs=5598 s2_bias=0 ld1=1 md2=1 plan=12/156
+I/MOTION          [9917] [MOTION] ik user_x=8084 user_y=2902 machine_x=-4816 machine_y=15702 std_x=4816 std_y=15702 r=16424 c2=-68 s2=74 q2=13253 branch=1
+I/MOTION          [9917] [MOTION] fk check machine_x=-4816 machine_y=15702 err_x=0 err_y=0
+I/MOTION          [9918] [MOTION] plan feed=0 master_f=200 theta=732 psi=13985 beta=13253 cur_theta=680 cur_psi=13954 dtheta=52 dpsi=31 dbeta=-21 min_beta=13253 s1_abs=294 s1=21 d1=0 f1=200 s2_log_abs=5610 s2_motor_target=5610 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=12 d2=0 f2=114
+I/BSP             [9919] stepper stop inst=40862000 step=21 target=21
+I/BSP             [9919] stepper stop inst=40860000 step=13 target=13
+I/PWM             [9919] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [9919] dual start s1=21 d1=0 s2=12 d2=0 master=21 freq=200 irq=400
+I/MOTION          [10025] [MOTION] segment done user_x=8084 user_y=2902 machine_x=-4816 machine_y=15702 theta=732 psi=13985 beta=13253 s1_abs=294 s2_log_abs=5610 s2_motor_abs=5610 s2_bias=0 ld1=1 md2=1 plan=13/156
+I/MOTION          [10026] [MOTION] ik user_x=8179 user_y=3002 machine_x=-4721 machine_y=15802 std_x=4721 std_y=15802 r=16492 c2=-67 s2=74 q2=13232 branch=1
+I/MOTION          [10026] [MOTION] fk check machine_x=-4721 machine_y=15802 err_x=0 err_y=0
+I/MOTION          [10026] [MOTION] plan feed=0 master_f=200 theta=784 psi=14016 beta=13232 cur_theta=732 cur_psi=13985 dtheta=52 dpsi=31 dbeta=-21 min_beta=13232 s1_abs=314 s1=20 d1=0 f1=200 s2_log_abs=5623 s2_motor_target=5623 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=13 d2=0 f2=130
+I/BSP             [10027] stepper stop inst=40862000 step=21 target=21
+I/BSP             [10028] stepper stop inst=40860000 step=12 target=12
+I/PWM             [10028] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10028] dual start s1=20 d1=0 s2=13 d2=0 master=20 freq=200 irq=400
+I/MOTION          [10128] [MOTION] segment done user_x=8179 user_y=3002 machine_x=-4721 machine_y=15802 theta=784 psi=14016 beta=13232 s1_abs=314 s2_log_abs=5623 s2_motor_abs=5623 s2_bias=0 ld1=1 md2=1 plan=14/156
+I/MOTION          [10129] [MOTION] ik user_x=8274 user_y=3101 machine_x=-4626 machine_y=15901 std_x=4626 std_y=15901 r=16561 c2=-67 s2=74 q2=13211 branch=1
+I/MOTION          [10130] [MOTION] fk check machine_x=-4626 machine_y=15901 err_x=0 err_y=0
+I/MOTION          [10130] [MOTION] plan feed=0 master_f=200 theta=836 psi=14047 beta=13211 cur_theta=784 cur_psi=14016 dtheta=52 dpsi=31 dbeta=-21 min_beta=13211 s1_abs=335 s1=21 d1=0 f1=200 s2_log_abs=5635 s2_motor_target=5635 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=12 d2=0 f2=114
+I/BSP             [10131] stepper stop inst=40862000 step=20 target=20
+I/BSP             [10131] stepper stop inst=40860000 step=13 target=13
+I/PWM             [10132] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10132] dual start s1=21 d1=0 s2=12 d2=0 master=21 freq=200 irq=400
+I/MOTION          [10237] [MOTION] segment done user_x=8274 user_y=3101 machine_x=-4626 machine_y=15901 theta=836 psi=14047 beta=13211 s1_abs=335 s2_log_abs=5635 s2_motor_abs=5635 s2_bias=0 ld1=1 md2=1 plan=15/156
+I/MOTION          [10238] [MOTION] ik user_x=8369 user_y=3201 machine_x=-4531 machine_y=16001 std_x=4531 std_y=16001 r=16630 c2=-67 s2=74 q2=13189 branch=1
+I/MOTION          [10238] [MOTION] fk check machine_x=-4531 machine_y=16001 err_x=0 err_y=0
+I/MOTION          [10239] [MOTION] plan feed=0 master_f=200 theta=887 psi=14077 beta=13189 cur_theta=836 cur_psi=14047 dtheta=51 dpsi=30 dbeta=-21 min_beta=13189 s1_abs=356 s1=21 d1=0 f1=200 s2_log_abs=5647 s2_motor_target=5647 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=12 d2=0 f2=114
+I/BSP             [10240] stepper stop inst=40862000 step=21 target=21
+I/BSP             [10240] stepper stop inst=40860000 step=12 target=12
+I/PWM             [10240] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10240] dual start s1=21 d1=0 s2=12 d2=0 master=21 freq=200 irq=400
+I/MOTION          [10345] [MOTION] segment done user_x=8369 user_y=3201 machine_x=-4531 machine_y=16001 theta=887 psi=14077 beta=13189 s1_abs=356 s2_log_abs=5647 s2_motor_abs=5647 s2_bias=0 ld1=1 md2=1 plan=16/156
+I/MOTION          [10347] [MOTION] ik user_x=8464 user_y=3301 machine_x=-4436 machine_y=16101 std_x=4436 std_y=16101 r=16701 c2=-66 s2=75 q2=13168 branch=1
+I/MOTION          [10347] [MOTION] fk check machine_x=-4436 machine_y=16101 err_x=0 err_y=0
+I/MOTION          [10347] [MOTION] plan feed=0 master_f=200 theta=939 psi=14106 beta=13168 cur_theta=887 cur_psi=14077 dtheta=51 dpsi=30 dbeta=-22 min_beta=13168 s1_abs=376 s1=20 d1=0 f1=200 s2_log_abs=5659 s2_motor_target=5659 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=12 d2=0 f2=120
+I/BSP             [10348] stepper stop inst=40862000 step=21 target=21
+I/BSP             [10349] stepper stop inst=40860000 step=12 target=12
+I/PWM             [10349] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10349] dual start s1=20 d1=0 s2=12 d2=0 master=20 freq=200 irq=400
+I/MOTION          [10449] [MOTION] segment done user_x=8464 user_y=3301 machine_x=-4436 machine_y=16101 theta=939 psi=14106 beta=13168 s1_abs=376 s2_log_abs=5659 s2_motor_abs=5659 s2_bias=0 ld1=1 md2=1 plan=17/156
+I/MOTION          [10450] [MOTION] ik user_x=8559 user_y=3401 machine_x=-4341 machine_y=16201 std_x=4341 std_y=16201 r=16773 c2=-66 s2=75 q2=13146 branch=1
+I/MOTION          [10451] [MOTION] fk check machine_x=-4341 machine_y=16201 err_x=0 err_y=0
+I/MOTION          [10451] [MOTION] plan feed=0 master_f=200 theta=990 psi=14135 beta=13146 cur_theta=939 cur_psi=14106 dtheta=51 dpsi=29 dbeta=-22 min_beta=13146 s1_abs=397 s1=21 d1=0 f1=200 s2_log_abs=5670 s2_motor_target=5670 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=11 d2=0 f2=105
+I/BSP             [10452] stepper stop inst=40862000 step=20 target=20
+I/BSP             [10452] stepper stop inst=40860000 step=12 target=12
+I/PWM             [10453] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10453] dual start s1=21 d1=0 s2=11 d2=0 master=21 freq=200 irq=400
+I/MOTION          [10558] [MOTION] segment done user_x=8559 user_y=3401 machine_x=-4341 machine_y=16201 theta=990 psi=14135 beta=13146 s1_abs=397 s2_log_abs=5670 s2_motor_abs=5670 s2_bias=0 ld1=1 md2=1 plan=18/156
+I/MOTION          [10559] [MOTION] ik user_x=8655 user_y=3501 machine_x=-4245 machine_y=16301 std_x=4245 std_y=16301 r=16845 c2=-66 s2=75 q2=13123 branch=1
+I/MOTION          [10559] [MOTION] fk check machine_x=-4245 machine_y=16301 err_x=0 err_y=0
+I/MOTION          [10560] [MOTION] plan feed=0 master_f=200 theta=1041 psi=14164 beta=13123 cur_theta=990 cur_psi=14135 dtheta=51 dpsi=29 dbeta=-22 min_beta=13123 s1_abs=417 s1=20 d1=0 f1=200 s2_log_abs=5682 s2_motor_target=5682 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=12 d2=0 f2=120
+I/BSP             [10561] stepper stop inst=40862000 step=21 target=21
+I/BSP             [10561] stepper stop inst=40860000 step=11 target=11
+I/PWM             [10561] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10561] dual start s1=20 d1=0 s2=12 d2=0 master=20 freq=200 irq=400
+I/MOTION          [10661] [MOTION] segment done user_x=8655 user_y=3501 machine_x=-4245 machine_y=16301 theta=1041 psi=14164 beta=13123 s1_abs=417 s2_log_abs=5682 s2_motor_abs=5682 s2_bias=0 ld1=1 md2=1 plan=19/156
+I/MOTION          [10663] [MOTION] ik user_x=8750 user_y=3601 machine_x=-4150 machine_y=16401 std_x=4150 std_y=16401 r=16918 c2=-66 s2=75 q2=13101 branch=1
+I/MOTION          [10663] [MOTION] fk check machine_x=-4150 machine_y=16401 err_x=0 err_y=0
+I/MOTION          [10663] [MOTION] plan feed=0 master_f=200 theta=1091 psi=14192 beta=13101 cur_theta=1041 cur_psi=14164 dtheta=51 dpsi=28 dbeta=-23 min_beta=13101 s1_abs=438 s1=21 d1=0 f1=200 s2_log_abs=5693 s2_motor_target=5693 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=11 d2=0 f2=105
+I/BSP             [10664] stepper stop inst=40862000 step=20 target=20
+I/BSP             [10665] stepper stop inst=40860000 step=12 target=12
+I/PWM             [10665] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10665] dual start s1=21 d1=0 s2=11 d2=0 master=21 freq=200 irq=400
+I/MOTION          [10770] [MOTION] segment done user_x=8750 user_y=3601 machine_x=-4150 machine_y=16401 theta=1091 psi=14192 beta=13101 s1_abs=438 s2_log_abs=5693 s2_motor_abs=5693 s2_bias=0 ld1=1 md2=1 plan=20/156
+I/MOTION          [10771] [MOTION] ik user_x=8845 user_y=3701 machine_x=-4055 machine_y=16501 std_x=4055 std_y=16501 r=16992 c2=-65 s2=76 q2=13078 branch=1
+I/MOTION          [10772] [MOTION] fk check machine_x=-4055 machine_y=16501 err_x=0 err_y=0
+I/MOTION          [10772] [MOTION] plan feed=0 master_f=200 theta=1142 psi=14220 beta=13078 cur_theta=1091 cur_psi=14192 dtheta=50 dpsi=28 dbeta=-23 min_beta=13078 s1_abs=458 s1=20 d1=0 f1=200 s2_log_abs=5704 s2_motor_target=5704 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=11 d2=0 f2=110
+I/BSP             [10773] stepper stop inst=40862000 step=21 target=21
+I/BSP             [10773] stepper stop inst=40860000 step=11 target=11
+I/PWM             [10773] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10774] dual start s1=20 d1=0 s2=11 d2=0 master=20 freq=200 irq=400
+I/MOTION          [10874] [MOTION] segment done user_x=8845 user_y=3701 machine_x=-4055 machine_y=16501 theta=1142 psi=14220 beta=13078 s1_abs=458 s2_log_abs=5704 s2_motor_abs=5704 s2_bias=0 ld1=1 md2=1 plan=21/156
+I/MOTION          [10875] [MOTION] ik user_x=8940 user_y=3801 machine_x=-3960 machine_y=16601 std_x=3960 std_y=16601 r=17067 c2=-65 s2=76 q2=13055 branch=1
+I/MOTION          [10875] [MOTION] fk check machine_x=-3960 machine_y=16601 err_x=0 err_y=0
+I/MOTION          [10876] [MOTION] plan feed=0 master_f=200 theta=1192 psi=14247 beta=13055 cur_theta=1142 cur_psi=14220 dtheta=50 dpsi=27 dbeta=-23 min_beta=13055 s1_abs=478 s1=20 d1=0 f1=200 s2_log_abs=5715 s2_motor_target=5715 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=11 d2=0 f2=110
+I/BSP             [10877] stepper stop inst=40862000 step=20 target=20
+I/BSP             [10877] stepper stop inst=40860000 step=11 target=11
+I/PWM             [10877] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10877] dual start s1=20 d1=0 s2=11 d2=0 master=20 freq=200 irq=400
+I/MOTION          [10977] [MOTION] segment done user_x=8940 user_y=3801 machine_x=-3960 machine_y=16601 theta=1192 psi=14247 beta=13055 s1_abs=478 s2_log_abs=5715 s2_motor_abs=5715 s2_bias=0 ld1=1 md2=1 plan=22/156
+I/MOTION          [10979] [MOTION] ik user_x=9035 user_y=3901 machine_x=-3865 machine_y=16701 std_x=3865 std_y=16701 r=17142 c2=-65 s2=76 q2=13032 branch=1
+I/MOTION          [10979] [MOTION] fk check machine_x=-3865 machine_y=16701 err_x=0 err_y=0
+I/MOTION          [10979] [MOTION] plan feed=0 master_f=200 theta=1242 psi=14273 beta=13032 cur_theta=1192 cur_psi=14247 dtheta=50 dpsi=27 dbeta=-23 min_beta=13032 s1_abs=498 s1=20 d1=0 f1=200 s2_log_abs=5726 s2_motor_target=5726 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=11 d2=0 f2=110
+I/BSP             [10980] stepper stop inst=40862000 step=20 target=20
+I/BSP             [10981] stepper stop inst=40860000 step=11 target=11
+I/PWM             [10981] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [10981] dual start s1=20 d1=0 s2=11 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11081] [MOTION] segment done user_x=9035 user_y=3901 machine_x=-3865 machine_y=16701 theta=1242 psi=14273 beta=13032 s1_abs=498 s2_log_abs=5726 s2_motor_abs=5726 s2_bias=0 ld1=1 md2=1 plan=23/156
+I/MOTION          [11082] [MOTION] ik user_x=9130 user_y=4001 machine_x=-3770 machine_y=16801 std_x=3770 std_y=16801 r=17218 c2=-64 s2=77 q2=13008 branch=1
+I/MOTION          [11083] [MOTION] fk check machine_x=-3770 machine_y=16801 err_x=0 err_y=0
+I/MOTION          [11083] [MOTION] plan feed=0 master_f=200 theta=1292 psi=14300 beta=13008 cur_theta=1242 cur_psi=14273 dtheta=50 dpsi=26 dbeta=-24 min_beta=13008 s1_abs=518 s1=20 d1=0 f1=200 s2_log_abs=5736 s2_motor_target=5736 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=10 d2=0 f2=100
+I/BSP             [11084] stepper stop inst=40862000 step=20 target=20
+I/BSP             [11084] stepper stop inst=40860000 step=11 target=11
+I/PWM             [11084] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11085] dual start s1=20 d1=0 s2=10 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11185] [MOTION] segment done user_x=9130 user_y=4001 machine_x=-3770 machine_y=16801 theta=1292 psi=14300 beta=13008 s1_abs=518 s2_log_abs=5736 s2_motor_abs=5736 s2_bias=0 ld1=1 md2=1 plan=24/156
+I/MOTION          [11186] [MOTION] ik user_x=9225 user_y=4100 machine_x=-3675 machine_y=16900 std_x=3675 std_y=16900 r=17295 c2=-64 s2=77 q2=12984 branch=1
+I/MOTION          [11186] [MOTION] fk check machine_x=-3675 machine_y=16900 err_x=0 err_y=0
+I/MOTION          [11187] [MOTION] plan feed=0 master_f=200 theta=1341 psi=14325 beta=12984 cur_theta=1292 cur_psi=14300 dtheta=50 dpsi=26 dbeta=-24 min_beta=12984 s1_abs=538 s1=20 d1=0 f1=200 s2_log_abs=5747 s2_motor_target=5747 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=11 d2=0 f2=110
+I/BSP             [11188] stepper stop inst=40862000 step=20 target=20
+I/BSP             [11188] stepper stop inst=40860000 step=10 target=10
+I/PWM             [11188] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11188] dual start s1=20 d1=0 s2=11 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11288] [MOTION] segment done user_x=9225 user_y=4100 machine_x=-3675 machine_y=16900 theta=1341 psi=14325 beta=12984 s1_abs=538 s2_log_abs=5747 s2_motor_abs=5747 s2_bias=0 ld1=1 md2=1 plan=25/156
+I/MOTION          [11290] [MOTION] ik user_x=9320 user_y=4200 machine_x=-3580 machine_y=17000 std_x=3580 std_y=17000 r=17373 c2=-64 s2=77 q2=12960 branch=1
+I/MOTION          [11290] [MOTION] fk check machine_x=-3580 machine_y=17000 err_x=0 err_y=0
+I/MOTION          [11290] [MOTION] plan feed=0 master_f=200 theta=1391 psi=14350 beta=12960 cur_theta=1341 cur_psi=14325 dtheta=49 dpsi=25 dbeta=-24 min_beta=12960 s1_abs=558 s1=20 d1=0 f1=200 s2_log_abs=5757 s2_motor_target=5757 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=10 d2=0 f2=100
+I/BSP             [11291] stepper stop inst=40862000 step=20 target=20
+I/BSP             [11292] stepper stop inst=40860000 step=11 target=11
+I/PWM             [11292] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11292] dual start s1=20 d1=0 s2=10 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11392] [MOTION] segment done user_x=9320 user_y=4200 machine_x=-3580 machine_y=17000 theta=1391 psi=14350 beta=12960 s1_abs=558 s2_log_abs=5757 s2_motor_abs=5757 s2_bias=0 ld1=1 md2=1 plan=26/156
+I/MOTION          [11393] [MOTION] ik user_x=9415 user_y=4300 machine_x=-3485 machine_y=17100 std_x=3485 std_y=17100 r=17452 c2=-63 s2=77 q2=12935 branch=1
+I/MOTION          [11394] [MOTION] fk check machine_x=-3485 machine_y=17100 err_x=0 err_y=0
+I/MOTION          [11394] [MOTION] plan feed=0 master_f=200 theta=1440 psi=14375 beta=12935 cur_theta=1391 cur_psi=14350 dtheta=49 dpsi=25 dbeta=-24 min_beta=12935 s1_abs=577 s1=19 d1=0 f1=200 s2_log_abs=5767 s2_motor_target=5767 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=10 d2=0 f2=105
+I/BSP             [11395] stepper stop inst=40862000 step=20 target=20
+I/BSP             [11395] stepper stop inst=40860000 step=10 target=10
+I/PWM             [11395] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11396] dual start s1=19 d1=0 s2=10 d2=0 master=19 freq=200 irq=400
+I/MOTION          [11491] [MOTION] segment done user_x=9415 user_y=4300 machine_x=-3485 machine_y=17100 theta=1440 psi=14375 beta=12935 s1_abs=577 s2_log_abs=5767 s2_motor_abs=5767 s2_bias=0 ld1=1 md2=1 plan=27/156
+I/MOTION          [11492] [MOTION] ik user_x=9510 user_y=4400 machine_x=-3390 machine_y=17200 std_x=3390 std_y=17200 r=17531 c2=-63 s2=78 q2=12911 branch=1
+I/MOTION          [11492] [MOTION] fk check machine_x=-3390 machine_y=17200 err_x=0 err_y=0
+I/MOTION          [11493] [MOTION] plan feed=0 master_f=200 theta=1489 psi=14400 beta=12911 cur_theta=1440 cur_psi=14375 dtheta=49 dpsi=24 dbeta=-25 min_beta=12911 s1_abs=597 s1=20 d1=0 f1=200 s2_log_abs=5776 s2_motor_target=5776 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=9 d2=0 f2=90
+I/BSP             [11494] stepper stop inst=40862000 step=19 target=19
+I/BSP             [11494] stepper stop inst=40860000 step=10 target=10
+I/PWM             [11494] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11494] dual start s1=20 d1=0 s2=9 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11594] [MOTION] segment done user_x=9510 user_y=4400 machine_x=-3390 machine_y=17200 theta=1489 psi=14400 beta=12911 s1_abs=597 s2_log_abs=5776 s2_motor_abs=5776 s2_bias=0 ld1=1 md2=1 plan=28/156
+I/MOTION          [11596] [MOTION] ik user_x=9605 user_y=4500 machine_x=-3295 machine_y=17300 std_x=3295 std_y=17300 r=17611 c2=-63 s2=78 q2=12886 branch=1
+I/MOTION          [11596] [MOTION] fk check machine_x=-3295 machine_y=17300 err_x=0 err_y=0
+I/MOTION          [11596] [MOTION] plan feed=0 master_f=200 theta=1537 psi=14423 beta=12886 cur_theta=1489 cur_psi=14400 dtheta=49 dpsi=24 dbeta=-25 min_beta=12886 s1_abs=617 s1=20 d1=0 f1=200 s2_log_abs=5786 s2_motor_target=5786 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=10 d2=0 f2=100
+I/BSP             [11597] stepper stop inst=40862000 step=20 target=20
+I/BSP             [11598] stepper stop inst=40860000 step=9 target=9
+I/PWM             [11598] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11598] dual start s1=20 d1=0 s2=10 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11698] [MOTION] segment done user_x=9605 user_y=4500 machine_x=-3295 machine_y=17300 theta=1537 psi=14423 beta=12886 s1_abs=617 s2_log_abs=5786 s2_motor_abs=5786 s2_bias=0 ld1=1 md2=1 plan=29/156
+I/MOTION          [11699] [MOTION] ik user_x=9700 user_y=4600 machine_x=-3200 machine_y=17400 std_x=3200 std_y=17400 r=17692 c2=-62 s2=78 q2=12861 branch=1
+I/MOTION          [11700] [MOTION] fk check machine_x=-3200 machine_y=17400 err_x=0 err_y=0
+I/MOTION          [11700] [MOTION] plan feed=0 master_f=200 theta=1586 psi=14447 beta=12861 cur_theta=1537 cur_psi=14423 dtheta=49 dpsi=23 dbeta=-25 min_beta=12861 s1_abs=636 s1=19 d1=0 f1=200 s2_log_abs=5795 s2_motor_target=5795 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=9 d2=0 f2=95
+I/BSP             [11701] stepper stop inst=40862000 step=20 target=20
+I/BSP             [11701] stepper stop inst=40860000 step=10 target=10
+I/PWM             [11701] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11702] dual start s1=19 d1=0 s2=9 d2=0 master=19 freq=200 irq=400
+I/MOTION          [11797] [MOTION] segment done user_x=9700 user_y=4600 machine_x=-3200 machine_y=17400 theta=1586 psi=14447 beta=12861 s1_abs=636 s2_log_abs=5795 s2_motor_abs=5795 s2_bias=0 ld1=1 md2=1 plan=30/156
+I/MOTION          [11798] [MOTION] ik user_x=9795 user_y=4700 machine_x=-3105 machine_y=17500 std_x=3105 std_y=17500 r=17773 c2=-62 s2=78 q2=12835 branch=1
+I/MOTION          [11798] [MOTION] fk check machine_x=-3105 machine_y=17500 err_x=0 err_y=0
+I/MOTION          [11799] [MOTION] plan feed=0 master_f=200 theta=1634 psi=14470 beta=12835 cur_theta=1586 cur_psi=14447 dtheta=48 dpsi=23 dbeta=-25 min_beta=12835 s1_abs=655 s1=19 d1=0 f1=200 s2_log_abs=5805 s2_motor_target=5805 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=10 d2=0 f2=105
+I/BSP             [11800] stepper stop inst=40862000 step=19 target=19
+I/BSP             [11800] stepper stop inst=40860000 step=9 target=9
+I/PWM             [11800] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11800] dual start s1=19 d1=0 s2=10 d2=0 master=19 freq=200 irq=400
+I/MOTION          [11895] [MOTION] segment done user_x=9795 user_y=4700 machine_x=-3105 machine_y=17500 theta=1634 psi=14470 beta=12835 s1_abs=655 s2_log_abs=5805 s2_motor_abs=5805 s2_bias=0 ld1=1 md2=1 plan=31/156
+I/MOTION          [11896] [MOTION] ik user_x=9891 user_y=4800 machine_x=-3009 machine_y=17600 std_x=3009 std_y=17600 r=17855 c2=-62 s2=79 q2=12810 branch=1
+I/MOTION          [11897] [MOTION] fk check machine_x=-3009 machine_y=17600 err_x=0 err_y=0
+I/MOTION          [11897] [MOTION] plan feed=0 master_f=200 theta=1682 psi=14492 beta=12810 cur_theta=1634 cur_psi=14470 dtheta=48 dpsi=22 dbeta=-26 min_beta=12810 s1_abs=675 s1=20 d1=0 f1=200 s2_log_abs=5814 s2_motor_target=5814 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=9 d2=0 f2=90
+I/BSP             [11898] stepper stop inst=40862000 step=19 target=19
+I/BSP             [11898] stepper stop inst=40860000 step=10 target=10
+I/PWM             [11899] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [11899] dual start s1=20 d1=0 s2=9 d2=0 master=20 freq=200 irq=400
+I/MOTION          [11999] [MOTION] segment done user_x=9891 user_y=4800 machine_x=-3009 machine_y=17600 theta=1682 psi=14492 beta=12810 s1_abs=675 s2_log_abs=5814 s2_motor_abs=5814 s2_bias=0 ld1=1 md2=1 plan=32/156
+I/MOTION          [12000] [MOTION] ik user_x=9986 user_y=4900 machine_x=-2914 machine_y=17700 std_x=2914 std_y=17700 r=17938 c2=-61 s2=79 q2=12784 branch=1
+I/MOTION          [12001] [MOTION] fk check machine_x=-2914 machine_y=17700 err_x=0 err_y=0
+I/MOTION          [12001] [MOTION] plan feed=0 master_f=200 theta=1730 psi=14514 beta=12784 cur_theta=1682 cur_psi=14492 dtheta=48 dpsi=22 dbeta=-26 min_beta=12784 s1_abs=694 s1=19 d1=0 f1=200 s2_log_abs=5823 s2_motor_target=5823 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=9 d2=0 f2=95
+I/BSP             [12002] stepper stop inst=40862000 step=20 target=20
+I/BSP             [12002] stepper stop inst=40860000 step=9 target=9
+I/PWM             [12002] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12003] dual start s1=19 d1=0 s2=9 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12098] [MOTION] segment done user_x=9986 user_y=4900 machine_x=-2914 machine_y=17700 theta=1730 psi=14514 beta=12784 s1_abs=694 s2_log_abs=5823 s2_motor_abs=5823 s2_bias=0 ld1=1 md2=1 plan=33/156
+I/MOTION          [12099] [MOTION] ik user_x=10081 user_y=4999 machine_x=-2819 machine_y=17799 std_x=2819 std_y=17799 r=18021 c2=-61 s2=79 q2=12758 branch=1
+I/MOTION          [12099] [MOTION] fk check machine_x=-2819 machine_y=17799 err_x=0 err_y=0
+I/MOTION          [12100] [MOTION] plan feed=0 master_f=200 theta=1778 psi=14536 beta=12758 cur_theta=1730 cur_psi=14514 dtheta=48 dpsi=22 dbeta=-26 min_beta=12758 s1_abs=713 s1=19 d1=0 f1=200 s2_log_abs=5831 s2_motor_target=5831 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=8 d2=0 f2=84
+I/BSP             [12101] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12101] stepper stop inst=40860000 step=9 target=9
+I/PWM             [12101] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12101] dual start s1=19 d1=0 s2=8 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12196] [MOTION] segment done user_x=10081 user_y=4999 machine_x=-2819 machine_y=17799 theta=1778 psi=14536 beta=12758 s1_abs=713 s2_log_abs=5831 s2_motor_abs=5831 s2_bias=0 ld1=1 md2=1 plan=34/156
+I/MOTION          [12197] [MOTION] ik user_x=10176 user_y=5099 machine_x=-2724 machine_y=17899 std_x=2724 std_y=17899 r=18106 c2=-61 s2=80 q2=12731 branch=1
+I/MOTION          [12198] [MOTION] fk check machine_x=-2724 machine_y=17899 err_x=0 err_y=0
+I/MOTION          [12198] [MOTION] plan feed=0 master_f=200 theta=1826 psi=14557 beta=12731 cur_theta=1778 cur_psi=14536 dtheta=48 dpsi=21 dbeta=-26 min_beta=12731 s1_abs=732 s1=19 d1=0 f1=200 s2_log_abs=5840 s2_motor_target=5840 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=9 d2=0 f2=95
+I/BSP             [12199] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12199] stepper stop inst=40860000 step=8 target=8
+I/PWM             [12200] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12200] dual start s1=19 d1=0 s2=9 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12295] [MOTION] segment done user_x=10176 user_y=5099 machine_x=-2724 machine_y=17899 theta=1826 psi=14557 beta=12731 s1_abs=732 s2_log_abs=5840 s2_motor_abs=5840 s2_bias=0 ld1=1 md2=1 plan=35/156
+I/MOTION          [12296] [MOTION] ik user_x=10271 user_y=5199 machine_x=-2629 machine_y=17999 std_x=2629 std_y=17999 r=18190 c2=-60 s2=80 q2=12705 branch=1
+I/MOTION          [12297] [MOTION] fk check machine_x=-2629 machine_y=17999 err_x=0 err_y=0
+I/MOTION          [12297] [MOTION] plan feed=0 master_f=200 theta=1873 psi=14578 beta=12705 cur_theta=1826 cur_psi=14557 dtheta=47 dpsi=21 dbeta=-27 min_beta=12705 s1_abs=751 s1=19 d1=0 f1=200 s2_log_abs=5848 s2_motor_target=5848 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=8 d2=0 f2=84
+I/BSP             [12298] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12298] stepper stop inst=40860000 step=9 target=9
+I/PWM             [12298] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12299] dual start s1=19 d1=0 s2=8 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12394] [MOTION] segment done user_x=10271 user_y=5199 machine_x=-2629 machine_y=17999 theta=1873 psi=14578 beta=12705 s1_abs=751 s2_log_abs=5848 s2_motor_abs=5848 s2_bias=0 ld1=1 md2=1 plan=36/156
+I/MOTION          [12395] [MOTION] ik user_x=10366 user_y=5299 machine_x=-2534 machine_y=18099 std_x=2534 std_y=18099 r=18276 c2=-60 s2=80 q2=12678 branch=1
+I/MOTION          [12395] [MOTION] fk check machine_x=-2534 machine_y=18099 err_x=0 err_y=0
+I/MOTION          [12396] [MOTION] plan feed=0 master_f=200 theta=1920 psi=14598 beta=12678 cur_theta=1873 cur_psi=14578 dtheta=47 dpsi=20 dbeta=-27 min_beta=12678 s1_abs=770 s1=19 d1=0 f1=200 s2_log_abs=5856 s2_motor_target=5856 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=8 d2=0 f2=84
+I/BSP             [12397] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12397] stepper stop inst=40860000 step=8 target=8
+I/PWM             [12397] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12397] dual start s1=19 d1=0 s2=8 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12492] [MOTION] segment done user_x=10366 user_y=5299 machine_x=-2534 machine_y=18099 theta=1920 psi=14598 beta=12678 s1_abs=770 s2_log_abs=5856 s2_motor_abs=5856 s2_bias=0 ld1=1 md2=1 plan=37/156
+I/MOTION          [12493] [MOTION] ik user_x=10461 user_y=5399 machine_x=-2439 machine_y=18199 std_x=2439 std_y=18199 r=18362 c2=-59 s2=80 q2=12651 branch=1
+I/MOTION          [12494] [MOTION] fk check machine_x=-2439 machine_y=18199 err_x=0 err_y=0
+I/MOTION          [12494] [MOTION] plan feed=0 master_f=200 theta=1967 psi=14618 beta=12651 cur_theta=1920 cur_psi=14598 dtheta=47 dpsi=20 dbeta=-27 min_beta=12651 s1_abs=789 s1=19 d1=0 f1=200 s2_log_abs=5864 s2_motor_target=5864 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=8 d2=0 f2=84
+I/BSP             [12495] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12495] stepper stop inst=40860000 step=8 target=8
+I/PWM             [12496] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12496] dual start s1=19 d1=0 s2=8 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12591] [MOTION] segment done user_x=10461 user_y=5399 machine_x=-2439 machine_y=18199 theta=1967 psi=14618 beta=12651 s1_abs=789 s2_log_abs=5864 s2_motor_abs=5864 s2_bias=0 ld1=1 md2=1 plan=38/156
+I/MOTION          [12592] [MOTION] ik user_x=10556 user_y=5499 machine_x=-2344 machine_y=18299 std_x=2344 std_y=18299 r=18448 c2=-59 s2=81 q2=12624 branch=1
+I/MOTION          [12593] [MOTION] fk check machine_x=-2344 machine_y=18299 err_x=0 err_y=0
+I/MOTION          [12593] [MOTION] plan feed=0 master_f=200 theta=2014 psi=14637 beta=12624 cur_theta=1967 cur_psi=14618 dtheta=47 dpsi=19 dbeta=-27 min_beta=12624 s1_abs=807 s1=18 d1=0 f1=200 s2_log_abs=5872 s2_motor_target=5872 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=8 d2=0 f2=89
+I/BSP             [12594] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12594] stepper stop inst=40860000 step=8 target=8
+I/PWM             [12594] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12595] dual start s1=18 d1=0 s2=8 d2=0 master=18 freq=200 irq=400
+I/MOTION          [12685] [MOTION] segment done user_x=10556 user_y=5499 machine_x=-2344 machine_y=18299 theta=2014 psi=14637 beta=12624 s1_abs=807 s2_log_abs=5872 s2_motor_abs=5872 s2_bias=0 ld1=1 md2=1 plan=39/156
+I/MOTION          [12686] [MOTION] ik user_x=10651 user_y=5599 machine_x=-2249 machine_y=18399 std_x=2249 std_y=18399 r=18536 c2=-59 s2=81 q2=12596 branch=1
+I/MOTION          [12686] [MOTION] fk check machine_x=-2249 machine_y=18399 err_x=0 err_y=0
+I/MOTION          [12687] [MOTION] plan feed=0 master_f=200 theta=2060 psi=14656 beta=12596 cur_theta=2014 cur_psi=14637 dtheta=47 dpsi=19 dbeta=-28 min_beta=12596 s1_abs=826 s1=19 d1=0 f1=200 s2_log_abs=5879 s2_motor_target=5879 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=74
+I/BSP             [12688] stepper stop inst=40862000 step=18 target=18
+I/BSP             [12688] stepper stop inst=40860000 step=8 target=8
+I/PWM             [12688] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12688] dual start s1=19 d1=0 s2=7 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12783] [MOTION] segment done user_x=10651 user_y=5599 machine_x=-2249 machine_y=18399 theta=2060 psi=14656 beta=12596 s1_abs=826 s2_log_abs=5879 s2_motor_abs=5879 s2_bias=0 ld1=1 md2=1 plan=40/156
+I/MOTION          [12784] [MOTION] ik user_x=10746 user_y=5699 machine_x=-2154 machine_y=18499 std_x=2154 std_y=18499 r=18624 c2=-58 s2=81 q2=12568 branch=1
+I/MOTION          [12785] [MOTION] fk check machine_x=-2154 machine_y=18499 err_x=0 err_y=0
+I/MOTION          [12785] [MOTION] plan feed=0 master_f=200 theta=2106 psi=14675 beta=12568 cur_theta=2060 cur_psi=14656 dtheta=46 dpsi=19 dbeta=-28 min_beta=12568 s1_abs=845 s1=19 d1=0 f1=200 s2_log_abs=5887 s2_motor_target=5887 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=8 d2=0 f2=84
+I/BSP             [12786] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12786] stepper stop inst=40860000 step=7 target=7
+I/PWM             [12787] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12787] dual start s1=19 d1=0 s2=8 d2=0 master=19 freq=200 irq=400
+I/MOTION          [12882] [MOTION] segment done user_x=10746 user_y=5699 machine_x=-2154 machine_y=18499 theta=2106 psi=14675 beta=12568 s1_abs=845 s2_log_abs=5887 s2_motor_abs=5887 s2_bias=0 ld1=1 md2=1 plan=41/156
+I/MOTION          [12883] [MOTION] ik user_x=10841 user_y=5799 machine_x=-2059 machine_y=18599 std_x=2059 std_y=18599 r=18712 c2=-58 s2=82 q2=12540 branch=1
+I/MOTION          [12884] [MOTION] fk check machine_x=-2059 machine_y=18599 err_x=0 err_y=0
+I/MOTION          [12884] [MOTION] plan feed=0 master_f=200 theta=2153 psi=14693 beta=12540 cur_theta=2106 cur_psi=14675 dtheta=46 dpsi=18 dbeta=-28 min_beta=12540 s1_abs=863 s1=18 d1=0 f1=200 s2_log_abs=5894 s2_motor_target=5894 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=78
+I/BSP             [12885] stepper stop inst=40862000 step=19 target=19
+I/BSP             [12885] stepper stop inst=40860000 step=8 target=8
+I/PWM             [12885] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12886] dual start s1=18 d1=0 s2=7 d2=0 master=18 freq=200 irq=400
+I/MOTION          [12976] [MOTION] segment done user_x=10841 user_y=5799 machine_x=-2059 machine_y=18599 theta=2153 psi=14693 beta=12540 s1_abs=863 s2_log_abs=5894 s2_motor_abs=5894 s2_bias=0 ld1=1 md2=1 plan=42/156
+I/MOTION          [12977] [MOTION] ik user_x=10936 user_y=5899 machine_x=-1964 machine_y=18699 std_x=1964 std_y=18699 r=18801 c2=-58 s2=82 q2=12512 branch=1
+I/MOTION          [12977] [MOTION] fk check machine_x=-1964 machine_y=18699 err_x=0 err_y=0
+I/MOTION          [12978] [MOTION] plan feed=0 master_f=200 theta=2198 psi=14711 beta=12512 cur_theta=2153 cur_psi=14693 dtheta=46 dpsi=18 dbeta=-28 min_beta=12512 s1_abs=882 s1=19 d1=0 f1=200 s2_log_abs=5901 s2_motor_target=5901 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=74
+I/BSP             [12978] stepper stop inst=40862000 step=18 target=18
+I/BSP             [12979] stepper stop inst=40860000 step=7 target=7
+I/PWM             [12979] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [12979] dual start s1=19 d1=0 s2=7 d2=0 master=19 freq=200 irq=400
+I/MOTION          [13074] [MOTION] segment done user_x=10936 user_y=5899 machine_x=-1964 machine_y=18699 theta=2198 psi=14711 beta=12512 s1_abs=882 s2_log_abs=5901 s2_motor_abs=5901 s2_bias=0 ld1=1 md2=1 plan=43/156
+I/MOTION          [13075] [MOTION] ik user_x=11031 user_y=5998 machine_x=-1869 machine_y=18798 std_x=1869 std_y=18798 r=18891 c2=-57 s2=82 q2=12484 branch=1
+I/MOTION          [13076] [MOTION] fk check machine_x=-1869 machine_y=18798 err_x=0 err_y=0
+I/MOTION          [13076] [MOTION] plan feed=0 master_f=200 theta=2244 psi=14728 beta=12484 cur_theta=2198 cur_psi=14711 dtheta=46 dpsi=17 dbeta=-28 min_beta=12484 s1_abs=900 s1=18 d1=0 f1=200 s2_log_abs=5908 s2_motor_target=5908 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=78
+I/BSP             [13077] stepper stop inst=40862000 step=19 target=19
+I/BSP             [13077] stepper stop inst=40860000 step=7 target=7
+I/PWM             [13078] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13078] dual start s1=18 d1=0 s2=7 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13168] [MOTION] segment done user_x=11031 user_y=5998 machine_x=-1869 machine_y=18798 theta=2244 psi=14728 beta=12484 s1_abs=900 s2_log_abs=5908 s2_motor_abs=5908 s2_bias=0 ld1=1 md2=1 plan=44/156
+I/MOTION          [13169] [MOTION] ik user_x=11126 user_y=6098 machine_x=-1774 machine_y=18898 std_x=1774 std_y=18898 r=18981 c2=-57 s2=82 q2=12455 branch=1
+I/MOTION          [13169] [MOTION] fk check machine_x=-1773 machine_y=18898 err_x=0 err_y=0
+I/MOTION          [13170] [MOTION] plan feed=0 master_f=200 theta=2290 psi=14745 beta=12455 cur_theta=2244 cur_psi=14728 dtheta=46 dpsi=17 dbeta=-29 min_beta=12455 s1_abs=918 s1=18 d1=0 f1=200 s2_log_abs=5915 s2_motor_target=5915 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=78
+I/BSP             [13171] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13171] stepper stop inst=40860000 step=7 target=7
+I/PWM             [13171] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13172] dual start s1=18 d1=0 s2=7 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13262] [MOTION] segment done user_x=11126 user_y=6098 machine_x=-1774 machine_y=18898 theta=2290 psi=14745 beta=12455 s1_abs=918 s2_log_abs=5915 s2_motor_abs=5915 s2_bias=0 ld1=1 md2=1 plan=45/156
+I/MOTION          [13263] [MOTION] ik user_x=11222 user_y=6198 machine_x=-1678 machine_y=18998 std_x=1678 std_y=18998 r=19072 c2=-56 s2=83 q2=12426 branch=1
+I/MOTION          [13263] [MOTION] fk check machine_x=-1678 machine_y=18998 err_x=0 err_y=0
+I/MOTION          [13264] [MOTION] plan feed=0 master_f=200 theta=2335 psi=14761 beta=12426 cur_theta=2290 cur_psi=14745 dtheta=45 dpsi=16 dbeta=-29 min_beta=12426 s1_abs=936 s1=18 d1=0 f1=200 s2_log_abs=5922 s2_motor_target=5922 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=78
+I/BSP             [13264] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13265] stepper stop inst=40860000 step=7 target=7
+I/PWM             [13265] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13265] dual start s1=18 d1=0 s2=7 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13355] [MOTION] segment done user_x=11222 user_y=6198 machine_x=-1678 machine_y=18998 theta=2335 psi=14761 beta=12426 s1_abs=936 s2_log_abs=5922 s2_motor_abs=5922 s2_bias=0 ld1=1 md2=1 plan=46/156
+I/MOTION          [13356] [MOTION] ik user_x=11317 user_y=6298 machine_x=-1583 machine_y=19098 std_x=1583 std_y=19098 r=19164 c2=-56 s2=83 q2=12397 branch=1
+I/MOTION          [13357] [MOTION] fk check machine_x=-1583 machine_y=19098 err_x=0 err_y=0
+I/MOTION          [13357] [MOTION] plan feed=0 master_f=200 theta=2380 psi=14778 beta=12397 cur_theta=2335 cur_psi=14761 dtheta=45 dpsi=16 dbeta=-29 min_beta=12397 s1_abs=954 s1=18 d1=0 f1=200 s2_log_abs=5928 s2_motor_target=5928 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=6 d2=0 f2=67
+I/BSP             [13358] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13358] stepper stop inst=40860000 step=7 target=7
+I/PWM             [13359] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13359] dual start s1=18 d1=0 s2=6 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13449] [MOTION] segment done user_x=11317 user_y=6298 machine_x=-1583 machine_y=19098 theta=2380 psi=14778 beta=12397 s1_abs=954 s2_log_abs=5928 s2_motor_abs=5928 s2_bias=0 ld1=1 md2=1 plan=47/156
+I/MOTION          [13450] [MOTION] ik user_x=11412 user_y=6398 machine_x=-1488 machine_y=19198 std_x=1488 std_y=19198 r=19256 c2=-55 s2=83 q2=12368 branch=1
+I/MOTION          [13450] [MOTION] fk check machine_x=-1488 machine_y=19198 err_x=0 err_y=0
+I/MOTION          [13451] [MOTION] plan feed=0 master_f=200 theta=2425 psi=14793 beta=12368 cur_theta=2380 cur_psi=14778 dtheta=45 dpsi=16 dbeta=-29 min_beta=12368 s1_abs=972 s1=18 d1=0 f1=200 s2_log_abs=5934 s2_motor_target=5934 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=6 d2=0 f2=67
+I/BSP             [13452] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13452] stepper stop inst=40860000 step=6 target=6
+I/PWM             [13452] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13452] dual start s1=18 d1=0 s2=6 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13543] [MOTION] segment done user_x=11412 user_y=6398 machine_x=-1488 machine_y=19198 theta=2425 psi=14793 beta=12368 s1_abs=972 s2_log_abs=5934 s2_motor_abs=5934 s2_bias=0 ld1=1 md2=1 plan=48/156
+I/MOTION          [13544] [MOTION] ik user_x=11507 user_y=6498 machine_x=-1393 machine_y=19298 std_x=1393 std_y=19298 r=19348 c2=-55 s2=83 q2=12339 branch=1
+I/MOTION          [13544] [MOTION] fk check machine_x=-1393 machine_y=19298 err_x=0 err_y=0
+I/MOTION          [13544] [MOTION] plan feed=0 master_f=200 theta=2470 psi=14808 beta=12339 cur_theta=2425 cur_psi=14793 dtheta=45 dpsi=15 dbeta=-29 min_beta=12339 s1_abs=990 s1=18 d1=0 f1=200 s2_log_abs=5941 s2_motor_target=5941 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=7 d2=0 f2=78
+I/BSP             [13545] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13546] stepper stop inst=40860000 step=6 target=6
+I/PWM             [13546] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13546] dual start s1=18 d1=0 s2=7 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13636] [MOTION] segment done user_x=11507 user_y=6498 machine_x=-1393 machine_y=19298 theta=2470 psi=14808 beta=12339 s1_abs=990 s2_log_abs=5941 s2_motor_abs=5941 s2_bias=0 ld1=1 md2=1 plan=49/156
+I/MOTION          [13637] [MOTION] ik user_x=11602 user_y=6598 machine_x=-1298 machine_y=19398 std_x=1298 std_y=19398 r=19441 c2=-55 s2=84 q2=12309 branch=1
+I/MOTION          [13638] [MOTION] fk check machine_x=-1298 machine_y=19398 err_x=0 err_y=0
+I/MOTION          [13638] [MOTION] plan feed=0 master_f=200 theta=2515 psi=14823 beta=12309 cur_theta=2470 cur_psi=14808 dtheta=45 dpsi=15 dbeta=-30 min_beta=12309 s1_abs=1008 s1=18 d1=0 f1=200 s2_log_abs=5947 s2_motor_target=5947 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=6 d2=0 f2=67
+I/BSP             [13639] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13639] stepper stop inst=40860000 step=7 target=7
+I/PWM             [13640] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13640] dual start s1=18 d1=0 s2=6 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13730] [MOTION] segment done user_x=11602 user_y=6598 machine_x=-1298 machine_y=19398 theta=2515 psi=14823 beta=12309 s1_abs=1008 s2_log_abs=5947 s2_motor_abs=5947 s2_bias=0 ld1=1 md2=1 plan=50/156
+I/MOTION          [13731] [MOTION] ik user_x=11697 user_y=6698 machine_x=-1203 machine_y=19498 std_x=1203 std_y=19498 r=19535 c2=-54 s2=84 q2=12279 branch=1
+I/MOTION          [13731] [MOTION] fk check machine_x=-1203 machine_y=19498 err_x=0 err_y=0
+I/MOTION          [13732] [MOTION] plan feed=0 master_f=200 theta=2559 psi=14838 beta=12279 cur_theta=2515 cur_psi=14823 dtheta=44 dpsi=14 dbeta=-30 min_beta=12279 s1_abs=1026 s1=18 d1=0 f1=200 s2_log_abs=5952 s2_motor_target=5952 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=56
+I/BSP             [13733] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13733] stepper stop inst=40860000 step=6 target=6
+I/PWM             [13733] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13733] dual start s1=18 d1=0 s2=5 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13824] [MOTION] segment done user_x=11697 user_y=6698 machine_x=-1203 machine_y=19498 theta=2559 psi=14838 beta=12279 s1_abs=1026 s2_log_abs=5952 s2_motor_abs=5952 s2_bias=0 ld1=1 md2=1 plan=51/156
+I/MOTION          [13825] [MOTION] ik user_x=11792 user_y=6798 machine_x=-1108 machine_y=19598 std_x=1108 std_y=19598 r=19629 c2=-54 s2=84 q2=12249 branch=1
+I/MOTION          [13825] [MOTION] fk check machine_x=-1108 machine_y=19598 err_x=0 err_y=0
+I/MOTION          [13825] [MOTION] plan feed=0 master_f=200 theta=2603 psi=14852 beta=12249 cur_theta=2559 cur_psi=14838 dtheta=44 dpsi=14 dbeta=-30 min_beta=12249 s1_abs=1044 s1=18 d1=0 f1=200 s2_log_abs=5958 s2_motor_target=5958 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=6 d2=0 f2=67
+I/BSP             [13826] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13827] stepper stop inst=40860000 step=5 target=5
+I/PWM             [13827] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13827] dual start s1=18 d1=0 s2=6 d2=0 master=18 freq=200 irq=400
+I/MOTION          [13917] [MOTION] segment done user_x=11792 user_y=6798 machine_x=-1108 machine_y=19598 theta=2603 psi=14852 beta=12249 s1_abs=1044 s2_log_abs=5958 s2_motor_abs=5958 s2_bias=0 ld1=1 md2=1 plan=52/156
+I/MOTION          [13918] [MOTION] ik user_x=11887 user_y=6897 machine_x=-1013 machine_y=19697 std_x=1013 std_y=19697 r=19724 c2=-53 s2=85 q2=12218 branch=1
+I/MOTION          [13919] [MOTION] fk check machine_x=-1013 machine_y=19698 err_x=0 err_y=0
+I/MOTION          [13919] [MOTION] plan feed=0 master_f=200 theta=2647 psi=14866 beta=12218 cur_theta=2603 cur_psi=14852 dtheta=44 dpsi=14 dbeta=-30 min_beta=12218 s1_abs=1062 s1=18 d1=0 f1=200 s2_log_abs=5963 s2_motor_target=5963 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=56
+I/BSP             [13920] stepper stop inst=40862000 step=18 target=18
+I/BSP             [13920] stepper stop inst=40860000 step=6 target=6
+I/PWM             [13921] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [13921] dual start s1=18 d1=0 s2=5 d2=0 master=18 freq=200 irq=400
+I/MOTION          [14011] [MOTION] segment done user_x=11887 user_y=6897 machine_x=-1013 machine_y=19697 theta=2647 psi=14866 beta=12218 s1_abs=1062 s2_log_abs=5963 s2_motor_abs=5963 s2_bias=0 ld1=1 md2=1 plan=53/156
+I/MOTION          [14012] [MOTION] ik user_x=11982 user_y=6997 machine_x=-918 machine_y=19797 std_x=918 std_y=19797 r=19819 c2=-53 s2=85 q2=12188 branch=1
+I/MOTION          [14012] [MOTION] fk check machine_x=-918 machine_y=19797 err_x=0 err_y=0
+I/MOTION          [14013] [MOTION] plan feed=0 master_f=200 theta=2691 psi=14879 beta=12188 cur_theta=2647 cur_psi=14866 dtheta=44 dpsi=13 dbeta=-31 min_beta=12188 s1_abs=1079 s1=17 d1=0 f1=200 s2_log_abs=5969 s2_motor_target=5969 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=6 d2=0 f2=71
+I/BSP             [14014] stepper stop inst=40862000 step=18 target=18
+I/BSP             [14014] stepper stop inst=40860000 step=5 target=5
+I/PWM             [14014] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14014] dual start s1=17 d1=0 s2=6 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14100] [MOTION] segment done user_x=11982 user_y=6997 machine_x=-918 machine_y=19797 theta=2691 psi=14879 beta=12188 s1_abs=1079 s2_log_abs=5969 s2_motor_abs=5969 s2_bias=0 ld1=1 md2=1 plan=54/156
+I/MOTION          [14101] [MOTION] ik user_x=12077 user_y=7097 machine_x=-823 machine_y=19897 std_x=823 std_y=19897 r=19914 c2=-52 s2=85 q2=12157 branch=1
+I/MOTION          [14101] [MOTION] fk check machine_x=-823 machine_y=19897 err_x=0 err_y=0
+I/MOTION          [14101] [MOTION] plan feed=0 master_f=200 theta=2735 psi=14892 beta=12157 cur_theta=2691 cur_psi=14879 dtheta=44 dpsi=13 dbeta=-31 min_beta=12157 s1_abs=1097 s1=18 d1=0 f1=200 s2_log_abs=5974 s2_motor_target=5974 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=56
+I/BSP             [14102] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14103] stepper stop inst=40860000 step=6 target=6
+I/PWM             [14103] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14103] dual start s1=18 d1=0 s2=5 d2=0 master=18 freq=200 irq=400
+I/MOTION          [14193] [MOTION] segment done user_x=12077 user_y=7097 machine_x=-823 machine_y=19897 theta=2735 psi=14892 beta=12157 s1_abs=1097 s2_log_abs=5974 s2_motor_abs=5974 s2_bias=0 ld1=1 md2=1 plan=55/156
+I/MOTION          [14194] [MOTION] ik user_x=12172 user_y=7197 machine_x=-728 machine_y=19997 std_x=728 std_y=19997 r=20010 c2=-52 s2=85 q2=12126 branch=1
+I/MOTION          [14195] [MOTION] fk check machine_x=-728 machine_y=19997 err_x=0 err_y=0
+I/MOTION          [14195] [MOTION] plan feed=0 master_f=200 theta=2778 psi=14905 beta=12126 cur_theta=2735 cur_psi=14892 dtheta=44 dpsi=13 dbeta=-31 min_beta=12126 s1_abs=1114 s1=17 d1=0 f1=200 s2_log_abs=5979 s2_motor_target=5979 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=59
+I/BSP             [14196] stepper stop inst=40862000 step=18 target=18
+I/BSP             [14196] stepper stop inst=40860000 step=5 target=5
+I/PWM             [14197] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14197] dual start s1=17 d1=0 s2=5 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14282] [MOTION] segment done user_x=12172 user_y=7197 machine_x=-728 machine_y=19997 theta=2778 psi=14905 beta=12126 s1_abs=1114 s2_log_abs=5979 s2_motor_abs=5979 s2_bias=0 ld1=1 md2=1 plan=56/156
+I/MOTION          [14283] [MOTION] ik user_x=12267 user_y=7297 machine_x=-633 machine_y=20097 std_x=633 std_y=20097 r=20107 c2=-51 s2=86 q2=12095 branch=1
+I/MOTION          [14283] [MOTION] fk check machine_x=-633 machine_y=20097 err_x=0 err_y=0
+I/MOTION          [14284] [MOTION] plan feed=0 master_f=200 theta=2822 psi=14917 beta=12095 cur_theta=2778 cur_psi=14905 dtheta=43 dpsi=12 dbeta=-31 min_beta=12095 s1_abs=1132 s1=18 d1=0 f1=200 s2_log_abs=5984 s2_motor_target=5984 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=56
+I/BSP             [14285] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14285] stepper stop inst=40860000 step=5 target=5
+I/PWM             [14285] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14285] dual start s1=18 d1=0 s2=5 d2=0 master=18 freq=200 irq=400
+I/MOTION          [14375] [MOTION] segment done user_x=12267 user_y=7297 machine_x=-633 machine_y=20097 theta=2822 psi=14917 beta=12095 s1_abs=1132 s2_log_abs=5984 s2_motor_abs=5984 s2_bias=0 ld1=1 md2=1 plan=57/156
+I/MOTION          [14377] [MOTION] ik user_x=12362 user_y=7397 machine_x=-538 machine_y=20197 std_x=538 std_y=20197 r=20204 c2=-51 s2=86 q2=12064 branch=1
+I/MOTION          [14377] [MOTION] fk check machine_x=-538 machine_y=20197 err_x=0 err_y=0
+I/MOTION          [14377] [MOTION] plan feed=0 master_f=200 theta=2865 psi=14929 beta=12064 cur_theta=2822 cur_psi=14917 dtheta=43 dpsi=12 dbeta=-31 min_beta=12064 s1_abs=1149 s1=17 d1=0 f1=200 s2_log_abs=5989 s2_motor_target=5989 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=59
+I/BSP             [14378] stepper stop inst=40862000 step=18 target=18
+I/BSP             [14379] stepper stop inst=40860000 step=5 target=5
+I/PWM             [14379] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14379] dual start s1=17 d1=0 s2=5 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14464] [MOTION] segment done user_x=12362 user_y=7397 machine_x=-538 machine_y=20197 theta=2865 psi=14929 beta=12064 s1_abs=1149 s2_log_abs=5989 s2_motor_abs=5989 s2_bias=0 ld1=1 md2=1 plan=58/156
+I/MOTION          [14465] [MOTION] ik user_x=12458 user_y=7497 machine_x=-442 machine_y=20297 std_x=442 std_y=20297 r=20302 c2=-50 s2=86 q2=12032 branch=1
+I/MOTION          [14466] [MOTION] fk check machine_x=-442 machine_y=20297 err_x=0 err_y=0
+I/MOTION          [14466] [MOTION] plan feed=0 master_f=200 theta=2908 psi=14940 beta=12032 cur_theta=2865 cur_psi=14929 dtheta=43 dpsi=11 dbeta=-32 min_beta=12032 s1_abs=1166 s1=17 d1=0 f1=200 s2_log_abs=5993 s2_motor_target=5993 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [14467] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14467] stepper stop inst=40860000 step=5 target=5
+I/PWM             [14468] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14468] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14553] [MOTION] segment done user_x=12458 user_y=7497 machine_x=-442 machine_y=20297 theta=2908 psi=14940 beta=12032 s1_abs=1166 s2_log_abs=5993 s2_motor_abs=5993 s2_bias=0 ld1=1 md2=1 plan=59/156
+I/MOTION          [14554] [MOTION] ik user_x=12553 user_y=7597 machine_x=-347 machine_y=20397 std_x=347 std_y=20397 r=20400 c2=-50 s2=87 q2=12000 branch=1
+I/MOTION          [14554] [MOTION] fk check machine_x=-347 machine_y=20397 err_x=0 err_y=0
+I/MOTION          [14555] [MOTION] plan feed=0 master_f=200 theta=2951 psi=14951 beta=12000 cur_theta=2908 cur_psi=14940 dtheta=43 dpsi=11 dbeta=-32 min_beta=12000 s1_abs=1183 s1=17 d1=0 f1=200 s2_log_abs=5998 s2_motor_target=5998 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=5 d2=0 f2=59
+I/BSP             [14556] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14556] stepper stop inst=40860000 step=4 target=4
+I/PWM             [14556] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14556] dual start s1=17 d1=0 s2=5 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14641] [MOTION] segment done user_x=12553 user_y=7597 machine_x=-347 machine_y=20397 theta=2951 psi=14951 beta=12000 s1_abs=1183 s2_log_abs=5998 s2_motor_abs=5998 s2_bias=0 ld1=1 md2=1 plan=60/156
+I/MOTION          [14643] [MOTION] ik user_x=12648 user_y=7697 machine_x=-252 machine_y=20497 std_x=252 std_y=20497 r=20498 c2=-50 s2=87 q2=11968 branch=1
+I/MOTION          [14643] [MOTION] fk check machine_x=-252 machine_y=20497 err_x=0 err_y=0
+I/MOTION          [14643] [MOTION] plan feed=0 master_f=200 theta=2994 psi=14962 beta=11968 cur_theta=2951 cur_psi=14951 dtheta=43 dpsi=11 dbeta=-32 min_beta=11968 s1_abs=1200 s1=17 d1=0 f1=200 s2_log_abs=6002 s2_motor_target=6002 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [14644] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14645] stepper stop inst=40860000 step=5 target=5
+I/PWM             [14645] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14645] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14730] [MOTION] segment done user_x=12648 user_y=7697 machine_x=-252 machine_y=20497 theta=2994 psi=14962 beta=11968 s1_abs=1200 s2_log_abs=6002 s2_motor_abs=6002 s2_bias=0 ld1=1 md2=1 plan=61/156
+I/MOTION          [14731] [MOTION] ik user_x=12743 user_y=7797 machine_x=-157 machine_y=20597 std_x=157 std_y=20597 r=20597 c2=-49 s2=87 q2=11936 branch=1
+I/MOTION          [14732] [MOTION] fk check machine_x=-157 machine_y=20597 err_x=0 err_y=0
+I/MOTION          [14732] [MOTION] plan feed=0 master_f=200 theta=3036 psi=14972 beta=11936 cur_theta=2994 cur_psi=14962 dtheta=43 dpsi=10 dbeta=-32 min_beta=11936 s1_abs=1217 s1=17 d1=0 f1=200 s2_log_abs=6006 s2_motor_target=6006 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [14733] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14733] stepper stop inst=40860000 step=4 target=4
+I/PWM             [14733] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14734] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14819] [MOTION] segment done user_x=12743 user_y=7797 machine_x=-157 machine_y=20597 theta=3036 psi=14972 beta=11936 s1_abs=1217 s2_log_abs=6006 s2_motor_abs=6006 s2_bias=0 ld1=1 md2=1 plan=62/156
+I/MOTION          [14820] [MOTION] ik user_x=12838 user_y=7896 machine_x=-62 machine_y=20696 std_x=62 std_y=20696 r=20697 c2=-49 s2=87 q2=11904 branch=1
+I/MOTION          [14820] [MOTION] fk check machine_x=-62 machine_y=20696 err_x=0 err_y=0
+I/MOTION          [14821] [MOTION] plan feed=0 master_f=200 theta=3079 psi=14982 beta=11904 cur_theta=3036 cur_psi=14972 dtheta=42 dpsi=10 dbeta=-32 min_beta=11904 s1_abs=1234 s1=17 d1=0 f1=200 s2_log_abs=6010 s2_motor_target=6010 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [14822] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14822] stepper stop inst=40860000 step=4 target=4
+I/PWM             [14822] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14822] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14907] [MOTION] segment done user_x=12838 user_y=7896 machine_x=-62 machine_y=20696 theta=3079 psi=14982 beta=11904 s1_abs=1234 s2_log_abs=6010 s2_motor_abs=6010 s2_bias=0 ld1=1 md2=1 plan=63/156
+I/MOTION          [14909] [MOTION] ik user_x=12933 user_y=7996 machine_x=33 machine_y=20796 std_x=-33 std_y=20796 r=20796 c2=-48 s2=88 q2=11871 branch=1
+I/MOTION          [14909] [MOTION] fk check machine_x=33 machine_y=20796 err_x=0 err_y=0
+I/MOTION          [14909] [MOTION] plan feed=0 master_f=200 theta=3121 psi=14992 beta=11871 cur_theta=3079 cur_psi=14982 dtheta=42 dpsi=10 dbeta=-33 min_beta=11871 s1_abs=1251 s1=17 d1=0 f1=200 s2_log_abs=6014 s2_motor_target=6014 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [14910] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14911] stepper stop inst=40860000 step=4 target=4
+I/PWM             [14911] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [14911] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [14996] [MOTION] segment done user_x=12933 user_y=7996 machine_x=33 machine_y=20796 theta=3121 psi=14992 beta=11871 s1_abs=1251 s2_log_abs=6014 s2_motor_abs=6014 s2_bias=0 ld1=1 md2=1 plan=64/156
+I/MOTION          [14997] [MOTION] ik user_x=13028 user_y=8096 machine_x=128 machine_y=20896 std_x=-128 std_y=20896 r=20897 c2=-48 s2=88 q2=11839 branch=1
+I/MOTION          [14998] [MOTION] fk check machine_x=128 machine_y=20896 err_x=0 err_y=0
+I/MOTION          [14998] [MOTION] plan feed=0 master_f=200 theta=3163 psi=15001 beta=11839 cur_theta=3121 cur_psi=14992 dtheta=42 dpsi=9 dbeta=-33 min_beta=11839 s1_abs=1268 s1=17 d1=0 f1=200 s2_log_abs=6018 s2_motor_target=6018 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [14999] stepper stop inst=40862000 step=17 target=17
+I/BSP             [14999] stepper stop inst=40860000 step=4 target=4
+I/PWM             [14999] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15000] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15085] [MOTION] segment done user_x=13028 user_y=8096 machine_x=128 machine_y=20896 theta=3163 psi=15001 beta=11839 s1_abs=1268 s2_log_abs=6018 s2_motor_abs=6018 s2_bias=0 ld1=1 md2=1 plan=65/156
+I/MOTION          [15086] [MOTION] ik user_x=13123 user_y=8196 machine_x=223 machine_y=20996 std_x=-223 std_y=20996 r=20997 c2=-47 s2=88 q2=11806 branch=1
+I/MOTION          [15086] [MOTION] fk check machine_x=223 machine_y=20996 err_x=0 err_y=0
+I/MOTION          [15087] [MOTION] plan feed=0 master_f=200 theta=3205 psi=15010 beta=11806 cur_theta=3163 cur_psi=15001 dtheta=42 dpsi=9 dbeta=-33 min_beta=11806 s1_abs=1285 s1=17 d1=0 f1=200 s2_log_abs=6022 s2_motor_target=6022 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=47
+I/BSP             [15088] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15088] stepper stop inst=40860000 step=4 target=4
+I/PWM             [15088] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15088] dual start s1=17 d1=0 s2=4 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15173] [MOTION] segment done user_x=13123 user_y=8196 machine_x=223 machine_y=20996 theta=3205 psi=15010 beta=11806 s1_abs=1285 s2_log_abs=6022 s2_motor_abs=6022 s2_bias=0 ld1=1 md2=1 plan=66/156
+I/MOTION          [15174] [MOTION] ik user_x=13218 user_y=8296 machine_x=318 machine_y=21096 std_x=-318 std_y=21096 r=21098 c2=-47 s2=89 q2=11772 branch=1
+I/MOTION          [15175] [MOTION] fk check machine_x=318 machine_y=21096 err_x=0 err_y=0
+I/MOTION          [15175] [MOTION] plan feed=0 master_f=200 theta=3247 psi=15019 beta=11772 cur_theta=3205 cur_psi=15010 dtheta=42 dpsi=9 dbeta=-33 min_beta=11772 s1_abs=1302 s1=17 d1=0 f1=200 s2_log_abs=6025 s2_motor_target=6025 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=3 d2=0 f2=35
+I/BSP             [15176] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15177] stepper stop inst=40860000 step=4 target=4
+I/PWM             [15177] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15177] dual start s1=17 d1=0 s2=3 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15262] [MOTION] segment done user_x=13218 user_y=8296 machine_x=318 machine_y=21096 theta=3247 psi=15019 beta=11772 s1_abs=1302 s2_log_abs=6025 s2_motor_abs=6025 s2_bias=0 ld1=1 md2=1 plan=67/156
+I/MOTION          [15263] [MOTION] ik user_x=13313 user_y=8396 machine_x=413 machine_y=21196 std_x=-413 std_y=21196 r=21200 c2=-46 s2=89 q2=11739 branch=1
+I/MOTION          [15264] [MOTION] fk check machine_x=413 machine_y=21196 err_x=0 err_y=0
+I/MOTION          [15264] [MOTION] plan feed=0 master_f=200 theta=3288 psi=15027 beta=11739 cur_theta=3247 cur_psi=15019 dtheta=42 dpsi=8 dbeta=-33 min_beta=11739 s1_abs=1319 s1=17 d1=0 f1=200 s2_log_abs=6028 s2_motor_target=6028 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=3 d2=0 f2=35
+I/BSP             [15265] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15265] stepper stop inst=40860000 step=3 target=3
+I/PWM             [15265] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15266] dual start s1=17 d1=0 s2=3 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15351] [MOTION] segment done user_x=13313 user_y=8396 machine_x=413 machine_y=21196 theta=3288 psi=15027 beta=11739 s1_abs=1319 s2_log_abs=6028 s2_motor_abs=6028 s2_bias=0 ld1=1 md2=1 plan=68/156
+I/MOTION          [15352] [MOTION] ik user_x=13408 user_y=8496 machine_x=508 machine_y=21296 std_x=-508 std_y=21296 r=21302 c2=-45 s2=89 q2=11706 branch=1
+I/MOTION          [15352] [MOTION] fk check machine_x=508 machine_y=21296 err_x=0 err_y=0
+I/MOTION          [15353] [MOTION] plan feed=0 master_f=200 theta=3330 psi=15035 beta=11706 cur_theta=3288 cur_psi=15027 dtheta=42 dpsi=8 dbeta=-34 min_beta=11706 s1_abs=1335 s1=16 d1=0 f1=200 s2_log_abs=6032 s2_motor_target=6032 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=4 d2=0 f2=50
+I/BSP             [15354] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15354] stepper stop inst=40860000 step=3 target=3
+I/PWM             [15354] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15354] dual start s1=16 d1=0 s2=4 d2=0 master=16 freq=200 irq=400
+I/MOTION          [15434] [MOTION] segment done user_x=13408 user_y=8496 machine_x=508 machine_y=21296 theta=3330 psi=15035 beta=11706 s1_abs=1335 s2_log_abs=6032 s2_motor_abs=6032 s2_bias=0 ld1=1 md2=1 plan=69/156
+I/MOTION          [15435] [MOTION] ik user_x=13503 user_y=8596 machine_x=603 machine_y=21396 std_x=-603 std_y=21396 r=21404 c2=-45 s2=89 q2=11672 branch=1
+I/MOTION          [15436] [MOTION] fk check machine_x=603 machine_y=21396 err_x=0 err_y=0
+I/MOTION          [15436] [MOTION] plan feed=0 master_f=200 theta=3371 psi=15043 beta=11672 cur_theta=3330 cur_psi=15035 dtheta=41 dpsi=8 dbeta=-34 min_beta=11672 s1_abs=1352 s1=17 d1=0 f1=200 s2_log_abs=6035 s2_motor_target=6035 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=3 d2=0 f2=35
+I/BSP             [15437] stepper stop inst=40862000 step=16 target=16
+I/BSP             [15438] stepper stop inst=40860000 step=4 target=4
+I/PWM             [15438] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15438] dual start s1=17 d1=0 s2=3 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15523] [MOTION] segment done user_x=13503 user_y=8596 machine_x=603 machine_y=21396 theta=3371 psi=15043 beta=11672 s1_abs=1352 s2_log_abs=6035 s2_motor_abs=6035 s2_bias=0 ld1=1 md2=1 plan=70/156
+I/MOTION          [15524] [MOTION] ik user_x=13598 user_y=8696 machine_x=698 machine_y=21496 std_x=-698 std_y=21496 r=21507 c2=-44 s2=90 q2=11638 branch=1
+I/MOTION          [15525] [MOTION] fk check machine_x=698 machine_y=21496 err_x=0 err_y=0
+I/MOTION          [15525] [MOTION] plan feed=0 master_f=200 theta=3412 psi=15050 beta=11638 cur_theta=3371 cur_psi=15043 dtheta=41 dpsi=7 dbeta=-34 min_beta=11638 s1_abs=1368 s1=16 d1=0 f1=200 s2_log_abs=6038 s2_motor_target=6038 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=3 d2=0 f2=38
+I/BSP             [15526] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15526] stepper stop inst=40860000 step=3 target=3
+I/PWM             [15526] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15527] dual start s1=16 d1=0 s2=3 d2=0 master=16 freq=200 irq=400
+I/MOTION          [15607] [MOTION] segment done user_x=13598 user_y=8696 machine_x=698 machine_y=21496 theta=3412 psi=15050 beta=11638 s1_abs=1368 s2_log_abs=6038 s2_motor_abs=6038 s2_bias=0 ld1=1 md2=1 plan=71/156
+I/MOTION          [15608] [MOTION] ik user_x=13694 user_y=8796 machine_x=794 machine_y=21596 std_x=-794 std_y=21596 r=21610 c2=-44 s2=90 q2=11604 branch=1
+I/MOTION          [15608] [MOTION] fk check machine_x=794 machine_y=21596 err_x=0 err_y=0
+I/MOTION          [15609] [MOTION] plan feed=0 master_f=200 theta=3454 psi=15057 beta=11604 cur_theta=3412 cur_psi=15050 dtheta=41 dpsi=7 dbeta=-34 min_beta=11604 s1_abs=1385 s1=17 d1=0 f1=200 s2_log_abs=6040 s2_motor_target=6040 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=24
+I/BSP             [15610] stepper stop inst=40862000 step=16 target=16
+I/BSP             [15610] stepper stop inst=40860000 step=3 target=3
+I/PWM             [15610] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15610] dual start s1=17 d1=0 s2=2 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15695] [MOTION] segment done user_x=13694 user_y=8796 machine_x=794 machine_y=21596 theta=3454 psi=15057 beta=11604 s1_abs=1385 s2_log_abs=6040 s2_motor_abs=6040 s2_bias=0 ld1=1 md2=1 plan=72/156
+I/MOTION          [15696] [MOTION] ik user_x=13789 user_y=8895 machine_x=889 machine_y=21695 std_x=-889 std_y=21695 r=21714 c2=-43 s2=90 q2=11569 branch=1
+I/MOTION          [15697] [MOTION] fk check machine_x=889 machine_y=21695 err_x=0 err_y=0
+I/MOTION          [15697] [MOTION] plan feed=0 master_f=200 theta=3495 psi=15064 beta=11569 cur_theta=3454 cur_psi=15057 dtheta=41 dpsi=7 dbeta=-34 min_beta=11569 s1_abs=1401 s1=16 d1=0 f1=200 s2_log_abs=6043 s2_motor_target=6043 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=3 d2=0 f2=38
+I/BSP             [15698] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15698] stepper stop inst=40860000 step=2 target=2
+I/PWM             [15699] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15699] dual start s1=16 d1=0 s2=3 d2=0 master=16 freq=200 irq=400
+I/MOTION          [15779] [MOTION] segment done user_x=13789 user_y=8895 machine_x=889 machine_y=21695 theta=3495 psi=15064 beta=11569 s1_abs=1401 s2_log_abs=6043 s2_motor_abs=6043 s2_bias=0 ld1=1 md2=1 plan=73/156
+I/MOTION          [15780] [MOTION] ik user_x=13884 user_y=8995 machine_x=984 machine_y=21795 std_x=-984 std_y=21795 r=21817 c2=-43 s2=90 q2=11535 branch=1
+I/MOTION          [15781] [MOTION] fk check machine_x=984 machine_y=21795 err_x=0 err_y=0
+I/MOTION          [15781] [MOTION] plan feed=0 master_f=200 theta=3535 psi=15070 beta=11535 cur_theta=3495 cur_psi=15064 dtheta=41 dpsi=6 dbeta=-34 min_beta=11535 s1_abs=1418 s1=17 d1=0 f1=200 s2_log_abs=6046 s2_motor_target=6046 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=3 d2=0 f2=35
+I/BSP             [15782] stepper stop inst=40862000 step=16 target=16
+I/BSP             [15782] stepper stop inst=40860000 step=3 target=3
+I/PWM             [15782] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15783] dual start s1=17 d1=0 s2=3 d2=0 master=17 freq=200 irq=400
+I/MOTION          [15868] [MOTION] segment done user_x=13884 user_y=8995 machine_x=984 machine_y=21795 theta=3535 psi=15070 beta=11535 s1_abs=1418 s2_log_abs=6046 s2_motor_abs=6046 s2_bias=0 ld1=1 md2=1 plan=74/156
+I/MOTION          [15869] [MOTION] ik user_x=13979 user_y=9095 machine_x=1079 machine_y=21895 std_x=-1079 std_y=21895 r=21922 c2=-42 s2=91 q2=11500 branch=1
+I/MOTION          [15869] [MOTION] fk check machine_x=1079 machine_y=21895 err_x=0 err_y=0
+I/MOTION          [15870] [MOTION] plan feed=0 master_f=200 theta=3576 psi=15076 beta=11500 cur_theta=3535 cur_psi=15070 dtheta=41 dpsi=6 dbeta=-35 min_beta=11500 s1_abs=1434 s1=16 d1=0 f1=200 s2_log_abs=6048 s2_motor_target=6048 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [15871] stepper stop inst=40862000 step=17 target=17
+I/BSP             [15871] stepper stop inst=40860000 step=3 target=3
+I/PWM             [15871] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15871] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [15951] [MOTION] segment done user_x=13979 user_y=9095 machine_x=1079 machine_y=21895 theta=3576 psi=15076 beta=11500 s1_abs=1434 s2_log_abs=6048 s2_motor_abs=6048 s2_bias=0 ld1=1 md2=1 plan=75/156
+I/MOTION          [15952] [MOTION] ik user_x=14074 user_y=9195 machine_x=1174 machine_y=21995 std_x=-1174 std_y=21995 r=22026 c2=-42 s2=91 q2=11465 branch=1
+I/MOTION          [15953] [MOTION] fk check machine_x=1174 machine_y=21995 err_x=0 err_y=0
+I/MOTION          [15953] [MOTION] plan feed=0 master_f=200 theta=3617 psi=15082 beta=11465 cur_theta=3576 cur_psi=15076 dtheta=41 dpsi=6 dbeta=-35 min_beta=11465 s1_abs=1450 s1=16 d1=0 f1=200 s2_log_abs=6050 s2_motor_target=6050 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [15954] stepper stop inst=40862000 step=16 target=16
+I/BSP             [15954] stepper stop inst=40860000 step=2 target=2
+I/PWM             [15955] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [15955] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16035] [MOTION] segment done user_x=14074 user_y=9195 machine_x=1174 machine_y=21995 theta=3617 psi=15082 beta=11465 s1_abs=1450 s2_log_abs=6050 s2_motor_abs=6050 s2_bias=0 ld1=1 md2=1 plan=76/156
+I/MOTION          [16036] [MOTION] ik user_x=14169 user_y=9295 machine_x=1269 machine_y=22095 std_x=-1269 std_y=22095 r=22131 c2=-41 s2=91 q2=11430 branch=1
+I/MOTION          [16037] [MOTION] fk check machine_x=1269 machine_y=22095 err_x=0 err_y=0
+I/MOTION          [16037] [MOTION] plan feed=0 master_f=200 theta=3657 psi=15087 beta=11430 cur_theta=3617 cur_psi=15082 dtheta=40 dpsi=5 dbeta=-35 min_beta=11430 s1_abs=1466 s1=16 d1=0 f1=200 s2_log_abs=6052 s2_motor_target=6052 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [16038] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16038] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16038] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16039] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16119] [MOTION] segment done user_x=14169 user_y=9295 machine_x=1269 machine_y=22095 theta=3657 psi=15087 beta=11430 s1_abs=1466 s2_log_abs=6052 s2_motor_abs=6052 s2_bias=0 ld1=1 md2=1 plan=77/156
+I/MOTION          [16120] [MOTION] ik user_x=14264 user_y=9395 machine_x=1364 machine_y=22195 std_x=-1364 std_y=22195 r=22237 c2=-41 s2=91 q2=11395 branch=1
+I/MOTION          [16120] [MOTION] fk check machine_x=1364 machine_y=22195 err_x=0 err_y=0
+I/MOTION          [16121] [MOTION] plan feed=0 master_f=200 theta=3697 psi=15092 beta=11395 cur_theta=3657 cur_psi=15087 dtheta=40 dpsi=5 dbeta=-35 min_beta=11395 s1_abs=1483 s1=17 d1=0 f1=200 s2_log_abs=6054 s2_motor_target=6054 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=24
+I/BSP             [16122] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16122] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16122] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16122] dual start s1=17 d1=0 s2=2 d2=0 master=17 freq=200 irq=400
+I/MOTION          [16207] [MOTION] segment done user_x=14264 user_y=9395 machine_x=1364 machine_y=22195 theta=3697 psi=15092 beta=11395 s1_abs=1483 s2_log_abs=6054 s2_motor_abs=6054 s2_bias=0 ld1=1 md2=1 plan=78/156
+I/MOTION          [16208] [MOTION] ik user_x=14359 user_y=9495 machine_x=1459 machine_y=22295 std_x=-1459 std_y=22295 r=22342 c2=-40 s2=92 q2=11360 branch=1
+I/MOTION          [16209] [MOTION] fk check machine_x=1459 machine_y=22295 err_x=0 err_y=0
+I/MOTION          [16209] [MOTION] plan feed=0 master_f=200 theta=3738 psi=15097 beta=11360 cur_theta=3697 cur_psi=15092 dtheta=40 dpsi=5 dbeta=-35 min_beta=11360 s1_abs=1499 s1=16 d1=0 f1=200 s2_log_abs=6056 s2_motor_target=6056 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [16210] stepper stop inst=40862000 step=17 target=17
+I/BSP             [16210] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16211] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16211] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16291] [MOTION] segment done user_x=14359 user_y=9495 machine_x=1459 machine_y=22295 theta=3738 psi=15097 beta=11360 s1_abs=1499 s2_log_abs=6056 s2_motor_abs=6056 s2_bias=0 ld1=1 md2=1 plan=79/156
+I/MOTION          [16292] [MOTION] ik user_x=14454 user_y=9595 machine_x=1554 machine_y=22395 std_x=-1554 std_y=22395 r=22449 c2=-39 s2=92 q2=11324 branch=1
+I/MOTION          [16292] [MOTION] fk check machine_x=1554 machine_y=22395 err_x=0 err_y=0
+I/MOTION          [16293] [MOTION] plan feed=0 master_f=200 theta=3778 psi=15102 beta=11324 cur_theta=3738 cur_psi=15097 dtheta=40 dpsi=4 dbeta=-36 min_beta=11324 s1_abs=1515 s1=16 d1=0 f1=200 s2_log_abs=6058 s2_motor_target=6058 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [16294] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16294] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16294] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16295] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16375] [MOTION] segment done user_x=14454 user_y=9595 machine_x=1554 machine_y=22395 theta=3778 psi=15102 beta=11324 s1_abs=1515 s2_log_abs=6058 s2_motor_abs=6058 s2_bias=0 ld1=1 md2=1 plan=80/156
+I/MOTION          [16376] [MOTION] ik user_x=14549 user_y=9695 machine_x=1649 machine_y=22495 std_x=-1649 std_y=22495 r=22555 c2=-39 s2=92 q2=11288 branch=1
+I/MOTION          [16376] [MOTION] fk check machine_x=1649 machine_y=22495 err_x=0 err_y=0
+I/MOTION          [16376] [MOTION] plan feed=0 master_f=200 theta=3818 psi=15106 beta=11288 cur_theta=3778 cur_psi=15102 dtheta=40 dpsi=4 dbeta=-36 min_beta=11288 s1_abs=1531 s1=16 d1=0 f1=200 s2_log_abs=6060 s2_motor_target=6060 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [16377] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16378] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16378] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16378] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16458] [MOTION] segment done user_x=14549 user_y=9695 machine_x=1649 machine_y=22495 theta=3818 psi=15106 beta=11288 s1_abs=1531 s2_log_abs=6060 s2_motor_abs=6060 s2_bias=0 ld1=1 md2=1 plan=81/156
+I/MOTION          [16459] [MOTION] ik user_x=14644 user_y=9794 machine_x=1744 machine_y=22594 std_x=-1744 std_y=22594 r=22662 c2=-38 s2=92 q2=11252 branch=1
+I/MOTION          [16460] [MOTION] fk check machine_x=1744 machine_y=22594 err_x=0 err_y=0
+I/MOTION          [16460] [MOTION] plan feed=0 master_f=200 theta=3857 psi=15110 beta=11252 cur_theta=3818 cur_psi=15106 dtheta=40 dpsi=4 dbeta=-36 min_beta=11252 s1_abs=1547 s1=16 d1=0 f1=200 s2_log_abs=6061 s2_motor_target=6061 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [16461] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16461] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16462] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16462] dual start s1=16 d1=0 s2=1 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16542] [MOTION] segment done user_x=14644 user_y=9794 machine_x=1744 machine_y=22594 theta=3857 psi=15110 beta=11252 s1_abs=1547 s2_log_abs=6061 s2_motor_abs=6061 s2_bias=0 ld1=1 md2=1 plan=82/156
+I/MOTION          [16543] [MOTION] ik user_x=14739 user_y=9894 machine_x=1839 machine_y=22694 std_x=-1839 std_y=22694 r=22769 c2=-38 s2=93 q2=11216 branch=1
+I/MOTION          [16543] [MOTION] fk check machine_x=1839 machine_y=22694 err_x=0 err_y=0
+I/MOTION          [16544] [MOTION] plan feed=0 master_f=200 theta=3897 psi=15113 beta=11216 cur_theta=3857 cur_psi=15110 dtheta=40 dpsi=4 dbeta=-36 min_beta=11216 s1_abs=1563 s1=16 d1=0 f1=200 s2_log_abs=6063 s2_motor_target=6063 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=2 d2=0 f2=25
+I/BSP             [16545] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16545] stepper stop inst=40860000 step=1 target=1
+I/PWM             [16545] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16545] dual start s1=16 d1=0 s2=2 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16625] [MOTION] segment done user_x=14739 user_y=9894 machine_x=1839 machine_y=22694 theta=3897 psi=15113 beta=11216 s1_abs=1563 s2_log_abs=6063 s2_motor_abs=6063 s2_bias=0 ld1=1 md2=1 plan=83/156
+I/MOTION          [16627] [MOTION] ik user_x=14834 user_y=9994 machine_x=1934 machine_y=22794 std_x=-1934 std_y=22794 r=22876 c2=-37 s2=93 q2=11179 branch=1
+I/MOTION          [16627] [MOTION] fk check machine_x=1934 machine_y=22794 err_x=0 err_y=0
+I/MOTION          [16627] [MOTION] plan feed=0 master_f=200 theta=3937 psi=15116 beta=11179 cur_theta=3897 cur_psi=15113 dtheta=40 dpsi=3 dbeta=-36 min_beta=11179 s1_abs=1579 s1=16 d1=0 f1=200 s2_log_abs=6064 s2_motor_target=6064 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [16628] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16629] stepper stop inst=40860000 step=2 target=2
+I/PWM             [16629] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16629] dual start s1=16 d1=0 s2=1 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16709] [MOTION] segment done user_x=14834 user_y=9994 machine_x=1934 machine_y=22794 theta=3937 psi=15116 beta=11179 s1_abs=1579 s2_log_abs=6064 s2_motor_abs=6064 s2_bias=0 ld1=1 md2=1 plan=84/156
+I/MOTION          [16710] [MOTION] ik user_x=14929 user_y=10094 machine_x=2029 machine_y=22894 std_x=-2029 std_y=22894 r=22984 c2=-37 s2=93 q2=11143 branch=1
+I/MOTION          [16711] [MOTION] fk check machine_x=2029 machine_y=22894 err_x=0 err_y=0
+I/MOTION          [16711] [MOTION] plan feed=0 master_f=200 theta=3976 psi=15119 beta=11143 cur_theta=3937 cur_psi=15116 dtheta=40 dpsi=3 dbeta=-37 min_beta=11143 s1_abs=1594 s1=15 d1=0 f1=200 s2_log_abs=6065 s2_motor_target=6065 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [16712] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16712] stepper stop inst=40860000 step=1 target=1
+I/PWM             [16712] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16713] dual start s1=15 d1=0 s2=1 d2=0 master=15 freq=200 irq=400
+I/MOTION          [16788] [MOTION] segment done user_x=14929 user_y=10094 machine_x=2029 machine_y=22894 theta=3976 psi=15119 beta=11143 s1_abs=1594 s2_log_abs=6065 s2_motor_abs=6065 s2_bias=0 ld1=1 md2=1 plan=85/156
+I/MOTION          [16789] [MOTION] ik user_x=15025 user_y=10194 machine_x=2125 machine_y=22994 std_x=-2125 std_y=22994 r=23092 c2=-36 s2=93 q2=11106 branch=1
+I/MOTION          [16789] [MOTION] fk check machine_x=2125 machine_y=22994 err_x=0 err_y=0
+I/MOTION          [16790] [MOTION] plan feed=0 master_f=200 theta=4016 psi=15122 beta=11106 cur_theta=3976 cur_psi=15119 dtheta=39 dpsi=3 dbeta=-37 min_beta=11106 s1_abs=1610 s1=16 d1=0 f1=200 s2_log_abs=6066 s2_motor_target=6066 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [16791] stepper stop inst=40862000 step=15 target=15
+I/BSP             [16791] stepper stop inst=40860000 step=1 target=1
+I/PWM             [16791] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16791] dual start s1=16 d1=0 s2=1 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16871] [MOTION] segment done user_x=15025 user_y=10194 machine_x=2125 machine_y=22994 theta=4016 psi=15122 beta=11106 s1_abs=1610 s2_log_abs=6066 s2_motor_abs=6066 s2_bias=0 ld1=1 md2=1 plan=86/156
+I/MOTION          [16873] [MOTION] ik user_x=15120 user_y=10294 machine_x=2220 machine_y=23094 std_x=-2220 std_y=23094 r=23200 c2=-35 s2=94 q2=11069 branch=1
+I/MOTION          [16873] [MOTION] fk check machine_x=2220 machine_y=23094 err_x=0 err_y=0
+I/MOTION          [16873] [MOTION] plan feed=0 master_f=200 theta=4055 psi=15124 beta=11069 cur_theta=4016 cur_psi=15122 dtheta=39 dpsi=2 dbeta=-37 min_beta=11069 s1_abs=1626 s1=16 d1=0 f1=200 s2_log_abs=6067 s2_motor_target=6067 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [16874] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16875] stepper stop inst=40860000 step=1 target=1
+I/PWM             [16875] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16875] dual start s1=16 d1=0 s2=1 d2=0 master=16 freq=200 irq=400
+I/MOTION          [16955] [MOTION] segment done user_x=15120 user_y=10294 machine_x=2220 machine_y=23094 theta=4055 psi=15124 beta=11069 s1_abs=1626 s2_log_abs=6067 s2_motor_abs=6067 s2_bias=0 ld1=1 md2=1 plan=87/156
+I/MOTION          [16956] [MOTION] ik user_x=15215 user_y=10394 machine_x=2315 machine_y=23194 std_x=-2315 std_y=23194 r=23309 c2=-35 s2=94 q2=11032 branch=1
+I/MOTION          [16957] [MOTION] fk check machine_x=2315 machine_y=23194 err_x=0 err_y=0
+I/MOTION          [16957] [MOTION] plan feed=0 master_f=200 theta=4094 psi=15126 beta=11032 cur_theta=4055 cur_psi=15124 dtheta=39 dpsi=2 dbeta=-37 min_beta=11032 s1_abs=1642 s1=16 d1=0 f1=200 s2_log_abs=6068 s2_motor_target=6068 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [16958] stepper stop inst=40862000 step=16 target=16
+I/BSP             [16958] stepper stop inst=40860000 step=1 target=1
+I/PWM             [16958] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [16959] dual start s1=16 d1=0 s2=1 d2=0 master=16 freq=200 irq=400
+I/MOTION          [17039] [MOTION] segment done user_x=15215 user_y=10394 machine_x=2315 machine_y=23194 theta=4094 psi=15126 beta=11032 s1_abs=1642 s2_log_abs=6068 s2_motor_abs=6068 s2_bias=0 ld1=1 md2=1 plan=88/156
+I/MOTION          [17040] [MOTION] ik user_x=15310 user_y=10494 machine_x=2410 machine_y=23294 std_x=-2410 std_y=23294 r=23418 c2=-34 s2=94 q2=10995 branch=1
+I/MOTION          [17040] [MOTION] fk check machine_x=2410 machine_y=23294 err_x=0 err_y=0
+I/MOTION          [17041] [MOTION] plan feed=0 master_f=200 theta=4133 psi=15128 beta=10995 cur_theta=4094 cur_psi=15126 dtheta=39 dpsi=2 dbeta=-37 min_beta=10995 s1_abs=1657 s1=15 d1=0 f1=200 s2_log_abs=6069 s2_motor_target=6069 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [17042] stepper stop inst=40862000 step=16 target=16
+I/BSP             [17042] stepper stop inst=40860000 step=1 target=1
+I/PWM             [17042] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17042] dual start s1=15 d1=0 s2=1 d2=0 master=15 freq=200 irq=400
+I/MOTION          [17117] [MOTION] segment done user_x=15310 user_y=10494 machine_x=2410 machine_y=23294 theta=4133 psi=15128 beta=10995 s1_abs=1657 s2_log_abs=6069 s2_motor_abs=6069 s2_bias=0 ld1=1 md2=1 plan=89/156
+I/MOTION          [17118] [MOTION] ik user_x=15405 user_y=10594 machine_x=2505 machine_y=23394 std_x=-2505 std_y=23394 r=23527 c2=-33 s2=94 q2=10957 branch=1
+I/MOTION          [17119] [MOTION] fk check machine_x=2505 machine_y=23394 err_x=0 err_y=0
+I/MOTION          [17119] [MOTION] plan feed=0 master_f=200 theta=4172 psi=15130 beta=10957 cur_theta=4133 cur_psi=15128 dtheta=39 dpsi=1 dbeta=-38 min_beta=10957 s1_abs=1673 s1=16 d1=0 f1=200 s2_log_abs=6069 s2_motor_target=6069 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=0 d2=0 f2=0
+I/BSP             [17120] stepper stop inst=40862000 step=15 target=15
+I/BSP             [17121] stepper stop inst=40860000 step=1 target=1
+I/PWM             [17121] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17121] dual start s1=16 d1=0 s2=0 d2=0 master=16 freq=200 irq=400
+I/MOTION          [17201] [MOTION] segment done user_x=15405 user_y=10594 machine_x=2505 machine_y=23394 theta=4172 psi=15130 beta=10957 s1_abs=1673 s2_log_abs=6069 s2_motor_abs=6069 s2_bias=0 ld1=1 md2=1 plan=90/156
+I/MOTION          [17202] [MOTION] ik user_x=15500 user_y=10694 machine_x=2600 machine_y=23494 std_x=-2600 std_y=23494 r=23637 c2=-33 s2=94 q2=10919 branch=1
+I/MOTION          [17203] [MOTION] fk check machine_x=2600 machine_y=23494 err_x=0 err_y=0
+I/MOTION          [17203] [MOTION] plan feed=0 master_f=200 theta=4211 psi=15131 beta=10919 cur_theta=4172 cur_psi=15130 dtheta=39 dpsi=1 dbeta=-38 min_beta=10919 s1_abs=1689 s1=16 d1=0 f1=200 s2_log_abs=6070 s2_motor_target=6070 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [17204] stepper stop inst=40862000 step=16 target=16
+I/BSP             [17204] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17204] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17205] dual start s1=16 d1=0 s2=1 d2=0 master=16 freq=200 irq=400
+I/MOTION          [17285] [MOTION] segment done user_x=15500 user_y=10694 machine_x=2600 machine_y=23494 theta=4211 psi=15131 beta=10919 s1_abs=1689 s2_log_abs=6070 s2_motor_abs=6070 s2_bias=0 ld1=1 md2=1 plan=91/156
+I/MOTION          [17286] [MOTION] ik user_x=15595 user_y=10793 machine_x=2695 machine_y=23593 std_x=-2695 std_y=23593 r=23747 c2=-32 s2=95 q2=10881 branch=1
+I/MOTION          [17286] [MOTION] fk check machine_x=2695 machine_y=23593 err_x=0 err_y=0
+I/MOTION          [17287] [MOTION] plan feed=0 master_f=200 theta=4250 psi=15132 beta=10882 cur_theta=4211 cur_psi=15131 dtheta=39 dpsi=1 dbeta=-38 min_beta=10882 s1_abs=1704 s1=15 d1=0 f1=200 s2_log_abs=6070 s2_motor_target=6070 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=0 d2=0 f2=0
+I/BSP             [17288] stepper stop inst=40862000 step=16 target=16
+I/BSP             [17288] stepper stop inst=40860000 step=1 target=1
+I/PWM             [17288] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17288] dual start s1=15 d1=0 s2=0 d2=0 master=15 freq=200 irq=400
+I/MOTION          [17363] [MOTION] segment done user_x=15595 user_y=10793 machine_x=2695 machine_y=23593 theta=4250 psi=15132 beta=10882 s1_abs=1704 s2_log_abs=6070 s2_motor_abs=6070 s2_bias=0 ld1=1 md2=1 plan=92/156
+I/MOTION          [17364] [MOTION] ik user_x=15690 user_y=10893 machine_x=2790 machine_y=23693 std_x=-2790 std_y=23693 r=23857 c2=-32 s2=95 q2=10843 branch=1
+I/MOTION          [17365] [MOTION] fk check machine_x=2790 machine_y=23693 err_x=0 err_y=0
+I/MOTION          [17365] [MOTION] plan feed=0 master_f=200 theta=4289 psi=15132 beta=10843 cur_theta=4250 cur_psi=15132 dtheta=39 dpsi=1 dbeta=-38 min_beta=10843 s1_abs=1720 s1=16 d1=0 f1=200 s2_log_abs=6070 s2_motor_target=6070 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=0 d2=0 f2=0
+I/BSP             [17366] stepper stop inst=40862000 step=15 target=15
+I/BSP             [17366] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17367] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17367] dual start s1=16 d1=0 s2=0 d2=0 master=16 freq=200 irq=400
+I/MOTION          [17447] [MOTION] segment done user_x=15690 user_y=10893 machine_x=2790 machine_y=23693 theta=4289 psi=15132 beta=10843 s1_abs=1720 s2_log_abs=6070 s2_motor_abs=6070 s2_bias=0 ld1=1 md2=1 plan=93/156
+I/MOTION          [17448] [MOTION] ik user_x=15785 user_y=10993 machine_x=2885 machine_y=23793 std_x=-2885 std_y=23793 r=23967 c2=-31 s2=95 q2=10805 branch=1
+I/MOTION          [17449] [MOTION] fk check machine_x=2885 machine_y=23793 err_x=0 err_y=0
+I/MOTION          [17449] [MOTION] plan feed=0 master_f=200 theta=4328 psi=15133 beta=10805 cur_theta=4289 cur_psi=15132 dtheta=39 dpsi=0 dbeta=-38 min_beta=10805 s1_abs=1735 s1=15 d1=0 f1=200 s2_log_abs=6071 s2_motor_target=6071 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=1 d2=0 f2=13
+I/BSP             [17450] stepper stop inst=40862000 step=16 target=16
+I/BSP             [17450] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17450] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17451] dual start s1=15 d1=0 s2=1 d2=0 master=15 freq=200 irq=400
+I/MOTION          [17526] [MOTION] segment done user_x=15785 user_y=10993 machine_x=2885 machine_y=23793 theta=4328 psi=15133 beta=10805 s1_abs=1735 s2_log_abs=6071 s2_motor_abs=6071 s2_bias=0 ld1=1 md2=1 plan=94/156
+I/MOTION          [17527] [MOTION] ik user_x=15880 user_y=11093 machine_x=2980 machine_y=23893 std_x=-2980 std_y=23893 r=24078 c2=-30 s2=95 q2=10767 branch=1
+I/MOTION          [17527] [MOTION] fk check machine_x=2980 machine_y=23893 err_x=0 err_y=0
+I/MOTION          [17528] [MOTION] plan feed=0 master_f=200 theta=4366 psi=15133 beta=10767 cur_theta=4328 cur_psi=15133 dtheta=39 dpsi=0 dbeta=-38 min_beta=10767 s1_abs=1751 s1=16 d1=0 f1=200 s2_log_abs=6071 s2_motor_target=6071 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=0 d2=0 f2=0
+I/BSP             [17529] stepper stop inst=40862000 step=15 target=15
+I/BSP             [17529] stepper stop inst=40860000 step=1 target=1
+I/PWM             [17529] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17529] dual start s1=16 d1=0 s2=0 d2=0 master=16 freq=200 irq=400
+I/MOTION          [17609] [MOTION] segment done user_x=15880 user_y=11093 machine_x=2980 machine_y=23893 theta=4366 psi=15133 beta=10767 s1_abs=1751 s2_log_abs=6071 s2_motor_abs=6071 s2_bias=0 ld1=1 md2=1 plan=95/156
+I/MOTION          [17610] [MOTION] ik user_x=15975 user_y=11193 machine_x=3075 machine_y=23993 std_x=-3075 std_y=23993 r=24189 c2=-30 s2=95 q2=10728 branch=1
+I/MOTION          [17611] [MOTION] fk check machine_x=3075 machine_y=23993 err_x=0 err_y=0
+I/MOTION          [17611] [MOTION] plan feed=0 master_f=200 theta=4405 psi=15133 beta=10728 cur_theta=4366 cur_psi=15133 dtheta=38 dpsi=0 dbeta=-39 min_beta=10728 s1_abs=1766 s1=15 d1=0 f1=200 s2_log_abs=6071 s2_motor_target=6071 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=1 s2=0 d2=0 f2=0
+I/BSP             [17612] stepper stop inst=40862000 step=16 target=16
+I/BSP             [17612] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17613] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17613] dual start s1=15 d1=0 s2=0 d2=0 master=15 freq=200 irq=400
+I/MOTION          [17688] [MOTION] segment done user_x=15975 user_y=11193 machine_x=3075 machine_y=23993 theta=4405 psi=15133 beta=10728 s1_abs=1766 s2_log_abs=6071 s2_motor_abs=6071 s2_bias=0 ld1=1 md2=1 plan=96/156
+I/MOTION          [17689] [MOTION] ik user_x=16070 user_y=11293 machine_x=3170 machine_y=24093 std_x=-3170 std_y=24093 r=24301 c2=-29 s2=96 q2=10689 branch=1
+I/MOTION          [17690] [MOTION] fk check machine_x=3170 machine_y=24093 err_x=0 err_y=0
+I/MOTION          [17690] [MOTION] plan feed=0 master_f=200 theta=4443 psi=15132 beta=10689 cur_theta=4405 cur_psi=15133 dtheta=38 dpsi=0 dbeta=-39 min_beta=10689 s1_abs=1782 s1=16 d1=0 f1=200 s2_log_abs=6070 s2_motor_target=6070 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [17691] stepper stop inst=40862000 step=15 target=15
+I/BSP             [17691] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17691] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17692] dual start s1=16 d1=0 s2=1 d2=1 master=16 freq=200 irq=400
+I/MOTION          [17772] [MOTION] segment done user_x=16070 user_y=11293 machine_x=3170 machine_y=24093 theta=4443 psi=15132 beta=10689 s1_abs=1782 s2_log_abs=6070 s2_motor_abs=6070 s2_bias=0 ld1=1 md2=-1 plan=97/156
+I/MOTION          [17773] [MOTION] ik user_x=16165 user_y=11393 machine_x=3265 machine_y=24193 std_x=-3265 std_y=24193 r=24412 c2=-28 s2=96 q2=10650 branch=1
+I/MOTION          [17773] [MOTION] fk check machine_x=3265 machine_y=24193 err_x=0 err_y=0
+I/MOTION          [17774] [MOTION] plan feed=0 master_f=200 theta=4481 psi=15131 beta=10650 cur_theta=4443 cur_psi=15132 dtheta=38 dpsi=-1 dbeta=-39 min_beta=10650 s1_abs=1797 s1=15 d1=0 f1=200 s2_log_abs=6070 s2_motor_target=6070 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=0 d2=0 f2=0
+I/BSP             [17775] stepper stop inst=40862000 step=16 target=16
+I/BSP             [17775] stepper stop inst=40860000 step=1 target=1
+I/PWM             [17775] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17775] dual start s1=15 d1=0 s2=0 d2=0 master=15 freq=200 irq=400
+I/MOTION          [17850] [MOTION] segment done user_x=16165 user_y=11393 machine_x=3265 machine_y=24193 theta=4481 psi=15131 beta=10650 s1_abs=1797 s2_log_abs=6070 s2_motor_abs=6070 s2_bias=0 ld1=1 md2=-1 plan=98/156
+I/MOTION          [17851] [MOTION] ik user_x=16261 user_y=11493 machine_x=3361 machine_y=24293 std_x=-3361 std_y=24293 r=24524 c2=-28 s2=96 q2=10611 branch=1
+I/MOTION          [17852] [MOTION] fk check machine_x=3361 machine_y=24293 err_x=0 err_y=0
+I/MOTION          [17852] [MOTION] plan feed=0 master_f=200 theta=4520 psi=15130 beta=10611 cur_theta=4481 cur_psi=15131 dtheta=38 dpsi=-1 dbeta=-39 min_beta=10611 s1_abs=1812 s1=15 d1=0 f1=200 s2_log_abs=6070 s2_motor_target=6070 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=0 d2=0 f2=0
+I/BSP             [17853] stepper stop inst=40862000 step=15 target=15
+I/BSP             [17853] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17854] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17854] dual start s1=15 d1=0 s2=0 d2=0 master=15 freq=200 irq=400
+I/MOTION          [17929] [MOTION] segment done user_x=16261 user_y=11493 machine_x=3361 machine_y=24293 theta=4520 psi=15130 beta=10611 s1_abs=1812 s2_log_abs=6070 s2_motor_abs=6070 s2_bias=0 ld1=1 md2=-1 plan=99/156
+I/MOTION          [17930] [MOTION] ik user_x=16356 user_y=11593 machine_x=3456 machine_y=24393 std_x=-3456 std_y=24393 r=24636 c2=-27 s2=96 q2=10571 branch=1
+I/MOTION          [17931] [MOTION] fk check machine_x=3456 machine_y=24393 err_x=0 err_y=0
+I/MOTION          [17931] [MOTION] plan feed=0 master_f=200 theta=4558 psi=15129 beta=10571 cur_theta=4520 cur_psi=15130 dtheta=38 dpsi=-1 dbeta=-39 min_beta=10571 s1_abs=1828 s1=16 d1=0 f1=200 s2_log_abs=6069 s2_motor_target=6069 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [17932] stepper stop inst=40862000 step=15 target=15
+I/BSP             [17932] stepper stop inst=40860000 step=0 target=0
+I/PWM             [17932] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [17933] dual start s1=16 d1=0 s2=1 d2=1 master=16 freq=200 irq=400
+I/MOTION          [18013] [MOTION] segment done user_x=16356 user_y=11593 machine_x=3456 machine_y=24393 theta=4558 psi=15129 beta=10571 s1_abs=1828 s2_log_abs=6069 s2_motor_abs=6069 s2_bias=0 ld1=1 md2=-1 plan=100/156
+I/MOTION          [18014] [MOTION] ik user_x=16451 user_y=11692 machine_x=3551 machine_y=24492 std_x=-3551 std_y=24492 r=24749 c2=-26 s2=96 q2=10532 branch=1
+I/MOTION          [18014] [MOTION] fk check machine_x=3551 machine_y=24492 err_x=0 err_y=0
+I/MOTION          [18015] [MOTION] plan feed=0 master_f=200 theta=4596 psi=15128 beta=10532 cur_theta=4558 cur_psi=15129 dtheta=38 dpsi=-2 dbeta=-40 min_beta=10532 s1_abs=1843 s1=15 d1=0 f1=200 s2_log_abs=6069 s2_motor_target=6069 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=0 d2=0 f2=0
+I/BSP             [18016] stepper stop inst=40862000 step=16 target=16
+I/BSP             [18016] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18016] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18016] dual start s1=15 d1=0 s2=0 d2=0 master=15 freq=200 irq=400
+I/MOTION          [18091] [MOTION] segment done user_x=16451 user_y=11692 machine_x=3551 machine_y=24492 theta=4596 psi=15128 beta=10532 s1_abs=1843 s2_log_abs=6069 s2_motor_abs=6069 s2_bias=0 ld1=1 md2=-1 plan=101/156
+I/MOTION          [18092] [MOTION] ik user_x=16546 user_y=11792 machine_x=3646 machine_y=24592 std_x=-3646 std_y=24592 r=24861 c2=-26 s2=97 q2=10492 branch=1
+I/MOTION          [18093] [MOTION] fk check machine_x=3646 machine_y=24592 err_x=0 err_y=0
+I/MOTION          [18093] [MOTION] plan feed=0 master_f=200 theta=4634 psi=15126 beta=10492 cur_theta=4596 cur_psi=15128 dtheta=38 dpsi=-2 dbeta=-40 min_beta=10492 s1_abs=1858 s1=15 d1=0 f1=200 s2_log_abs=6068 s2_motor_target=6068 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18094] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18094] stepper stop inst=40860000 step=0 target=0
+I/PWM             [18095] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18095] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18170] [MOTION] segment done user_x=16546 user_y=11792 machine_x=3646 machine_y=24592 theta=4634 psi=15126 beta=10492 s1_abs=1858 s2_log_abs=6068 s2_motor_abs=6068 s2_bias=0 ld1=1 md2=-1 plan=102/156
+I/MOTION          [18171] [MOTION] ik user_x=16641 user_y=11892 machine_x=3741 machine_y=24692 std_x=-3741 std_y=24692 r=24974 c2=-25 s2=97 q2=10452 branch=1
+I/MOTION          [18172] [MOTION] fk check machine_x=3741 machine_y=24692 err_x=0 err_y=0
+I/MOTION          [18172] [MOTION] plan feed=0 master_f=200 theta=4672 psi=15124 beta=10452 cur_theta=4634 cur_psi=15126 dtheta=38 dpsi=-2 dbeta=-40 min_beta=10452 s1_abs=1873 s1=15 d1=0 f1=200 s2_log_abs=6067 s2_motor_target=6067 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18173] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18173] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18173] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18174] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18249] [MOTION] segment done user_x=16641 user_y=11892 machine_x=3741 machine_y=24692 theta=4672 psi=15124 beta=10452 s1_abs=1873 s2_log_abs=6067 s2_motor_abs=6067 s2_bias=0 ld1=1 md2=-1 plan=103/156
+I/MOTION          [18250] [MOTION] ik user_x=16736 user_y=11992 machine_x=3836 machine_y=24792 std_x=-3836 std_y=24792 r=25087 c2=-24 s2=97 q2=10412 branch=1
+I/MOTION          [18250] [MOTION] fk check machine_x=3836 machine_y=24792 err_x=0 err_y=0
+I/MOTION          [18251] [MOTION] plan feed=0 master_f=200 theta=4710 psi=15121 beta=10412 cur_theta=4672 cur_psi=15124 dtheta=38 dpsi=-2 dbeta=-40 min_beta=10412 s1_abs=1889 s1=16 d1=0 f1=200 s2_log_abs=6066 s2_motor_target=6066 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18252] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18252] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18252] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18252] dual start s1=16 d1=0 s2=1 d2=1 master=16 freq=200 irq=400
+I/MOTION          [18332] [MOTION] segment done user_x=16736 user_y=11992 machine_x=3836 machine_y=24792 theta=4710 psi=15121 beta=10412 s1_abs=1889 s2_log_abs=6066 s2_motor_abs=6066 s2_bias=0 ld1=1 md2=-1 plan=104/156
+I/MOTION          [18333] [MOTION] ik user_x=16831 user_y=12092 machine_x=3931 machine_y=24892 std_x=-3931 std_y=24892 r=25201 c2=-24 s2=97 q2=10371 branch=1
+I/MOTION          [18334] [MOTION] fk check machine_x=3931 machine_y=24892 err_x=0 err_y=0
+I/MOTION          [18334] [MOTION] plan feed=0 master_f=200 theta=4748 psi=15119 beta=10371 cur_theta=4710 cur_psi=15121 dtheta=38 dpsi=-3 dbeta=-40 min_beta=10371 s1_abs=1904 s1=15 d1=0 f1=200 s2_log_abs=6065 s2_motor_target=6065 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18335] stepper stop inst=40862000 step=16 target=16
+I/BSP             [18335] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18336] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18336] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18411] [MOTION] segment done user_x=16831 user_y=12092 machine_x=3931 machine_y=24892 theta=4748 psi=15119 beta=10371 s1_abs=1904 s2_log_abs=6065 s2_motor_abs=6065 s2_bias=0 ld1=1 md2=-1 plan=105/156
+I/MOTION          [18412] [MOTION] ik user_x=16926 user_y=12192 machine_x=4026 machine_y=24992 std_x=-4026 std_y=24992 r=25314 c2=-23 s2=97 q2=10330 branch=1
+I/MOTION          [18413] [MOTION] fk check machine_x=4026 machine_y=24992 err_x=0 err_y=0
+I/MOTION          [18413] [MOTION] plan feed=0 master_f=200 theta=4785 psi=15116 beta=10330 cur_theta=4748 cur_psi=15119 dtheta=38 dpsi=-3 dbeta=-41 min_beta=10330 s1_abs=1919 s1=15 d1=0 f1=200 s2_log_abs=6064 s2_motor_target=6064 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18414] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18414] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18414] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18415] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18490] [MOTION] segment done user_x=16926 user_y=12192 machine_x=4026 machine_y=24992 theta=4785 psi=15116 beta=10330 s1_abs=1919 s2_log_abs=6064 s2_motor_abs=6064 s2_bias=0 ld1=1 md2=-1 plan=106/156
+I/MOTION          [18491] [MOTION] ik user_x=17021 user_y=12292 machine_x=4121 machine_y=25092 std_x=-4121 std_y=25092 r=25428 c2=-22 s2=97 q2=10290 branch=1
+I/MOTION          [18491] [MOTION] fk check machine_x=4121 machine_y=25092 err_x=0 err_y=0
+I/MOTION          [18492] [MOTION] plan feed=0 master_f=200 theta=4823 psi=15113 beta=10290 cur_theta=4785 cur_psi=15116 dtheta=38 dpsi=-3 dbeta=-41 min_beta=10290 s1_abs=1934 s1=15 d1=0 f1=200 s2_log_abs=6063 s2_motor_target=6063 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18493] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18493] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18493] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18493] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18568] [MOTION] segment done user_x=17021 user_y=12292 machine_x=4121 machine_y=25092 theta=4823 psi=15113 beta=10290 s1_abs=1934 s2_log_abs=6063 s2_motor_abs=6063 s2_bias=0 ld1=1 md2=-1 plan=107/156
+I/MOTION          [18569] [MOTION] ik user_x=17116 user_y=12392 machine_x=4216 machine_y=25192 std_x=-4216 std_y=25192 r=25542 c2=-22 s2=98 q2=10249 branch=1
+I/MOTION          [18570] [MOTION] fk check machine_x=4216 machine_y=25192 err_x=0 err_y=0
+I/MOTION          [18570] [MOTION] plan feed=0 master_f=200 theta=4861 psi=15109 beta=10249 cur_theta=4823 cur_psi=15113 dtheta=38 dpsi=-3 dbeta=-41 min_beta=10249 s1_abs=1949 s1=15 d1=0 f1=200 s2_log_abs=6061 s2_motor_target=6061 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [18571] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18571] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18572] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18572] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18647] [MOTION] segment done user_x=17116 user_y=12392 machine_x=4216 machine_y=25192 theta=4861 psi=15109 beta=10249 s1_abs=1949 s2_log_abs=6061 s2_motor_abs=6061 s2_bias=0 ld1=1 md2=-1 plan=108/156
+I/MOTION          [18648] [MOTION] ik user_x=17211 user_y=12492 machine_x=4311 machine_y=25292 std_x=-4311 std_y=25292 r=25656 c2=-21 s2=98 q2=10207 branch=1
+I/MOTION          [18649] [MOTION] fk check machine_x=4311 machine_y=25292 err_x=0 err_y=0
+I/MOTION          [18649] [MOTION] plan feed=0 master_f=200 theta=4898 psi=15106 beta=10207 cur_theta=4861 cur_psi=15109 dtheta=38 dpsi=-4 dbeta=-41 min_beta=10207 s1_abs=1964 s1=15 d1=0 f1=200 s2_log_abs=6060 s2_motor_target=6060 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18650] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18650] stepper stop inst=40860000 step=2 target=2
+I/PWM             [18650] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18651] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18726] [MOTION] segment done user_x=17211 user_y=12492 machine_x=4311 machine_y=25292 theta=4898 psi=15106 beta=10207 s1_abs=1964 s2_log_abs=6060 s2_motor_abs=6060 s2_bias=0 ld1=1 md2=-1 plan=109/156
+I/MOTION          [18727] [MOTION] ik user_x=17306 user_y=12592 machine_x=4406 machine_y=25392 std_x=-4406 std_y=25392 r=25771 c2=-20 s2=98 q2=10166 branch=1
+I/MOTION          [18727] [MOTION] fk check machine_x=4406 machine_y=25392 err_x=0 err_y=0
+I/MOTION          [18728] [MOTION] plan feed=0 master_f=200 theta=4936 psi=15102 beta=10166 cur_theta=4898 cur_psi=15106 dtheta=38 dpsi=-4 dbeta=-41 min_beta=10166 s1_abs=1979 s1=15 d1=0 f1=200 s2_log_abs=6058 s2_motor_target=6058 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [18729] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18729] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18729] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18729] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18804] [MOTION] segment done user_x=17306 user_y=12592 machine_x=4406 machine_y=25392 theta=4936 psi=15102 beta=10166 s1_abs=1979 s2_log_abs=6058 s2_motor_abs=6058 s2_bias=0 ld1=1 md2=-1 plan=110/156
+I/MOTION          [18805] [MOTION] ik user_x=17401 user_y=12691 machine_x=4501 machine_y=25491 std_x=-4501 std_y=25491 r=25886 c2=-19 s2=98 q2=10124 branch=1
+I/MOTION          [18806] [MOTION] fk check machine_x=4501 machine_y=25491 err_x=0 err_y=0
+I/MOTION          [18806] [MOTION] plan feed=0 master_f=200 theta=4974 psi=15098 beta=10124 cur_theta=4936 cur_psi=15102 dtheta=38 dpsi=-4 dbeta=-42 min_beta=10124 s1_abs=1994 s1=15 d1=0 f1=200 s2_log_abs=6057 s2_motor_target=6057 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=1 d2=1 f2=13
+I/BSP             [18807] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18807] stepper stop inst=40860000 step=2 target=2
+I/PWM             [18808] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18808] dual start s1=15 d1=0 s2=1 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18883] [MOTION] segment done user_x=17401 user_y=12691 machine_x=4501 machine_y=25491 theta=4974 psi=15098 beta=10124 s1_abs=1994 s2_log_abs=6057 s2_motor_abs=6057 s2_bias=0 ld1=1 md2=-1 plan=111/156
+I/MOTION          [18884] [MOTION] ik user_x=17497 user_y=12791 machine_x=4597 machine_y=25591 std_x=-4597 std_y=25591 r=26001 c2=-19 s2=98 q2=10082 branch=1
+I/MOTION          [18885] [MOTION] fk check machine_x=4597 machine_y=25591 err_x=0 err_y=0
+I/MOTION          [18885] [MOTION] plan feed=0 master_f=200 theta=5011 psi=15093 beta=10082 cur_theta=4974 cur_psi=15098 dtheta=37 dpsi=-4 dbeta=-42 min_beta=10082 s1_abs=2009 s1=15 d1=0 f1=200 s2_log_abs=6055 s2_motor_target=6055 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [18886] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18886] stepper stop inst=40860000 step=1 target=1
+I/PWM             [18886] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18887] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [18962] [MOTION] segment done user_x=17497 user_y=12791 machine_x=4597 machine_y=25591 theta=5011 psi=15093 beta=10082 s1_abs=2009 s2_log_abs=6055 s2_motor_abs=6055 s2_bias=0 ld1=1 md2=-1 plan=112/156
+I/MOTION          [18963] [MOTION] ik user_x=17592 user_y=12891 machine_x=4692 machine_y=25691 std_x=-4692 std_y=25691 r=26116 c2=-18 s2=98 q2=10040 branch=1
+I/MOTION          [18963] [MOTION] fk check machine_x=4692 machine_y=25691 err_x=0 err_y=0
+I/MOTION          [18964] [MOTION] plan feed=0 master_f=200 theta=5048 psi=15089 beta=10040 cur_theta=5011 cur_psi=15093 dtheta=37 dpsi=-5 dbeta=-42 min_beta=10040 s1_abs=2024 s1=15 d1=0 f1=200 s2_log_abs=6053 s2_motor_target=6053 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [18965] stepper stop inst=40862000 step=15 target=15
+I/BSP             [18965] stepper stop inst=40860000 step=2 target=2
+I/PWM             [18965] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [18965] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19040] [MOTION] segment done user_x=17592 user_y=12891 machine_x=4692 machine_y=25691 theta=5048 psi=15089 beta=10040 s1_abs=2024 s2_log_abs=6053 s2_motor_abs=6053 s2_bias=0 ld1=1 md2=-1 plan=113/156
+I/MOTION          [19041] [MOTION] ik user_x=17687 user_y=12991 machine_x=4787 machine_y=25791 std_x=-4787 std_y=25791 r=26232 c2=-17 s2=98 q2=9998 branch=1
+I/MOTION          [19042] [MOTION] fk check machine_x=4787 machine_y=25791 err_x=0 err_y=0
+I/MOTION          [19042] [MOTION] plan feed=0 master_f=200 theta=5086 psi=15084 beta=9998 cur_theta=5048 cur_psi=15089 dtheta=37 dpsi=-5 dbeta=-42 min_beta=9998 s1_abs=2039 s1=15 d1=0 f1=200 s2_log_abs=6051 s2_motor_target=6051 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [19043] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19043] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19044] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19044] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19119] [MOTION] segment done user_x=17687 user_y=12991 machine_x=4787 machine_y=25791 theta=5086 psi=15084 beta=9998 s1_abs=2039 s2_log_abs=6051 s2_motor_abs=6051 s2_bias=0 ld1=1 md2=-1 plan=114/156
+I/MOTION          [19120] [MOTION] ik user_x=17782 user_y=13091 machine_x=4882 machine_y=25891 std_x=-4882 std_y=25891 r=26347 c2=-17 s2=99 q2=9956 branch=1
+I/MOTION          [19121] [MOTION] fk check machine_x=4882 machine_y=25891 err_x=0 err_y=0
+I/MOTION          [19121] [MOTION] plan feed=0 master_f=200 theta=5123 psi=15079 beta=9956 cur_theta=5086 cur_psi=15084 dtheta=37 dpsi=-5 dbeta=-42 min_beta=9956 s1_abs=2054 s1=15 d1=0 f1=200 s2_log_abs=6049 s2_motor_target=6049 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [19122] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19122] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19122] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19123] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19198] [MOTION] segment done user_x=17782 user_y=13091 machine_x=4882 machine_y=25891 theta=5123 psi=15079 beta=9956 s1_abs=2054 s2_log_abs=6049 s2_motor_abs=6049 s2_bias=0 ld1=1 md2=-1 plan=115/156
+I/MOTION          [19199] [MOTION] ik user_x=17877 user_y=13191 machine_x=4977 machine_y=25991 std_x=-4977 std_y=25991 r=26463 c2=-16 s2=99 q2=9913 branch=1
+I/MOTION          [19199] [MOTION] fk check machine_x=4977 machine_y=25991 err_x=0 err_y=0
+I/MOTION          [19200] [MOTION] plan feed=0 master_f=200 theta=5161 psi=15073 beta=9913 cur_theta=5123 cur_psi=15079 dtheta=37 dpsi=-5 dbeta=-43 min_beta=9913 s1_abs=2069 s1=15 d1=0 f1=200 s2_log_abs=6047 s2_motor_target=6047 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [19200] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19201] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19201] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19201] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19276] [MOTION] segment done user_x=17877 user_y=13191 machine_x=4977 machine_y=25991 theta=5161 psi=15073 beta=9913 s1_abs=2069 s2_log_abs=6047 s2_motor_abs=6047 s2_bias=0 ld1=1 md2=-1 plan=116/156
+I/MOTION          [19277] [MOTION] ik user_x=17972 user_y=13291 machine_x=5072 machine_y=26091 std_x=-5072 std_y=26091 r=26579 c2=-15 s2=99 q2=9870 branch=1
+I/MOTION          [19278] [MOTION] fk check machine_x=5072 machine_y=26091 err_x=0 err_y=0
+I/MOTION          [19278] [MOTION] plan feed=0 master_f=200 theta=5198 psi=15068 beta=9870 cur_theta=5161 cur_psi=15073 dtheta=37 dpsi=-6 dbeta=-43 min_beta=9870 s1_abs=2084 s1=15 d1=0 f1=200 s2_log_abs=6045 s2_motor_target=6045 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [19279] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19279] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19280] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19280] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19355] [MOTION] segment done user_x=17972 user_y=13291 machine_x=5072 machine_y=26091 theta=5198 psi=15068 beta=9870 s1_abs=2084 s2_log_abs=6045 s2_motor_abs=6045 s2_bias=0 ld1=1 md2=-1 plan=117/156
+I/MOTION          [19356] [MOTION] ik user_x=18067 user_y=13391 machine_x=5167 machine_y=26191 std_x=-5167 std_y=26191 r=26695 c2=-14 s2=99 q2=9827 branch=1
+I/MOTION          [19357] [MOTION] fk check machine_x=5167 machine_y=26191 err_x=0 err_y=0
+I/MOTION          [19357] [MOTION] plan feed=0 master_f=200 theta=5235 psi=15062 beta=9827 cur_theta=5198 cur_psi=15068 dtheta=37 dpsi=-6 dbeta=-43 min_beta=9827 s1_abs=2099 s1=15 d1=0 f1=200 s2_log_abs=6042 s2_motor_target=6042 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [19358] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19358] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19358] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19359] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19434] [MOTION] segment done user_x=18067 user_y=13391 machine_x=5167 machine_y=26191 theta=5235 psi=15062 beta=9827 s1_abs=2099 s2_log_abs=6042 s2_motor_abs=6042 s2_bias=0 ld1=1 md2=-1 plan=118/156
+I/MOTION          [19435] [MOTION] ik user_x=18162 user_y=13491 machine_x=5262 machine_y=26291 std_x=-5262 std_y=26291 r=26812 c2=-14 s2=99 q2=9783 branch=1
+I/MOTION          [19435] [MOTION] fk check machine_x=5262 machine_y=26291 err_x=0 err_y=0
+I/MOTION          [19435] [MOTION] plan feed=0 master_f=200 theta=5272 psi=15056 beta=9783 cur_theta=5235 cur_psi=15062 dtheta=37 dpsi=-6 dbeta=-43 min_beta=9783 s1_abs=2114 s1=15 d1=0 f1=200 s2_log_abs=6040 s2_motor_target=6040 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [19436] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19437] stepper stop inst=40860000 step=3 target=3
+I/PWM             [19437] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19437] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19512] [MOTION] segment done user_x=18162 user_y=13491 machine_x=5262 machine_y=26291 theta=5272 psi=15056 beta=9783 s1_abs=2114 s2_log_abs=6040 s2_motor_abs=6040 s2_bias=0 ld1=1 md2=-1 plan=119/156
+I/MOTION          [19513] [MOTION] ik user_x=18257 user_y=13590 machine_x=5357 machine_y=26390 std_x=-5357 std_y=26390 r=26929 c2=-13 s2=99 q2=9740 branch=1
+I/MOTION          [19514] [MOTION] fk check machine_x=5357 machine_y=26390 err_x=0 err_y=0
+I/MOTION          [19514] [MOTION] plan feed=0 master_f=200 theta=5309 psi=15049 beta=9740 cur_theta=5272 cur_psi=15056 dtheta=37 dpsi=-6 dbeta=-44 min_beta=9740 s1_abs=2129 s1=15 d1=0 f1=200 s2_log_abs=6037 s2_motor_target=6037 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [19515] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19515] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19516] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19516] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19591] [MOTION] segment done user_x=18257 user_y=13590 machine_x=5357 machine_y=26390 theta=5309 psi=15049 beta=9740 s1_abs=2129 s2_log_abs=6037 s2_motor_abs=6037 s2_bias=0 ld1=1 md2=-1 plan=120/156
+I/MOTION          [19592] [MOTION] ik user_x=18352 user_y=13690 machine_x=5452 machine_y=26490 std_x=-5452 std_y=26490 r=27046 c2=-12 s2=99 q2=9696 branch=1
+I/MOTION          [19592] [MOTION] fk check machine_x=5452 machine_y=26490 err_x=0 err_y=0
+I/MOTION          [19593] [MOTION] plan feed=0 master_f=200 theta=5347 psi=15043 beta=9696 cur_theta=5309 cur_psi=15049 dtheta=37 dpsi=-7 dbeta=-44 min_beta=9696 s1_abs=2144 s1=15 d1=0 f1=200 s2_log_abs=6035 s2_motor_target=6035 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=2 d2=1 f2=27
+I/BSP             [19594] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19594] stepper stop inst=40860000 step=3 target=3
+I/PWM             [19594] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19594] dual start s1=15 d1=0 s2=2 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19669] [MOTION] segment done user_x=18352 user_y=13690 machine_x=5452 machine_y=26490 theta=5347 psi=15043 beta=9696 s1_abs=2144 s2_log_abs=6035 s2_motor_abs=6035 s2_bias=0 ld1=1 md2=-1 plan=121/156
+I/MOTION          [19671] [MOTION] ik user_x=18447 user_y=13790 machine_x=5547 machine_y=26590 std_x=-5547 std_y=26590 r=27163 c2=-11 s2=99 q2=9652 branch=1
+I/MOTION          [19671] [MOTION] fk check machine_x=5547 machine_y=26590 err_x=0 err_y=0
+I/MOTION          [19671] [MOTION] plan feed=0 master_f=200 theta=5384 psi=15036 beta=9652 cur_theta=5347 cur_psi=15043 dtheta=37 dpsi=-7 dbeta=-44 min_beta=9652 s1_abs=2159 s1=15 d1=0 f1=200 s2_log_abs=6032 s2_motor_target=6032 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [19672] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19673] stepper stop inst=40860000 step=2 target=2
+I/PWM             [19673] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19673] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19748] [MOTION] segment done user_x=18447 user_y=13790 machine_x=5547 machine_y=26590 theta=5384 psi=15036 beta=9652 s1_abs=2159 s2_log_abs=6032 s2_motor_abs=6032 s2_bias=0 ld1=1 md2=-1 plan=122/156
+I/MOTION          [19749] [MOTION] ik user_x=18542 user_y=13890 machine_x=5642 machine_y=26690 std_x=-5642 std_y=26690 r=27280 c2=-11 s2=99 q2=9608 branch=1
+I/MOTION          [19750] [MOTION] fk check machine_x=5642 machine_y=26690 err_x=0 err_y=0
+I/MOTION          [19750] [MOTION] plan feed=0 master_f=200 theta=5421 psi=15029 beta=9608 cur_theta=5384 cur_psi=15036 dtheta=37 dpsi=-7 dbeta=-44 min_beta=9608 s1_abs=2174 s1=15 d1=0 f1=200 s2_log_abs=6029 s2_motor_target=6029 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [19751] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19751] stepper stop inst=40860000 step=3 target=3
+I/PWM             [19751] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19752] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19827] [MOTION] segment done user_x=18542 user_y=13890 machine_x=5642 machine_y=26690 theta=5421 psi=15029 beta=9608 s1_abs=2174 s2_log_abs=6029 s2_motor_abs=6029 s2_bias=0 ld1=1 md2=-1 plan=123/156
+I/MOTION          [19828] [MOTION] ik user_x=18637 user_y=13990 machine_x=5737 machine_y=26790 std_x=-5737 std_y=26790 r=27398 c2=-10 s2=100 q2=9563 branch=1
+I/MOTION          [19828] [MOTION] fk check machine_x=5737 machine_y=26790 err_x=0 err_y=0
+I/MOTION          [19829] [MOTION] plan feed=0 master_f=200 theta=5458 psi=15022 beta=9563 cur_theta=5421 cur_psi=15029 dtheta=37 dpsi=-7 dbeta=-44 min_beta=9563 s1_abs=2189 s1=15 d1=0 f1=200 s2_log_abs=6026 s2_motor_target=6026 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [19830] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19830] stepper stop inst=40860000 step=3 target=3
+I/PWM             [19830] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19830] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19905] [MOTION] segment done user_x=18637 user_y=13990 machine_x=5737 machine_y=26790 theta=5458 psi=15022 beta=9563 s1_abs=2189 s2_log_abs=6026 s2_motor_abs=6026 s2_bias=0 ld1=1 md2=-1 plan=124/156
+I/MOTION          [19907] [MOTION] ik user_x=18732 user_y=14090 machine_x=5832 machine_y=26890 std_x=-5832 std_y=26890 r=27515 c2=-9 s2=100 q2=9519 branch=1
+I/MOTION          [19907] [MOTION] fk check machine_x=5832 machine_y=26890 err_x=0 err_y=0
+I/MOTION          [19907] [MOTION] plan feed=0 master_f=200 theta=5495 psi=15014 beta=9519 cur_theta=5458 cur_psi=15022 dtheta=37 dpsi=-8 dbeta=-45 min_beta=9519 s1_abs=2204 s1=15 d1=0 f1=200 s2_log_abs=6023 s2_motor_target=6023 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [19908] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19909] stepper stop inst=40860000 step=3 target=3
+I/PWM             [19909] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19909] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [19984] [MOTION] segment done user_x=18732 user_y=14090 machine_x=5832 machine_y=26890 theta=5495 psi=15014 beta=9519 s1_abs=2204 s2_log_abs=6023 s2_motor_abs=6023 s2_bias=0 ld1=1 md2=-1 plan=125/156
+I/MOTION          [19985] [MOTION] ik user_x=18828 user_y=14190 machine_x=5928 machine_y=26990 std_x=-5928 std_y=26990 r=27633 c2=-8 s2=100 q2=9474 branch=1
+I/MOTION          [19986] [MOTION] fk check machine_x=5928 machine_y=26990 err_x=0 err_y=0
+I/MOTION          [19986] [MOTION] plan feed=0 master_f=200 theta=5532 psi=15006 beta=9474 cur_theta=5495 cur_psi=15014 dtheta=37 dpsi=-8 dbeta=-45 min_beta=9474 s1_abs=2218 s1=14 d1=0 f1=200 s2_log_abs=6020 s2_motor_target=6020 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=43
+I/BSP             [19987] stepper stop inst=40862000 step=15 target=15
+I/BSP             [19987] stepper stop inst=40860000 step=3 target=3
+I/PWM             [19988] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [19988] dual start s1=14 d1=0 s2=3 d2=1 master=14 freq=200 irq=400
+I/MOTION          [20058] [MOTION] segment done user_x=18828 user_y=14190 machine_x=5928 machine_y=26990 theta=5532 psi=15006 beta=9474 s1_abs=2218 s2_log_abs=6020 s2_motor_abs=6020 s2_bias=0 ld1=1 md2=-1 plan=126/156
+I/MOTION          [20059] [MOTION] ik user_x=18923 user_y=14290 machine_x=6023 machine_y=27090 std_x=-6023 std_y=27090 r=27751 c2=-7 s2=100 q2=9429 branch=1
+I/MOTION          [20059] [MOTION] fk check machine_x=6023 machine_y=27090 err_x=0 err_y=0
+I/MOTION          [20060] [MOTION] plan feed=0 master_f=200 theta=5569 psi=14998 beta=9429 cur_theta=5532 cur_psi=15006 dtheta=37 dpsi=-8 dbeta=-45 min_beta=9429 s1_abs=2233 s1=15 d1=0 f1=200 s2_log_abs=6017 s2_motor_target=6017 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [20061] stepper stop inst=40862000 step=14 target=14
+I/BSP             [20061] stepper stop inst=40860000 step=3 target=3
+I/PWM             [20061] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20061] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20137] [MOTION] segment done user_x=18923 user_y=14290 machine_x=6023 machine_y=27090 theta=5569 psi=14998 beta=9429 s1_abs=2233 s2_log_abs=6017 s2_motor_abs=6017 s2_bias=0 ld1=1 md2=-1 plan=127/156
+I/MOTION          [20138] [MOTION] ik user_x=19018 user_y=14390 machine_x=6118 machine_y=27190 std_x=-6118 std_y=27190 r=27869 c2=-7 s2=100 q2=9383 branch=1
+I/MOTION          [20138] [MOTION] fk check machine_x=6118 machine_y=27190 err_x=0 err_y=0
+I/MOTION          [20138] [MOTION] plan feed=0 master_f=200 theta=5606 psi=14990 beta=9383 cur_theta=5569 cur_psi=14998 dtheta=37 dpsi=-8 dbeta=-45 min_beta=9383 s1_abs=2248 s1=15 d1=0 f1=200 s2_log_abs=6013 s2_motor_target=6013 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20139] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20140] stepper stop inst=40860000 step=3 target=3
+I/PWM             [20140] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20140] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20215] [MOTION] segment done user_x=19018 user_y=14390 machine_x=6118 machine_y=27190 theta=5606 psi=14990 beta=9383 s1_abs=2248 s2_log_abs=6013 s2_motor_abs=6013 s2_bias=0 ld1=1 md2=-1 plan=128/156
+I/MOTION          [20216] [MOTION] ik user_x=19113 user_y=14490 machine_x=6213 machine_y=27290 std_x=-6213 std_y=27290 r=27988 c2=-6 s2=100 q2=9338 branch=1
+I/MOTION          [20217] [MOTION] fk check machine_x=6213 machine_y=27290 err_x=0 err_y=0
+I/MOTION          [20217] [MOTION] plan feed=0 master_f=200 theta=5644 psi=14981 beta=9338 cur_theta=5606 cur_psi=14990 dtheta=37 dpsi=-9 dbeta=-46 min_beta=9338 s1_abs=2263 s1=15 d1=0 f1=200 s2_log_abs=6010 s2_motor_target=6010 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [20218] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20218] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20219] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20219] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20294] [MOTION] segment done user_x=19113 user_y=14490 machine_x=6213 machine_y=27290 theta=5644 psi=14981 beta=9338 s1_abs=2263 s2_log_abs=6010 s2_motor_abs=6010 s2_bias=0 ld1=1 md2=-1 plan=129/156
+I/MOTION          [20295] [MOTION] ik user_x=19208 user_y=14589 machine_x=6308 machine_y=27389 std_x=-6308 std_y=27389 r=28106 c2=-5 s2=100 q2=9292 branch=1
+I/MOTION          [20295] [MOTION] fk check machine_x=6308 machine_y=27389 err_x=0 err_y=0
+I/MOTION          [20296] [MOTION] plan feed=0 master_f=200 theta=5681 psi=14972 beta=9292 cur_theta=5644 cur_psi=14981 dtheta=37 dpsi=-9 dbeta=-46 min_beta=9292 s1_abs=2278 s1=15 d1=0 f1=200 s2_log_abs=6006 s2_motor_target=6006 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20297] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20297] stepper stop inst=40860000 step=3 target=3
+I/PWM             [20297] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20297] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20373] [MOTION] segment done user_x=19208 user_y=14589 machine_x=6308 machine_y=27389 theta=5681 psi=14972 beta=9292 s1_abs=2278 s2_log_abs=6006 s2_motor_abs=6006 s2_bias=0 ld1=1 md2=-1 plan=130/156
+I/MOTION          [20374] [MOTION] ik user_x=19303 user_y=14689 machine_x=6403 machine_y=27489 std_x=-6403 std_y=27489 r=28225 c2=-4 s2=100 q2=9246 branch=1
+I/MOTION          [20374] [MOTION] fk check machine_x=6403 machine_y=27489 err_x=0 err_y=0
+I/MOTION          [20375] [MOTION] plan feed=0 master_f=200 theta=5718 psi=14963 beta=9246 cur_theta=5681 cur_psi=14972 dtheta=37 dpsi=-9 dbeta=-46 min_beta=9246 s1_abs=2293 s1=15 d1=0 f1=200 s2_log_abs=6003 s2_motor_target=6003 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=3 d2=1 f2=40
+I/BSP             [20375] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20376] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20376] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20376] dual start s1=15 d1=0 s2=3 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20451] [MOTION] segment done user_x=19303 user_y=14689 machine_x=6403 machine_y=27489 theta=5718 psi=14963 beta=9246 s1_abs=2293 s2_log_abs=6003 s2_motor_abs=6003 s2_bias=0 ld1=1 md2=-1 plan=131/156
+I/MOTION          [20452] [MOTION] ik user_x=19398 user_y=14789 machine_x=6498 machine_y=27589 std_x=-6498 std_y=27589 r=28344 c2=-3 s2=100 q2=9199 branch=1
+I/MOTION          [20453] [MOTION] fk check machine_x=6498 machine_y=27589 err_x=0 err_y=0
+I/MOTION          [20453] [MOTION] plan feed=0 master_f=200 theta=5755 psi=14954 beta=9199 cur_theta=5718 cur_psi=14963 dtheta=37 dpsi=-9 dbeta=-46 min_beta=9199 s1_abs=2308 s1=15 d1=0 f1=200 s2_log_abs=5999 s2_motor_target=5999 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20454] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20454] stepper stop inst=40860000 step=3 target=3
+I/PWM             [20455] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20455] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20530] [MOTION] segment done user_x=19398 user_y=14789 machine_x=6498 machine_y=27589 theta=5755 psi=14954 beta=9199 s1_abs=2308 s2_log_abs=5999 s2_motor_abs=5999 s2_bias=0 ld1=1 md2=-1 plan=132/156
+I/MOTION          [20531] [MOTION] ik user_x=19493 user_y=14889 machine_x=6593 machine_y=27689 std_x=-6593 std_y=27689 r=28463 c2=-3 s2=100 q2=9153 branch=1
+I/MOTION          [20532] [MOTION] fk check machine_x=6593 machine_y=27689 err_x=0 err_y=0
+I/MOTION          [20532] [MOTION] plan feed=0 master_f=200 theta=5792 psi=14945 beta=9153 cur_theta=5755 cur_psi=14954 dtheta=37 dpsi=-10 dbeta=-47 min_beta=9153 s1_abs=2322 s1=14 d1=0 f1=200 s2_log_abs=5995 s2_motor_target=5995 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=57
+I/BSP             [20533] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20533] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20533] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20534] dual start s1=14 d1=0 s2=4 d2=1 master=14 freq=200 irq=400
+I/MOTION          [20604] [MOTION] segment done user_x=19493 user_y=14889 machine_x=6593 machine_y=27689 theta=5792 psi=14945 beta=9153 s1_abs=2322 s2_log_abs=5995 s2_motor_abs=5995 s2_bias=0 ld1=1 md2=-1 plan=133/156
+I/MOTION          [20605] [MOTION] ik user_x=19588 user_y=14989 machine_x=6688 machine_y=27789 std_x=-6688 std_y=27789 r=28583 c2=-2 s2=100 q2=9106 branch=1
+I/MOTION          [20605] [MOTION] fk check machine_x=6688 machine_y=27789 err_x=0 err_y=0
+I/MOTION          [20606] [MOTION] plan feed=0 master_f=200 theta=5829 psi=14935 beta=9106 cur_theta=5792 cur_psi=14945 dtheta=37 dpsi=-10 dbeta=-47 min_beta=9106 s1_abs=2337 s1=15 d1=0 f1=200 s2_log_abs=5991 s2_motor_target=5991 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20606] stepper stop inst=40862000 step=14 target=14
+I/BSP             [20607] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20607] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20607] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20682] [MOTION] segment done user_x=19588 user_y=14989 machine_x=6688 machine_y=27789 theta=5829 psi=14935 beta=9106 s1_abs=2337 s2_log_abs=5991 s2_motor_abs=5991 s2_bias=0 ld1=1 md2=-1 plan=134/156
+I/MOTION          [20683] [MOTION] ik user_x=19683 user_y=15089 machine_x=6783 machine_y=27889 std_x=-6783 std_y=27889 r=28702 c2=-1 s2=100 q2=9059 branch=1
+I/MOTION          [20684] [MOTION] fk check machine_x=6783 machine_y=27889 err_x=0 err_y=0
+I/MOTION          [20684] [MOTION] plan feed=0 master_f=200 theta=5866 psi=14925 beta=9059 cur_theta=5829 cur_psi=14935 dtheta=37 dpsi=-10 dbeta=-47 min_beta=9059 s1_abs=2352 s1=15 d1=0 f1=200 s2_log_abs=5987 s2_motor_target=5987 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20685] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20685] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20686] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20686] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20761] [MOTION] segment done user_x=19683 user_y=15089 machine_x=6783 machine_y=27889 theta=5866 psi=14925 beta=9059 s1_abs=2352 s2_log_abs=5987 s2_motor_abs=5987 s2_bias=0 ld1=1 md2=-1 plan=135/156
+I/MOTION          [20762] [MOTION] ik user_x=19778 user_y=15189 machine_x=6878 machine_y=27989 std_x=-6878 std_y=27989 r=28822 c2=0 s2=100 q2=9011 branch=1
+I/MOTION          [20763] [MOTION] fk check machine_x=6878 machine_y=27989 err_x=0 err_y=0
+I/MOTION          [20763] [MOTION] plan feed=0 master_f=200 theta=5903 psi=14915 beta=9011 cur_theta=5866 cur_psi=14925 dtheta=37 dpsi=-10 dbeta=-47 min_beta=9011 s1_abs=2367 s1=15 d1=0 f1=200 s2_log_abs=5983 s2_motor_target=5983 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20764] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20764] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20764] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20765] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20840] [MOTION] segment done user_x=19778 user_y=15189 machine_x=6878 machine_y=27989 theta=5903 psi=14915 beta=9011 s1_abs=2367 s2_log_abs=5983 s2_motor_abs=5983 s2_bias=0 ld1=1 md2=-1 plan=136/156
+I/MOTION          [20841] [MOTION] ik user_x=19873 user_y=15289 machine_x=6973 machine_y=28089 std_x=-6973 std_y=28089 r=28941 c2=1 s2=100 q2=8964 branch=1
+I/MOTION          [20841] [MOTION] fk check machine_x=6973 machine_y=28089 err_x=0 err_y=0
+I/MOTION          [20842] [MOTION] plan feed=0 master_f=200 theta=5940 psi=14904 beta=8964 cur_theta=5903 cur_psi=14915 dtheta=37 dpsi=-10 dbeta=-48 min_beta=8964 s1_abs=2382 s1=15 d1=0 f1=200 s2_log_abs=5979 s2_motor_target=5979 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20842] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20843] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20843] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20843] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20918] [MOTION] segment done user_x=19873 user_y=15289 machine_x=6973 machine_y=28089 theta=5940 psi=14904 beta=8964 s1_abs=2382 s2_log_abs=5979 s2_motor_abs=5979 s2_bias=0 ld1=1 md2=-1 plan=137/156
+I/MOTION          [20919] [MOTION] ik user_x=19968 user_y=15389 machine_x=7068 machine_y=28189 std_x=-7068 std_y=28189 r=29061 c2=1 s2=100 q2=8916 branch=1
+I/MOTION          [20920] [MOTION] fk check machine_x=7068 machine_y=28189 err_x=0 err_y=0
+I/MOTION          [20920] [MOTION] plan feed=0 master_f=200 theta=5977 psi=14893 beta=8916 cur_theta=5940 cur_psi=14904 dtheta=37 dpsi=-11 dbeta=-48 min_beta=8916 s1_abs=2397 s1=15 d1=0 f1=200 s2_log_abs=5975 s2_motor_target=5975 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [20921] stepper stop inst=40862000 step=15 target=15
+I/BSP             [20921] stepper stop inst=40860000 step=4 target=4
+I/PWM             [20922] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [20922] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [20997] [MOTION] segment done user_x=19968 user_y=15389 machine_x=7068 machine_y=28189 theta=5977 psi=14893 beta=8916 s1_abs=2397 s2_log_abs=5975 s2_motor_abs=5975 s2_bias=0 ld1=1 md2=-1 plan=138/156
+I/MOTION          [20998] [MOTION] ik user_x=20064 user_y=15488 machine_x=7164 machine_y=28288 std_x=-7164 std_y=28288 r=29181 c2=2 s2=100 q2=8868 branch=1
+I/MOTION          [20998] [MOTION] fk check machine_x=7164 machine_y=28288 err_x=0 err_y=0
+I/MOTION          [20999] [MOTION] plan feed=0 master_f=200 theta=6015 psi=14882 beta=8868 cur_theta=5977 cur_psi=14893 dtheta=37 dpsi=-11 dbeta=-48 min_beta=8868 s1_abs=2412 s1=15 d1=0 f1=200 s2_log_abs=5970 s2_motor_target=5970 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21000] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21000] stepper stop inst=40860000 step=4 target=4
+I/PWM             [21000] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21001] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21076] [MOTION] segment done user_x=20064 user_y=15488 machine_x=7164 machine_y=28288 theta=6015 psi=14882 beta=8868 s1_abs=2412 s2_log_abs=5970 s2_motor_abs=5970 s2_bias=0 ld1=1 md2=-1 plan=139/156
+I/MOTION          [21077] [MOTION] ik user_x=20159 user_y=15588 machine_x=7259 machine_y=28388 std_x=-7259 std_y=28388 r=29302 c2=3 s2=100 q2=8819 branch=1
+I/MOTION          [21077] [MOTION] fk check machine_x=7259 machine_y=28388 err_x=0 err_y=0
+I/MOTION          [21077] [MOTION] plan feed=0 master_f=200 theta=6052 psi=14871 beta=8819 cur_theta=6015 cur_psi=14882 dtheta=37 dpsi=-11 dbeta=-48 min_beta=8819 s1_abs=2427 s1=15 d1=0 f1=200 s2_log_abs=5966 s2_motor_target=5966 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [21078] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21079] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21079] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21079] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21154] [MOTION] segment done user_x=20159 user_y=15588 machine_x=7259 machine_y=28388 theta=6052 psi=14871 beta=8819 s1_abs=2427 s2_log_abs=5966 s2_motor_abs=5966 s2_bias=0 ld1=1 md2=-1 plan=140/156
+I/MOTION          [21155] [MOTION] ik user_x=20254 user_y=15688 machine_x=7354 machine_y=28488 std_x=-7354 std_y=28488 r=29422 c2=4 s2=100 q2=8771 branch=1
+I/MOTION          [21156] [MOTION] fk check machine_x=7354 machine_y=28488 err_x=0 err_y=0
+I/MOTION          [21156] [MOTION] plan feed=0 master_f=200 theta=6089 psi=14860 beta=8771 cur_theta=6052 cur_psi=14871 dtheta=37 dpsi=-11 dbeta=-49 min_beta=8771 s1_abs=2442 s1=15 d1=0 f1=200 s2_log_abs=5961 s2_motor_target=5961 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21157] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21157] stepper stop inst=40860000 step=4 target=4
+I/PWM             [21158] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21158] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21233] [MOTION] segment done user_x=20254 user_y=15688 machine_x=7354 machine_y=28488 theta=6089 psi=14860 beta=8771 s1_abs=2442 s2_log_abs=5961 s2_motor_abs=5961 s2_bias=0 ld1=1 md2=-1 plan=141/156
+I/MOTION          [21234] [MOTION] ik user_x=20349 user_y=15788 machine_x=7449 machine_y=28588 std_x=-7449 std_y=28588 r=29543 c2=5 s2=100 q2=8722 branch=1
+I/MOTION          [21234] [MOTION] fk check machine_x=7449 machine_y=28588 err_x=0 err_y=0
+I/MOTION          [21235] [MOTION] plan feed=0 master_f=200 theta=6126 psi=14848 beta=8722 cur_theta=6089 cur_psi=14860 dtheta=37 dpsi=-12 dbeta=-49 min_beta=8722 s1_abs=2457 s1=15 d1=0 f1=200 s2_log_abs=5956 s2_motor_target=5956 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21236] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21236] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21236] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21236] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21312] [MOTION] segment done user_x=20349 user_y=15788 machine_x=7449 machine_y=28588 theta=6126 psi=14848 beta=8722 s1_abs=2457 s2_log_abs=5956 s2_motor_abs=5956 s2_bias=0 ld1=1 md2=-1 plan=142/156
+I/MOTION          [21313] [MOTION] ik user_x=20444 user_y=15888 machine_x=7544 machine_y=28688 std_x=-7544 std_y=28688 r=29663 c2=6 s2=100 q2=8672 branch=1
+I/MOTION          [21313] [MOTION] fk check machine_x=7544 machine_y=28688 err_x=0 err_y=0
+I/MOTION          [21313] [MOTION] plan feed=0 master_f=200 theta=6164 psi=14836 beta=8672 cur_theta=6126 cur_psi=14848 dtheta=37 dpsi=-12 dbeta=-49 min_beta=8672 s1_abs=2472 s1=15 d1=0 f1=200 s2_log_abs=5952 s2_motor_target=5952 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=4 d2=1 f2=53
+I/BSP             [21314] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21315] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21315] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21315] dual start s1=15 d1=0 s2=4 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21390] [MOTION] segment done user_x=20444 user_y=15888 machine_x=7544 machine_y=28688 theta=6164 psi=14836 beta=8672 s1_abs=2472 s2_log_abs=5952 s2_motor_abs=5952 s2_bias=0 ld1=1 md2=-1 plan=143/156
+I/MOTION          [21391] [MOTION] ik user_x=20539 user_y=15988 machine_x=7639 machine_y=28788 std_x=-7639 std_y=28788 r=29784 c2=7 s2=100 q2=8623 branch=1
+I/MOTION          [21392] [MOTION] fk check machine_x=7639 machine_y=28788 err_x=0 err_y=0
+I/MOTION          [21392] [MOTION] plan feed=0 master_f=200 theta=6201 psi=14824 beta=8623 cur_theta=6164 cur_psi=14836 dtheta=37 dpsi=-12 dbeta=-50 min_beta=8623 s1_abs=2487 s1=15 d1=0 f1=200 s2_log_abs=5947 s2_motor_target=5947 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21393] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21393] stepper stop inst=40860000 step=4 target=4
+I/PWM             [21394] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21394] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21469] [MOTION] segment done user_x=20539 user_y=15988 machine_x=7639 machine_y=28788 theta=6201 psi=14824 beta=8623 s1_abs=2487 s2_log_abs=5947 s2_motor_abs=5947 s2_bias=0 ld1=1 md2=-1 plan=144/156
+I/MOTION          [21470] [MOTION] ik user_x=20634 user_y=16088 machine_x=7734 machine_y=28888 std_x=-7734 std_y=28888 r=29905 c2=7 s2=100 q2=8573 branch=1
+I/MOTION          [21470] [MOTION] fk check machine_x=7734 machine_y=28888 err_x=0 err_y=0
+I/MOTION          [21471] [MOTION] plan feed=0 master_f=200 theta=6238 psi=14811 beta=8573 cur_theta=6201 cur_psi=14824 dtheta=37 dpsi=-12 dbeta=-50 min_beta=8573 s1_abs=2502 s1=15 d1=0 f1=200 s2_log_abs=5942 s2_motor_target=5942 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21472] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21472] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21472] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21472] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21548] [MOTION] segment done user_x=20634 user_y=16088 machine_x=7734 machine_y=28888 theta=6238 psi=14811 beta=8573 s1_abs=2502 s2_log_abs=5942 s2_motor_abs=5942 s2_bias=0 ld1=1 md2=-1 plan=145/156
+I/MOTION          [21549] [MOTION] ik user_x=20729 user_y=16188 machine_x=7829 machine_y=28988 std_x=-7829 std_y=28988 r=30026 c2=8 s2=100 q2=8523 branch=1
+I/MOTION          [21549] [MOTION] fk check machine_x=7829 machine_y=28988 err_x=0 err_y=0
+I/MOTION          [21549] [MOTION] plan feed=0 master_f=200 theta=6276 psi=14799 beta=8523 cur_theta=6238 cur_psi=14811 dtheta=37 dpsi=-13 dbeta=-50 min_beta=8523 s1_abs=2517 s1=15 d1=0 f1=200 s2_log_abs=5937 s2_motor_target=5937 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21550] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21551] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21551] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21551] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21626] [MOTION] segment done user_x=20729 user_y=16188 machine_x=7829 machine_y=28988 theta=6276 psi=14799 beta=8523 s1_abs=2517 s2_log_abs=5937 s2_motor_abs=5937 s2_bias=0 ld1=1 md2=-1 plan=146/156
+I/MOTION          [21627] [MOTION] ik user_x=20824 user_y=16288 machine_x=7924 machine_y=29088 std_x=-7924 std_y=29088 r=30148 c2=9 s2=100 q2=8472 branch=1
+I/MOTION          [21628] [MOTION] fk check machine_x=7924 machine_y=29088 err_x=0 err_y=0
+I/MOTION          [21628] [MOTION] plan feed=0 master_f=200 theta=6313 psi=14786 beta=8472 cur_theta=6276 cur_psi=14799 dtheta=37 dpsi=-13 dbeta=-50 min_beta=8472 s1_abs=2532 s1=15 d1=0 f1=200 s2_log_abs=5931 s2_motor_target=5931 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=80
+I/BSP             [21629] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21629] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21630] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21630] dual start s1=15 d1=0 s2=6 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21705] [MOTION] segment done user_x=20824 user_y=16288 machine_x=7924 machine_y=29088 theta=6313 psi=14786 beta=8472 s1_abs=2532 s2_log_abs=5931 s2_motor_abs=5931 s2_bias=0 ld1=1 md2=-1 plan=147/156
+I/MOTION          [21706] [MOTION] ik user_x=20919 user_y=16388 machine_x=8019 machine_y=29188 std_x=-8019 std_y=29188 r=30269 c2=10 s2=99 q2=8422 branch=1
+I/MOTION          [21706] [MOTION] fk check machine_x=8019 machine_y=29188 err_x=0 err_y=0
+I/MOTION          [21707] [MOTION] plan feed=0 master_f=200 theta=6351 psi=14772 beta=8422 cur_theta=6313 cur_psi=14786 dtheta=38 dpsi=-13 dbeta=-51 min_beta=8422 s1_abs=2547 s1=15 d1=0 f1=200 s2_log_abs=5926 s2_motor_target=5926 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21708] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21708] stepper stop inst=40860000 step=6 target=6
+I/PWM             [21708] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21708] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21784] [MOTION] segment done user_x=20919 user_y=16388 machine_x=8019 machine_y=29188 theta=6351 psi=14772 beta=8422 s1_abs=2547 s2_log_abs=5926 s2_motor_abs=5926 s2_bias=0 ld1=1 md2=-1 plan=148/156
+I/MOTION          [21785] [MOTION] ik user_x=21014 user_y=16487 machine_x=8114 machine_y=29287 std_x=-8114 std_y=29287 r=30391 c2=11 s2=99 q2=8371 branch=1
+I/MOTION          [21785] [MOTION] fk check machine_x=8114 machine_y=29287 err_x=0 err_y=0
+I/MOTION          [21785] [MOTION] plan feed=0 master_f=200 theta=6388 psi=14759 beta=8371 cur_theta=6351 cur_psi=14772 dtheta=38 dpsi=-13 dbeta=-51 min_beta=8371 s1_abs=2562 s1=15 d1=0 f1=200 s2_log_abs=5921 s2_motor_target=5921 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21786] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21787] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21787] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21787] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21862] [MOTION] segment done user_x=21014 user_y=16487 machine_x=8114 machine_y=29287 theta=6388 psi=14759 beta=8371 s1_abs=2562 s2_log_abs=5921 s2_motor_abs=5921 s2_bias=0 ld1=1 md2=-1 plan=149/156
+I/MOTION          [21863] [MOTION] ik user_x=21109 user_y=16587 machine_x=8209 machine_y=29387 std_x=-8209 std_y=29387 r=30512 c2=12 s2=99 q2=8319 branch=1
+I/MOTION          [21864] [MOTION] fk check machine_x=8209 machine_y=29387 err_x=0 err_y=0
+I/MOTION          [21864] [MOTION] plan feed=0 master_f=200 theta=6426 psi=14745 beta=8319 cur_theta=6388 cur_psi=14759 dtheta=38 dpsi=-14 dbeta=-51 min_beta=8319 s1_abs=2577 s1=15 d1=0 f1=200 s2_log_abs=5915 s2_motor_target=5915 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=80
+I/BSP             [21865] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21865] stepper stop inst=40860000 step=5 target=5
+I/PWM             [21866] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21866] dual start s1=15 d1=0 s2=6 d2=1 master=15 freq=200 irq=400
+I/MOTION          [21941] [MOTION] segment done user_x=21109 user_y=16587 machine_x=8209 machine_y=29387 theta=6426 psi=14745 beta=8319 s1_abs=2577 s2_log_abs=5915 s2_motor_abs=5915 s2_bias=0 ld1=1 md2=-1 plan=150/156
+I/MOTION          [21942] [MOTION] ik user_x=21204 user_y=16687 machine_x=8304 machine_y=29487 std_x=-8304 std_y=29487 r=30634 c2=13 s2=99 q2=8267 branch=1
+I/MOTION          [21942] [MOTION] fk check machine_x=8304 machine_y=29487 err_x=0 err_y=0
+I/MOTION          [21943] [MOTION] plan feed=0 master_f=200 theta=6464 psi=14731 beta=8267 cur_theta=6426 cur_psi=14745 dtheta=38 dpsi=-14 dbeta=-52 min_beta=8267 s1_abs=2592 s1=15 d1=0 f1=200 s2_log_abs=5910 s2_motor_target=5910 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=5 d2=1 f2=67
+I/BSP             [21944] stepper stop inst=40862000 step=15 target=15
+I/BSP             [21944] stepper stop inst=40860000 step=6 target=6
+I/PWM             [21944] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [21944] dual start s1=15 d1=0 s2=5 d2=1 master=15 freq=200 irq=400
+I/MOTION          [22019] [MOTION] segment done user_x=21204 user_y=16687 machine_x=8304 machine_y=29487 theta=6464 psi=14731 beta=8267 s1_abs=2592 s2_log_abs=5910 s2_motor_abs=5910 s2_bias=0 ld1=1 md2=-1 plan=151/156
+I/MOTION          [22021] [MOTION] ik user_x=21300 user_y=16787 machine_x=8400 machine_y=29587 std_x=-8400 std_y=29587 r=30756 c2=14 s2=99 q2=8215 branch=1
+I/MOTION          [22021] [MOTION] fk check machine_x=8399 machine_y=29587 err_x=0 err_y=0
+I/MOTION          [22021] [MOTION] plan feed=0 master_f=200 theta=6502 psi=14717 beta=8215 cur_theta=6464 cur_psi=14731 dtheta=38 dpsi=-14 dbeta=-52 min_beta=8215 s1_abs=2607 s1=15 d1=0 f1=200 s2_log_abs=5904 s2_motor_target=5904 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=80
+I/BSP             [22022] stepper stop inst=40862000 step=15 target=15
+I/BSP             [22023] stepper stop inst=40860000 step=5 target=5
+I/PWM             [22023] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [22023] dual start s1=15 d1=0 s2=6 d2=1 master=15 freq=200 irq=400
+I/MOTION          [22098] [MOTION] segment done user_x=21300 user_y=16787 machine_x=8400 machine_y=29587 theta=6502 psi=14717 beta=8215 s1_abs=2607 s2_log_abs=5904 s2_motor_abs=5904 s2_bias=0 ld1=1 md2=-1 plan=152/156
+I/MOTION          [22099] [MOTION] ik user_x=21395 user_y=16887 machine_x=8495 machine_y=29687 std_x=-8495 std_y=29687 r=30878 c2=15 s2=99 q2=8163 branch=1
+I/MOTION          [22100] [MOTION] fk check machine_x=8495 machine_y=29687 err_x=0 err_y=0
+I/MOTION          [22100] [MOTION] plan feed=0 master_f=200 theta=6539 psi=14703 beta=8163 cur_theta=6502 cur_psi=14717 dtheta=38 dpsi=-14 dbeta=-52 min_beta=8163 s1_abs=2622 s1=15 d1=0 f1=200 s2_log_abs=5898 s2_motor_target=5898 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=80
+I/BSP             [22101] stepper stop inst=40862000 step=15 target=15
+I/BSP             [22101] stepper stop inst=40860000 step=6 target=6
+I/PWM             [22102] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [22102] dual start s1=15 d1=0 s2=6 d2=1 master=15 freq=200 irq=400
+I/MOTION          [22177] [MOTION] segment done user_x=21395 user_y=16887 machine_x=8495 machine_y=29687 theta=6539 psi=14703 beta=8163 s1_abs=2622 s2_log_abs=5898 s2_motor_abs=5898 s2_bias=0 ld1=1 md2=-1 plan=153/156
+I/MOTION          [22178] [MOTION] ik user_x=21490 user_y=16987 machine_x=8590 machine_y=29787 std_x=-8590 std_y=29787 r=31001 c2=15 s2=99 q2=8110 branch=1
+I/MOTION          [22178] [MOTION] fk check machine_x=8590 machine_y=29787 err_x=0 err_y=0
+I/MOTION          [22179] [MOTION] plan feed=0 master_f=200 theta=6577 psi=14688 beta=8110 cur_theta=6539 cur_psi=14703 dtheta=38 dpsi=-15 dbeta=-53 min_beta=8110 s1_abs=2637 s1=15 d1=0 f1=200 s2_log_abs=5892 s2_motor_target=5892 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=80
+I/BSP             [22180] stepper stop inst=40862000 step=15 target=15
+I/BSP             [22180] stepper stop inst=40860000 step=6 target=6
+I/PWM             [22180] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [22180] dual start s1=15 d1=0 s2=6 d2=1 master=15 freq=200 irq=400
+I/MOTION          [22255] [MOTION] segment done user_x=21490 user_y=16987 machine_x=8590 machine_y=29787 theta=6577 psi=14688 beta=8110 s1_abs=2637 s2_log_abs=5892 s2_motor_abs=5892 s2_bias=0 ld1=1 md2=-1 plan=154/156
+I/MOTION          [22257] [MOTION] ik user_x=21585 user_y=17087 machine_x=8685 machine_y=29887 std_x=-8685 std_y=29887 r=31123 c2=16 s2=99 q2=8057 branch=1
+I/MOTION          [22257] [MOTION] fk check machine_x=8685 machine_y=29887 err_x=0 err_y=0
+I/MOTION          [22257] [MOTION] plan feed=0 master_f=200 theta=6615 psi=14673 beta=8057 cur_theta=6577 cur_psi=14688 dtheta=38 dpsi=-15 dbeta=-53 min_beta=8057 s1_abs=2653 s1=16 d1=0 f1=200 s2_log_abs=5886 s2_motor_target=5886 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=75
+I/BSP             [22258] stepper stop inst=40862000 step=15 target=15
+I/BSP             [22259] stepper stop inst=40860000 step=6 target=6
+I/PWM             [22259] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [22259] dual start s1=16 d1=0 s2=6 d2=1 master=16 freq=200 irq=400
+I/MOTION          [22339] [MOTION] segment done user_x=21585 user_y=17087 machine_x=8685 machine_y=29887 theta=6615 psi=14673 beta=8057 s1_abs=2653 s2_log_abs=5886 s2_motor_abs=5886 s2_bias=0 ld1=1 md2=-1 plan=155/156
+I/MOTION          [22340] [MOTION] ik user_x=21680 user_y=17187 machine_x=8780 machine_y=29987 std_x=-8780 std_y=29987 r=31246 c2=17 s2=98 q2=8004 branch=1
+I/MOTION          [22341] [MOTION] fk check machine_x=8780 machine_y=29987 err_x=0 err_y=0
+I/MOTION          [22341] [MOTION] plan feed=0 master_f=200 theta=6654 psi=14658 beta=8004 cur_theta=6615 cur_psi=14673 dtheta=38 dpsi=-15 dbeta=-53 min_beta=8004 s1_abs=2668 s1=15 d1=0 f1=200 s2_log_abs=5880 s2_motor_target=5880 s2_bias=0 preload=0 preload_delta=0 ld1=1 md2=-1 s2=6 d2=1 f2=80
+I/BSP             [22342] stepper stop inst=40862000 step=16 target=16
+I/BSP             [22342] stepper stop inst=40860000 step=6 target=6
+I/PWM             [22342] set freq=400Hz psc=1 load=39999 cc=20000
+I/DDA             [22343] dual start s1=15 d1=0 s2=6 d2=1 master=15 freq=200 irq=400
+I/MOTION          [22418] [MOTION] segment done user_x=21680 user_y=17187 machine_x=8780 machine_y=29987 theta=6654 psi=14658 beta=8004 s1_abs=2668 s2_log_abs=5880 s2_motor_abs=5880 s2_bias=0 ld1=1 md2=-1 plan=156/156
+I/MOTION          [22418] [MOTION] plan done
+I/S2CHORD         [24203] [S2CHORD] ready quant_start=(21678,17189) theta=6653 psi=14657 nominal_end=(24909,3724) nominal_chord=13848 candidate_chord=12953..14227 paper_margin=3185 joint_margin=1002 max_position=1600 leg_pulses=400 s1_abs=2668 s2_abs=5880 s1_total=4137 s2_total=1198
+I/S2CHORD         [24204] [S2CHORD] mark=1/9 position=0 motor_offset=0 settle_ms=300 pen=UP
+I/BSP             [25904] stepper stop inst=40862000 step=15 target=15
+I/BSP             [25904] stepper stop inst=40860000 step=6 target=6
+I/PWM             [25904] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [25904] dual start s1=0 d1=0 s2=400 d2=0 master=400 freq=100 irq=200
+I/S2CHORD         [25905] [S2CHORD] leg=1/8 position=0->400 motor_offset=0->400 dir=0 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [29904] [S2CHORD] leg complete position=400 motor_offset=400 raw_total=400 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [29905] [S2CHORD] mark=2/9 position=400 motor_offset=400 settle_ms=300 pen=UP
+I/BSP             [31605] stepper stop inst=40862000 step=0 target=0
+I/BSP             [31605] stepper stop inst=40860000 step=400 target=400
+I/PWM             [31605] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [31605] dual start s1=0 d1=0 s2=400 d2=0 master=400 freq=100 irq=200
+I/S2CHORD         [31606] [S2CHORD] leg=2/8 position=400->800 motor_offset=400->800 dir=0 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [35605] [S2CHORD] leg complete position=800 motor_offset=800 raw_total=800 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [35606] [S2CHORD] mark=3/9 position=800 motor_offset=800 settle_ms=300 pen=UP
+I/BSP             [37306] stepper stop inst=40862000 step=0 target=0
+I/BSP             [37306] stepper stop inst=40860000 step=400 target=400
+I/PWM             [37306] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [37306] dual start s1=0 d1=0 s2=400 d2=0 master=400 freq=100 irq=200
+I/S2CHORD         [37307] [S2CHORD] leg=3/8 position=800->1200 motor_offset=800->1200 dir=0 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [41306] [S2CHORD] leg complete position=1200 motor_offset=1200 raw_total=1200 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [41307] [S2CHORD] mark=4/9 position=1200 motor_offset=1200 settle_ms=300 pen=UP
+I/BSP             [43007] stepper stop inst=40862000 step=0 target=0
+I/BSP             [43007] stepper stop inst=40860000 step=400 target=400
+I/PWM             [43007] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [43007] dual start s1=0 d1=0 s2=400 d2=0 master=400 freq=100 irq=200
+I/S2CHORD         [43008] [S2CHORD] leg=4/8 position=1200->1600 motor_offset=1200->1600 dir=0 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [47007] [S2CHORD] leg complete position=1600 motor_offset=1600 raw_total=1600 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [47008] [S2CHORD] mark=5/9 position=1600 motor_offset=1600 settle_ms=300 pen=UP
+I/BSP             [48708] stepper stop inst=40862000 step=0 target=0
+I/BSP             [48708] stepper stop inst=40860000 step=400 target=400
+I/PWM             [48708] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [48708] dual start s1=0 d1=0 s2=423 d2=1 master=423 freq=100 irq=200
+I/S2CHORD         [48709] [S2CHORD] leg=5/8 position=1600->1200 motor_offset=1600->1177 dir=1 pulses=423 takeup=23 stage1=LOCKED pen=UP
+I/S2CHORD         [52938] [S2CHORD] leg complete position=1200 motor_offset=1177 raw_total=2023 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [52939] [S2CHORD] mark=6/9 position=1200 motor_offset=1177 settle_ms=300 pen=UP
+I/BSP             [54639] stepper stop inst=40862000 step=0 target=0
+I/BSP             [54639] stepper stop inst=40860000 step=423 target=423
+I/PWM             [54639] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [54639] dual start s1=0 d1=0 s2=400 d2=1 master=400 freq=100 irq=200
+I/S2CHORD         [54640] [S2CHORD] leg=6/8 position=1200->800 motor_offset=1177->777 dir=1 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [58639] [S2CHORD] leg complete position=800 motor_offset=777 raw_total=2423 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [58640] [S2CHORD] mark=7/9 position=800 motor_offset=777 settle_ms=300 pen=UP
+I/BSP             [60340] stepper stop inst=40862000 step=0 target=0
+I/BSP             [60340] stepper stop inst=40860000 step=400 target=400
+I/PWM             [60340] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [60340] dual start s1=0 d1=0 s2=400 d2=1 master=400 freq=100 irq=200
+I/S2CHORD         [60341] [S2CHORD] leg=7/8 position=800->400 motor_offset=777->377 dir=1 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [64340] [S2CHORD] leg complete position=400 motor_offset=377 raw_total=2823 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [64341] [S2CHORD] mark=8/9 position=400 motor_offset=377 settle_ms=300 pen=UP
+I/BSP             [66041] stepper stop inst=40862000 step=0 target=0
+I/BSP             [66041] stepper stop inst=40860000 step=400 target=400
+I/PWM             [66041] set freq=200Hz psc=2 load=53332 cc=26666
+I/DDA             [66041] dual start s1=0 d1=0 s2=400 d2=1 master=400 freq=100 irq=200
+I/S2CHORD         [66042] [S2CHORD] leg=8/8 position=400->0 motor_offset=377->-23 dir=1 pulses=400 takeup=0 stage1=LOCKED pen=UP
+I/S2CHORD         [70041] [S2CHORD] leg complete position=0 motor_offset=-23 raw_total=3223 stage1_delta=0 lim1=0 lim2=0 pen=UP
+I/S2CHORD         [70042] [S2CHORD] mark=9/9 position=0 motor_offset=-23 settle_ms=300 pen=UP
+I/S2CHORD         [71742] [S2CHORD] AUTHOR_STAGE2_RETURN_TAKEUP_23_L203_GATED_V28 done leg_pulses=400 takeup=23 max_position=1600 final_motor_offset=-23 raw_total=3223 positions=5 marks=9 stage1_delta=0 pen=UP single_pass=1 rehome=1
+I/TEST            [71760] [TEST] mode=AUTHOR_STAGE2_RETURN_TAKEUP_23_L203_GATED_V28 done rehome=1

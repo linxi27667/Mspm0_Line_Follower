@@ -1,0 +1,113 @@
+{
+  "id": "PAPER_A4_CENTER_CONCENTRIC_CIRCLES_D20_D40_D60_D80_V33_GCODE_V79",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_AMASS_PLANNER_V33",
+  "required_paper_map": "A4_BASE_QUADRATIC_XSCALE_NO_SBOW_CAL_V8",
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "pattern": {
+    "type": "concentric circles",
+    "center_mm": [
+      105.0,
+      148.5
+    ],
+    "diameters_mm": [
+      20.0,
+      40.0,
+      60.0,
+      80.0
+    ],
+    "sequence": "inner_to_outer",
+    "circles": [
+      {
+        "diameter_mm": 20.0,
+        "radius_mm": 10.0,
+        "direction": "CCW",
+        "start": "TOP",
+        "segment_count": 84,
+        "maximum_chord_mm": 0.7478238855265367,
+        "maximum_radial_error_mm": 1.5987211554602254e-14,
+        "approach_mm": [
+          109.996503523942,
+          158.68695597138162
+        ]
+      },
+      {
+        "diameter_mm": 40.0,
+        "radius_mm": 20.0,
+        "direction": "CCW",
+        "start": "TOP",
+        "segment_count": 168,
+        "maximum_chord_mm": 0.7479546572361317,
+        "maximum_radial_error_mm": 1.4210854715202004e-14,
+        "approach_mm": [
+          109.99912580456373,
+          168.59349433215442
+        ]
+      },
+      {
+        "diameter_mm": 60.0,
+        "radius_mm": 30.0,
+        "direction": "CCW",
+        "start": "TOP",
+        "segment_count": 252,
+        "maximum_chord_mm": 0.7479788757249562,
+        "maximum_radial_error_mm": 1.7763568394002505e-14,
+        "approach_mm": [
+          109.99961146240487,
+          178.56233157297714
+        ]
+      },
+      {
+        "diameter_mm": 80.0,
+        "radius_mm": 40.0,
+        "direction": "CCW",
+        "start": "TOP",
+        "segment_count": 336,
+        "maximum_chord_mm": 0.7479873523072113,
+        "maximum_radial_error_mm": 2.1316282072803006e-14,
+        "approach_mm": [
+          109.99978144636437,
+          188.5467492095192
+        ]
+      }
+    ]
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 5.0,
+    "stroke_count": 4
+  },
+  "safety": {
+    "home_exit": {
+      "sample_count": 216,
+      "minimum_joint_margin_deg": 0.3334887811048125,
+      "minimum_margin_user_mm": [
+        68.98461633091414,
+        16.10117083480735
+      ],
+      "first_approach_joint_margin_deg": 48.756206024475006,
+      "note": "The home pose is the configured joint-minimum reference; this value covers only the initial pen-up departure."
+    },
+    "writing_sequence": {
+      "sample_count": 891,
+      "minimum_joint_margin_deg": 40.58773445106698,
+      "minimum_margin_user_mm": [
+        280.2147426593598,
+        85.48591550285636
+      ],
+      "required_minimum_margin_deg": 15.0
+    },
+    "stroke_count": 4,
+    "motion_line_count": 848
+  },
+  "gcode": {
+    "file": "PAPER_A4_CENTER_CONCENTRIC_CIRCLES_D20_D40_D60_D80_V33_GCODE_V79.gcode",
+    "line_count": 880,
+    "sha256": "0BEBFF0F55C9E7117722E51E926060116EF6B2A6D11D4DB8E64C789EEBE718FC"
+  }
+}

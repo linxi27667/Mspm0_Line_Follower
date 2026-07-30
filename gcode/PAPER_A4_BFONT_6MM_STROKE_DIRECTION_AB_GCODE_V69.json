@@ -1,0 +1,64 @@
+{
+  "id": "PAPER_A4_BFONT_6MM_STROKE_DIRECTION_AB_GCODE_V69",
+  "required_firmware": "PAPER_A4_STANDARD_GCODE_JUNCTION_PLANNER_V32",
+  "purpose": "single-variable isolation of direction-dependent mechanical hysteresis/compliance from static mapping and font geometry",
+  "font": {
+    "option": "B",
+    "name": "aa郭敬明字体",
+    "file": "AA_GUO_JINGMING_b7c9ccc1.gfont",
+    "sha256": "D5D8E41EF24BF380FDAB57B4746795D691CC4E2DF878A394E4FA8C6D594C09F8",
+    "geometry": "unmodified original gfont point sets"
+  },
+  "text": "写字机第好多次测试",
+  "rows": {
+    "A": {
+      "content_left_mm": 125.0,
+      "content_top_mm": 226.0,
+      "stroke_direction": "original"
+    },
+    "B": {
+      "content_left_mm": 125.0,
+      "content_top_mm": 212.0,
+      "stroke_direction": "every stroke point order reversed"
+    },
+    "vertical_translation_mm": 14.0
+  },
+  "layout": {
+    "visible_height_mm": 6.0,
+    "bounds_mm": [
+      124.66325332596834,
+      205.13025684717815,
+      176.43277592433006,
+      227.03570979173364
+    ]
+  },
+  "coordinate_contract": {
+    "units": "mm",
+    "frame": "nominal physical A4 paper",
+    "offline_mapping": false,
+    "offline_prewarp": false,
+    "firmware_mapping": true
+  },
+  "motion": {
+    "feed_mm_min": 300,
+    "tangent_approach_mm": 1.2,
+    "single_variable": "stroke point order"
+  },
+  "safety": {
+    "safe_samples": 1364,
+    "min_joint_margin_deg": 0.3967001065145439,
+    "min_margin_user_mm": [
+      68.98712612084351,
+      16.444453068813615
+    ],
+    "ab_max_geometry_delta_mm": 0.0,
+    "row_a_stroke_count": 58,
+    "row_b_stroke_count": 58,
+    "motion_line_count": 692
+  },
+  "gcode": {
+    "file": "PAPER_A4_BFONT_6MM_STROKE_DIRECTION_AB_GCODE_V69.gcode",
+    "line_count": 1062,
+    "sha256": "759C80089B4CECC846677D5C5846856EF6B3ECE8AE1029499D6DB318A6784979"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "artifact": "DIARY_NOTEBOOK_REPOSITIONED_A4_ONE_PAGE_20260721",
+  "runnable_on_robot": false,
+  "source_docx_sha256": "EA36C6DEEF17968A1B18B49750D2A6B5F7CE5ECDD03572A4995E01151EBFAAE9",
+  "source_text_sha256": "19A3A4BB9885145B41087A3A63466275C1FF29F35A4896B149FAA8954AFC631A",
+  "font_name": "宋体",
+  "font_sha256": "A74332F3F53C77B02DE6637ED8AAF0D5010E61444B1216D3E291A6AEA1419C24",
+  "missing_characters_replaced_by_disclosed_composites": "粿麟婷鹏",
+  "unresolved_characters": "",
+  "paper": {
+    "orientation": "A4 landscape",
+    "size_mm": [
+      297.0,
+      210.0
+    ],
+    "origin": "lower-left",
+    "usable_rectangle_mm": [
+      15.0,
+      15.0,
+      282.0,
+      195.0
+    ],
+    "kenjoy_origin": "right-upper"
+  },
+  "alignment": {
+    "existing_m801_machine_target_mm": [
+      150.0,
+      20.0
+    ],
+    "new_cross_on_paper_mm": [
+      11.0,
+      88.0
+    ],
+    "command_from_paper": "command_xy = paper_xy + (139,-68)",
+    "command_shift_mm": [
+      139.0,
+      -68.0
+    ],
+    "machine_origin_direction_changed": false,
+    "motor_direction_changed": false
+  },
+  "layout": {
+    "page_count": 1,
+    "line_count": 11,
+    "line_pitch_mm": 16.0,
+    "font_size_percent": 95.0,
+    "maximum_actual_glyph_height_mm": 11.172,
+    "lines": [
+      "日记",
+      "  今天是星期二，是2026年4月28日。此时此刻，我和我的",
+      "团队正在等待着“智汇杯”的决赛，我们前面还有一个队伍",
+      "，我一点都不紧张。谢谢大家，我的演讲到此结束。哦，对了，",
+      "我的晚饭吃的是桂哥爆炒牛肉粿条，吃的太快，没品尝到",
+      "一点美味。我变成了勤劳的小蜜蜂，在大家饥饿的时候，",
+      "我提出了去小吃街买晚饭，我是好人。我的左边坐的是梁",
+      "伟麟，我左边的左边是张佳乐，我是张瑞婷，我后面是罗",
+      "诗辉，我后面的左边是罗诗辉的队友，我后面的后面是梁",
+      "伟鹏，我后面的后面的左边是老戴。妈的，还有多久到我们",
+      "，真服了！"
+    ],
+    "local_y_correction_applied": false,
+    "local_y_correction_reason": "validated only near old machine y=65; not extrapolated"
+  },
+  "path": {
+    "glyph_count": 240,
+    "stroke_count": 2863,
+    "point_count_before_penup_routing": 10262,
+    "paper_bounds_mm": [
+      15.0,
+      21.581333,
+      281.484,
+      192.778667
+    ],
+    "command_bounds_mm": [
+      154.0,
+      -46.418667,
+      420.484,
+      124.778667
+    ]
+  },
+  "blocking_reasons": [
+    "user must confirm the repositioned A4 sheet physically fits without collision",
+    "the translated full-sheet region has not been physically calibrated",
+    "current V36 rejects ordinary G-code"
+  ],
+  "preview": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\docs\\diagnostics\\DIARY_NOTEBOOK_REPOSITIONED_A4_ONE_PAGE_OFFLINE_PREVIEW_20260721.png"
+}

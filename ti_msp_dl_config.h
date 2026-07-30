@@ -100,6 +100,18 @@ extern "C" {
 #define GPIO_STEP2_C0_IOMUX_FUNC                     IOMUX_PINCM19_PF_TIMA0_CCP0
 #define GPIO_STEP2_C0_IDX                                    DL_TIMER_CC_0_INDEX
 
+/* Defines for ROTATE_MOTOR_PWM */
+#define ROTATE_MOTOR_PWM_INST                                              TIMG7
+#define ROTATE_MOTOR_PWM_INST_IRQHandler                        TIMG7_IRQHandler
+#define ROTATE_MOTOR_PWM_INST_INT_IRQN                          (TIMG7_INT_IRQn)
+#define ROTATE_MOTOR_PWM_INST_CLK_FREQ                                  32000000
+/* GPIO defines for channel 1 */
+#define GPIO_ROTATE_MOTOR_PWM_C1_PORT                                      GPIOA
+#define GPIO_ROTATE_MOTOR_PWM_C1_PIN                               DL_GPIO_PIN_7
+#define GPIO_ROTATE_MOTOR_PWM_C1_IOMUX                           (IOMUX_PINCM14)
+#define GPIO_ROTATE_MOTOR_PWM_C1_IOMUX_FUNC             IOMUX_PINCM14_PF_TIMG7_CCP1
+#define GPIO_ROTATE_MOTOR_PWM_C1_IDX                         DL_TIMER_CC_1_INDEX
+
 
 
 
@@ -151,6 +163,44 @@ extern "C" {
 /* Defines for KEY4_PIN: GPIOB.27 with pinCMx 58 on package pin 29 */
 #define KEY4_GPIO_KEY4_PIN_PIN                                  (DL_GPIO_PIN_27)
 #define KEY4_GPIO_KEY4_PIN_IOMUX                                 (IOMUX_PINCM58)
+/* Port definition for Pin Group STATUS_LED */
+#define STATUS_LED_PORT                                                  (GPIOB)
+
+/* Defines for LED_PIN: GPIOB.10 with pinCMx 27 on package pin 62 */
+#define STATUS_LED_LED_PIN_PIN                                  (DL_GPIO_PIN_10)
+#define STATUS_LED_LED_PIN_IOMUX                                 (IOMUX_PINCM27)
+/* Port definition for Pin Group ROTATE_MOTOR_CTRL */
+#define ROTATE_MOTOR_CTRL_PORT                                           (GPIOB)
+
+/* Defines for AIN1_PIN: GPIOB.0 with pinCMx 12 on package pin 47 */
+#define ROTATE_MOTOR_CTRL_AIN1_PIN_PIN                           (DL_GPIO_PIN_0)
+#define ROTATE_MOTOR_CTRL_AIN1_PIN_IOMUX                         (IOMUX_PINCM12)
+/* Defines for AIN2_PIN: GPIOB.1 with pinCMx 13 on package pin 48 */
+#define ROTATE_MOTOR_CTRL_AIN2_PIN_PIN                           (DL_GPIO_PIN_1)
+#define ROTATE_MOTOR_CTRL_AIN2_PIN_IOMUX                         (IOMUX_PINCM13)
+/* Port definition for Pin Group ROTATION_ENCODER */
+#define ROTATION_ENCODER_PORT                                            (GPIOB)
+
+/* Defines for ENCODER_A_PIN: GPIOB.11 with pinCMx 28 on package pin 63 */
+// pins affected by this interrupt request:["ENCODER_A_PIN","ENCODER_B_PIN"]
+#define ROTATION_ENCODER_INT_IRQN                               (GPIOB_INT_IRQn)
+#define ROTATION_ENCODER_INT_IIDX               (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
+#define ROTATION_ENCODER_ENCODER_A_PIN_IIDX                 (DL_GPIO_IIDX_DIO11)
+#define ROTATION_ENCODER_ENCODER_A_PIN_PIN                      (DL_GPIO_PIN_11)
+#define ROTATION_ENCODER_ENCODER_A_PIN_IOMUX                     (IOMUX_PINCM28)
+/* Defines for ENCODER_B_PIN: GPIOB.14 with pinCMx 31 on package pin 2 */
+#define ROTATION_ENCODER_ENCODER_B_PIN_IIDX                 (DL_GPIO_IIDX_DIO14)
+#define ROTATION_ENCODER_ENCODER_B_PIN_PIN                      (DL_GPIO_PIN_14)
+#define ROTATION_ENCODER_ENCODER_B_PIN_IOMUX                     (IOMUX_PINCM31)
+/* Port definition for Pin Group ACTUATOR_OUTPUT_A */
+#define ACTUATOR_OUTPUT_A_PORT                                           (GPIOA)
+
+/* Defines for BUZZER_PIN: GPIOA.2 with pinCMx 7 on package pin 42 */
+#define ACTUATOR_OUTPUT_A_BUZZER_PIN_PIN                         (DL_GPIO_PIN_2)
+#define ACTUATOR_OUTPUT_A_BUZZER_PIN_IOMUX                        (IOMUX_PINCM7)
+/* Defines for MAGNET_PIN: GPIOA.30 with pinCMx 5 on package pin 37 */
+#define ACTUATOR_OUTPUT_A_MAGNET_PIN_PIN                        (DL_GPIO_PIN_30)
+#define ACTUATOR_OUTPUT_A_MAGNET_PIN_IOMUX                        (IOMUX_PINCM5)
 
 /* clang-format on */
 
@@ -160,6 +210,7 @@ void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_STEP_init(void);
 void SYSCFG_DL_STEP2_init(void);
+void SYSCFG_DL_ROTATE_MOTOR_PWM_init(void);
 
 
 bool SYSCFG_DL_saveConfiguration(void);

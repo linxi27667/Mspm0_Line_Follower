@@ -1,0 +1,194 @@
+{
+  "test": "V30 firmware with V66 6 mm four-font path",
+  "gcode": "C:\\Users\\zjl\\Desktop\\zjl\\TI\\writer_robot\\gcode\\PAPER_A4_STANDARD_UPPER_4FONT_6MM_WRITER_TEST_TIMESTAMP_GCODE_V66.gcode",
+  "finding_scope": "Static mapping and quantization are computed exactly enough for diagnosis; mechanical backlash and inertia require a physical test.",
+  "path_count": 214,
+  "prewarp_local": [
+    {
+      "center_paper_mm": [
+        30.0,
+        227.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818181818181827,
+        0.4855357142857031
+      ],
+      "horizontal_tilt_deg": 4.770362589280812,
+      "prewarped_6mm_vertical_delta_mm": [
+        0.0,
+        6.0
+      ],
+      "vertical_from_up_deg": 0.0
+    },
+    {
+      "center_paper_mm": [
+        30.0,
+        213.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818181818181827,
+        0.4855357142857031
+      ],
+      "horizontal_tilt_deg": 4.770362589280812,
+      "prewarped_6mm_vertical_delta_mm": [
+        0.0,
+        6.0
+      ],
+      "vertical_from_up_deg": 0.0
+    },
+    {
+      "center_paper_mm": [
+        60.0,
+        227.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818181818181827,
+        0.08910714285715926
+      ],
+      "horizontal_tilt_deg": 0.8774328905398703,
+      "prewarped_6mm_vertical_delta_mm": [
+        0.0,
+        6.0
+      ],
+      "vertical_from_up_deg": 0.0
+    },
+    {
+      "center_paper_mm": [
+        60.0,
+        213.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818181818181827,
+        0.08910714285715926
+      ],
+      "horizontal_tilt_deg": 0.8774328905398703,
+      "prewarped_6mm_vertical_delta_mm": [
+        0.0,
+        6.0
+      ],
+      "vertical_from_up_deg": 0.0
+    },
+    {
+      "center_paper_mm": [
+        90.0,
+        227.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818181818181813,
+        -0.26644987289608935
+      ],
+      "horizontal_tilt_deg": -2.622089576932345,
+      "prewarped_6mm_vertical_delta_mm": [
+        0.0,
+        6.0
+      ],
+      "vertical_from_up_deg": 0.0
+    },
+    {
+      "center_paper_mm": [
+        90.0,
+        213.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818181818181813,
+        -0.26644987289608935
+      ],
+      "horizontal_tilt_deg": -2.622089576932345,
+      "prewarped_6mm_vertical_delta_mm": [
+        0.0,
+        6.0
+      ],
+      "vertical_from_up_deg": 0.0
+    },
+    {
+      "center_paper_mm": [
+        120.0,
+        227.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818357324773601,
+        -0.28240177025639923
+      ],
+      "horizontal_tilt_deg": -2.77874677767068,
+      "prewarped_6mm_vertical_delta_mm": [
+        -0.003631591796875,
+        6.0
+      ],
+      "vertical_from_up_deg": -0.034679142911022434
+    },
+    {
+      "center_paper_mm": [
+        120.0,
+        213.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.849884241277522,
+        -0.28240177025639923
+      ],
+      "horizontal_tilt_deg": -2.763794495785616,
+      "prewarped_6mm_vertical_delta_mm": [
+        -0.029560089111328125,
+        6.0
+      ],
+      "vertical_from_up_deg": -0.28227577421592037
+    },
+    {
+      "center_paper_mm": [
+        150.0,
+        227.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.818465662175981,
+        -0.35482103028303413
+      ],
+      "horizontal_tilt_deg": -3.4896833777676606,
+      "prewarped_6mm_vertical_delta_mm": [
+        -0.023345947265625,
+        6.0
+      ],
+      "vertical_from_up_deg": -0.22293624944274534
+    },
+    {
+      "center_paper_mm": [
+        150.0,
+        213.0
+      ],
+      "prewarped_6mm_horizontal_delta_mm": [
+        5.869453638250178,
+        -0.35482103028303413
+      ],
+      "horizontal_tilt_deg": -3.4594424236502457,
+      "prewarped_6mm_vertical_delta_mm": [
+        -0.19002914428710938,
+        6.0
+      ],
+      "vertical_from_up_deg": -1.814038275723603
+    }
+  ],
+  "quantization": {
+    "sample_count": 2494,
+    "rms_mm": 0.03494112403286216,
+    "max_mm": 0.07023772919392995,
+    "max_at_paper_mm": [
+      92.632,
+      211.555
+    ],
+    "max_error_xy_mm": [
+      -0.0690743882202054,
+      -0.01273057321271079
+    ],
+    "axis_abs_max_mm": [
+      0.06969424578891821,
+      0.05746115808253059
+    ]
+  },
+  "continuous_queue": {
+    "pen_down_segments": 2280,
+    "zero_step_segments": 0,
+    "joint_direction_changes": 1402,
+    "junctions_with_any_joint_reversal": 1049,
+    "junctions_with_both_joint_reversal": 93,
+    "junction_aware_deceleration_present": false,
+    "direction_compensation_enabled": false
+  }
+}
